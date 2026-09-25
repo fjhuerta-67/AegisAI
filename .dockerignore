@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.env
+.env.local
+*.log
+scratch
+*.zip
+*.tar.gz
+aisvs-src
+aisvs-src.zip
+docs/*.md

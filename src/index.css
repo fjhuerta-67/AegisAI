@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #F8FAFC;
+  --color-ink: #0F172A;
+  
+  /* Paleta Metálica Enterprise (Titanio, Platino, Acero, Grafito) */
+  --color-metal-titanium: #F8FAFC;
+  --color-metal-platinum: #F1F5F9;
+  --color-metal-silver: #E2E8F0;
+  --color-metal-border: #CBD5E1;
+  --color-metal-slate: #64748B;
+  --color-metal-graphite: #334155;
+  --color-metal-charcoal: #1E293B;
+  --color-metal-dark: #0F172A;
+  
+  /* Acentos Oficiales Google Cloud */
+  --color-google-blue: #1A73E8;
+  --color-google-blue-dark: #1557B0;
+  --color-google-blue-light: #E8F0FE;
+  --color-google-blue-50: #EFF6FF;
+  --color-google-green: #34A853;
+  --color-google-yellow: #FBBC05;
+  --color-google-red: #EA4335;
+  
+  /* Compatibilidad con variables previas redirigidas a Google Cloud & Metálicos */
+  --color-aegis-yellow: #FBBC05;
+  --color-aegis-blue: #1A73E8;
+  --color-deep-blue: #1557B0;
+  --color-aegis-blue: #1A73E8;
+  
+  /* Superficies Suaves & Acabado Metálico */
+  --color-pastel-blue: #EFF6FF;
+  --color-pastel-yellow: #FEF3C7;
+  --color-pastel-gray: #F1F5F9;
+  
+  /* Neutros de Texto y Soporte */
+  --color-gray-700: #334155;
+  --color-gray-500: #64748B;
+  --color-line: #E2E8F0;
+  --color-line-subtle: #F1F5F9;
+  
+  /* Estatus y Semáforos */
+  --color-safe: #34A853;
+  --color-warning: #FBBC05;
+  --color-danger: #EA4335;
+  
+  /* Tipografía Oficial Google */
+  --font-sans: 'Google Sans', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-slab: 'Google Sans', 'Roboto', sans-serif;
+  --font-mono: 'Roboto Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  font-family: 'Google Sans', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  border-color: #E2E8F0;
+}
+
+/* Transiciones globales suaves */
+a, button, input, select, textarea {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a {
+  color: #1A73E8;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #1557B0;
+}
+
+/* =========================================================
+   SISTEMA DE DISEÑO METÁLICO & GOOGLE CLOUD ENTERPRISE
+   ========================================================= */
+
+/* Resaltados elegantes */
+.mark-yellow {
+  background-color: #FEF3C7;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #92400E;
+  font-weight: 500;
+  display: inline;
+}
+
+.mark-blue {
+  background-color: #E8F0FE;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #1A73E8;
+  font-weight: 500;
+  display: inline;
+}
+
+/* Bordes Metálicos de Alta Precisión */
+.border-ink {
+  border: 1px solid #CBD5E1;
+}
+
+.border-ink-thin {
+  border: 1px solid #E2E8F0;
+}
+
+.border-division-blue {
+  border: 1px solid #1A73E8;
+}
+
+.border-metallic {
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+/* Tarjetas y Paneles Metálicos Modernos */
+.card-editorial {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-editorial:hover {
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
+}
+
+.card-metallic {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-metallic:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 6px 16px -3px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.card-pastel-blue {
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 14px;
+}
+
+.card-pastel-yellow {
+  background-color: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 14px;
+}
+
+.card-pastel-gray {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+}
+
+/* Cifras de KPI Modernas y Nítidas (Tipografía Google Cloud) */
+.kpi-number-blue {
+  color: #1A73E8;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.kpi-number-yellow {
+  color: #D97706;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.kpi-number-gray {
+  color: #334155;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* Gradientes Metálicos y Hero Google Cloud */
+.cover-gradient {
+  background: radial-gradient(circle at 10% 20%, #1E293B 0%, #0F172A 70%, #020617 100%);
+}
+
+.metallic-hero {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #172554 100%);
+}
+
+.metallic-surface-gradient {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.95) 100%);
+}
+
+/* Scrollbar moderno estilizado */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}

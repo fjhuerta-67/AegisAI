@@ -1,0 +1,11 @@
+{
+  "projectId": "your-gcp-project-id",
+  "appId": "1:000000000000:web:00000000000000",
+  "apiKey": "AIzaSy_YOUR_FIREBASE_API_KEY",
+  "authDomain": "your-gcp-project-id.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "your-gcp-project-id.firebasestorage.app",
+  "messagingSenderId": "000000000000",
+  "oAuthClientId": "000000000000-xxxxxxxx.apps.googleusercontent.com",
+  "measurementId": ""
+}

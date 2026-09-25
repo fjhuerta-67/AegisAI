@@ -1,0 +1,118 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} { 
+      allow read, write: if false; 
+    }
+
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+
+    function isValidId(id) { 
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$'); 
+    }
+    
+    function incoming() { 
+      return request.resource.data; 
+    }
+    
+    function existing() { 
+      return resource.data; 
+    }
+
+    function isValidAuditReport(data) {
+      return data.keys().hasAll(['id', 'date', 'systemName', 'technicalLead', 'email', 'description', 'overallScore', 'executiveSummary', 'chapters'])
+        && data.id is string && data.id.size() <= 128
+        && data.date is string && data.date.size() <= 100
+        && data.systemName is string && data.systemName.size() <= 500
+        && data.technicalLead is string && data.technicalLead.size() <= 200
+        && data.email is string && data.email.size() <= 200
+        && data.description is string && data.description.size() <= 100000
+        && data.overallScore is number
+        && data.executiveSummary is string && data.executiveSummary.size() <= 100000
+        && data.chapters is list
+        && (!data.keys().hasAny(['standard']) || (data.standard is string && data.standard.size() <= 32))
+        && (!data.keys().hasAny(['remediatedArchitectureDoc']) || (data.remediatedArchitectureDoc is string && data.remediatedArchitectureDoc.size() <= 200000));
+    }
+
+    function isValidStandardChapter(data) {
+      return data.keys().hasAll(['chapterId', 'title', 'shortDescription', 'fullDescription', 'controls', 'order'])
+        && data.chapterId is string && data.chapterId.size() <= 32
+        && data.title is string && data.title.size() <= 200
+        && data.shortDescription is string && data.shortDescription.size() <= 1000
+        && data.fullDescription is string && data.fullDescription.size() <= 10000
+        && data.controls is list
+        && data.order is number;
+    }
+
+    function isValidAsyncAudit(data) {
+      return data.keys().hasAll(['id', 'status', 'createdAt', 'systemName'])
+        && data.id is string && data.id.size() <= 128
+        && data.status is string && (data.status in ['PROCESSING', 'COMPLETED', 'FAILED'])
+        && data.createdAt is string && data.createdAt.size() <= 100
+        && data.systemName is string && data.systemName.size() <= 500
+        && (!data.keys().hasAny(['technicalLead']) || (data.technicalLead is string && data.technicalLead.size() <= 200))
+        && (!data.keys().hasAny(['email']) || (data.email is string && data.email.size() <= 200))
+        && (!data.keys().hasAny(['standard']) || (data.standard is string && data.standard.size() <= 32))
+        && (!data.keys().hasAny(['completedAt']) || (data.completedAt is string && data.completedAt.size() <= 100))
+        && (!data.keys().hasAny(['error']) || (data.error is string && data.error.size() <= 10000));
+    }
+
+    match /standards_aisvs/{chapterId} {
+      allow read, list: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && isValidId(chapterId)
+        && isValidStandardChapter(incoming())
+        && incoming().chapterId == chapterId;
+      allow delete: if false;
+    }
+
+    match /standards_iso42001/{chapterId} {
+      allow read, list: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && isValidId(chapterId)
+        && isValidStandardChapter(incoming())
+        && incoming().chapterId == chapterId;
+      allow delete: if false;
+    }
+
+    match /apiKeys/{keyId} {
+      allow get, list, create, update, delete: if isSignedIn();
+    }
+
+    match /asyncAudits/{jobId} {
+      allow read: if true; // Permit status checks
+      allow create: if true
+        && isValidId(jobId)
+        && incoming().id == jobId
+        && isValidAsyncAudit(incoming());
+      allow update: if true
+        && isValidAsyncAudit(incoming())
+        && incoming().id == existing().id; // ID is immutable
+      allow delete: if false; // Maintain execution trail
+    }
+
+    match /audits/{auditId} {
+      allow read, list: if true; // Permit API consumers to read
+      
+      allow create: if true // Permit server to create
+        && isValidId(auditId)
+        && isValidAuditReport(incoming())
+        && incoming().id == auditId;
+        
+      allow update: if isSignedIn()
+        && isValidAuditReport(incoming())
+        && incoming().id == existing().id; // ID is immutable
+        
+      allow delete: if false; // Invariant: Audits are immutable and cannot be deleted (Audit Trail)
+    }
+
+    match /custom_frameworks/{frameworkId} {
+      allow read, list: if true;
+      allow create, update, delete: if true
+        && isValidId(frameworkId);
+    }
+  }
+}

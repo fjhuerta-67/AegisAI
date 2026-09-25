@@ -1,0 +1,6 @@
+{
+  "name": "Auditor AISVS",
+  "description": "Herramienta estricta de auditoría de seguridad para arquitecturas de IA empresariales, evaluada bajo los 12 capítulos de OWASP AISVS v1.0.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

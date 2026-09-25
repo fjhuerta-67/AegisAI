@@ -1,0 +1,156 @@
+{
+  "id": "fw-eu-ai-act-mtug5x39",
+  "shortCode": "EU-AI-ACT",
+  "name": "Ley de Inteligencia Artificial de la UE (EU AI Act)",
+  "jurisdiction": "Unión Europea",
+  "description": "Reglamento (UE) 2024/1689 para sistemas de IA de alto riesgo: gestión de riesgos, gobernanza de datos, supervisión humana y ciberseguridad.",
+  "createdAt": "2026-09-09T18:43:53.157Z",
+  "totalChapters": 6,
+  "totalControls": 10,
+  "chapters": [
+    {
+      "chapterId": "CAP-01",
+      "title": "Gestión de Riesgos en Sistemas de IA",
+      "shortDescription": "Gestión continua e iterativa de riesgos a lo largo del ciclo de vida del sistema.",
+      "fullDescription": "Establecimiento, aplicación y mantenimiento de un sistema continuo de gestión de riesgos enfocado en proteger la salud, seguridad y derechos fundamentales ante usos previstos e indebidos.",
+      "order": 1,
+      "controls": [
+        {
+          "id": "EUAI-01.1",
+          "title": "Identificación y Evaluación Continua de Riesgos",
+          "description": "Establecer un proceso continuo e iterativo para identificar, analizar y evaluar los riesgos conocidos y previsibles para la salud, seguridad y derechos fundamentales.",
+          "level": "L3",
+          "objective": "Mitigar proactivamente los riesgos de impacto crítico antes y durante el despliegue del sistema de IA.",
+          "verificationGuidance": "Auditar la existencia de una matriz de riesgos (RAM) automatizada y registros de evaluación de impacto en derechos fundamentales (FRIA) integrados en el pipeline de CI/CD.",
+          "remediationGuidance": "Implementar marcos de evaluación como NIST AI RMF o ISO/IEC 42001 e integrarlos mediante herramientas de CI/CD para ejecutar chequeos de riesgos automáticos en cada versión."
+        },
+        {
+          "id": "EUAI-01.2",
+          "title": "Pruebas de Estrés y Modelado de Uso Indebido",
+          "description": "Realizar pruebas sistemáticas del sistema de IA para evaluar el desempeño bajo escenarios de uso previsto y uso indebido razonablemente previsible.",
+          "level": "L2",
+          "objective": "Garantizar el comportamiento seguro del sistema frente a interacciones maliciosas o imprevistas.",
+          "verificationGuidance": "Revisar informes de Red Teaming, suites de pruebas adversariales y coberturas de casos límite (edge cases) documentados antes del despliegue.",
+          "remediationGuidance": "Desarrollar baterias de pruebas automatizadas con herramientas de Red Teaming de IA (ej. ART, TextAttack) e integrar escenarios de abuso en el pipeline de pruebas de integración."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-02",
+      "title": "Gobernanza y Gestión de Datos",
+      "shortDescription": "Requisitos de calidad, sesgo y representatividad de conjuntos de datos.",
+      "fullDescription": "Criterios de gobernanza de datos para entrenamiento, validación y prueba, abarcando procedencia, etiquetado, detección de sesgos y mitigación de deficiencias.",
+      "order": 2,
+      "controls": [
+        {
+          "id": "EUAI-02.1",
+          "title": "Evaluación de Calidad y Calibración de Datos",
+          "description": "Validar que los conjuntos de datos de entrenamiento, validación y prueba cumplan criterios de calidad, relevancia y representatividad.",
+          "level": "L2",
+          "objective": "Asegurar que los datos de entrada prevengan errores de generalización y comportamientos anómalos.",
+          "verificationGuidance": "Verificar scripts de perfilado de datos (Data Profiling) y pipelines de validación automatizada que comprueben completitud, distribución y validez estadística.",
+          "remediationGuidance": "Implementar herramientas de calidad de datos como Great Expectations o AWS Glue DataBrew dentro de la canalización de ingesta de datos."
+        },
+        {
+          "id": "EUAI-02.2",
+          "title": "Detección y Mitigación de Sesgos No Deseados",
+          "description": "Aplicar técnicas de detección y reducción de sesgos discriminatorios en los datos de entrenamiento y evaluación.",
+          "level": "L3",
+          "objective": "Prevenir la discriminación algorítmica y asegurar la equidad en decisiones que afecten derechos fundamentales.",
+          "verificationGuidance": "Revisar los reportes de métricas de equidad (Fairness Metrics como Disparate Impact o Equalized Odds) generados en la fase de evaluación.",
+          "remediationGuidance": "Integrar librerías de equidad en IA como Fairlearn o AIF360 para auditar y aplicar técnicas de re-ponderación o resampleo en los datos."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-03",
+      "title": "Documentación Técnica y Trazabilidad",
+      "shortDescription": "Documentación integral previa a la puesta en mercado.",
+      "fullDescription": "Elaboración y actualización de la documentación técnica detallada que demuestre el cumplimiento normativo ante autoridades competentes y organismos notificados.",
+      "order": 3,
+      "controls": [
+        {
+          "id": "EUAI-03.1",
+          "title": "Ficha Técnica y Tarjeta del Modelo (Model Card)",
+          "description": "Generar y mantener actualizada la documentación técnica detallada, incluyendo arquitectura, hiperparámetros y límites de funcionamiento.",
+          "level": "L2",
+          "objective": "Proporcionar transparencia técnica completa para auditorías internas y regulatorias.",
+          "verificationGuidance": "Inspeccionar la existencia y actualización del archivo Model Card o System Card adjunto a los artefactos del modelo en el registro de modelos (MLflow, SageMaker).",
+          "remediationGuidance": "Adoptar el estándar de Model Cards de Google/HuggingFace e integrar su generación automática mediante librerías de MLOps en la fase de empaquetado."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-04",
+      "title": "Registro y Auditoría Automática (Logging)",
+      "shortDescription": "Capacidades técnicas de registro automático de eventos.",
+      "fullDescription": "Implementación de capacidades para la grabación automática de eventos a lo largo del ciclo de vida del sistema, garantizando trazabilidad para auditoría poscomercialización.",
+      "order": 4,
+      "controls": [
+        {
+          "id": "EUAI-04.1",
+          "title": "Auditoría Inmutable de Logs de Inferencia",
+          "description": "Registrar automáticamente las entradas, salidas, metadatos de ejecución y decisiones del sistema con un nivel de detalle adecuado para trazabilidad.",
+          "level": "L2",
+          "objective": "Permitir la reconstrucción posterior de incidentes y análisis Forense en sistemas en producción.",
+          "verificationGuidance": "Verificar que los logs de inferencia se emitan en formato estructurado (JSON), incluyan timestamps ISO 8601, hashes de trazabilidad y se almacenen en repositorios WORM o immutables.",
+          "remediationGuidance": "Configurar pipelines de logging centralizado con Fluentd/Logstash enviando eventos a almacenamiento inmutable (Amazon S3 Object Lock o Elasticsearch con ILM)."
+        },
+        {
+          "id": "EUAI-04.2",
+          "title": "Detección Automática de Modificaciones Sustanciales",
+          "description": "Monitorear e identificar desviaciones de rendimiento (drift) o modificaciones del sistema que representen un riesgo sustancial.",
+          "level": "L3",
+          "objective": "Alertar proactivamente ante la degradación del modelo o variaciones no autorizadas en producción.",
+          "verificationGuidance": "Comprobar alertas configuradas para Data Drift y Concept Drift con umbrales p-value predefinidos en plataformas de monitoreo de IA.",
+          "remediationGuidance": "Desplegar herramientas de monitoreo continuo de IA como Evidently AI, Arize o Whylogs conectadas a PagerDuty para alertas inmediatas."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-05",
+      "title": "Supervisión Humana e Intervención (Human-in-the-Loop)",
+      "shortDescription": "Mecanismos para la supervisión y control humano del sistema.",
+      "fullDescription": "Diseño de interfaces y herramientas que permitan a personas capacitadas supervisar, comprender, invalidar o detener las salidas del sistema de IA.",
+      "order": 5,
+      "controls": [
+        {
+          "id": "EUAI-05.1",
+          "title": "Mecanismo de Interrupción de Emergencia (Kill Switch)",
+          "description": "Proporcionar una funcionalidad técnica de anulación humana e interrupción inmediata del sistema o sus salidas.",
+          "level": "L3",
+          "objective": "Garantizar el control humano efectivo para prevenir daños inminentes o sistemáticos.",
+          "verificationGuidance": "Ejecutar pruebas de penetración o simulaciones funcionales del botón de parada de emergencia (Kill Switch) en entornos de staging o producción.",
+          "remediationGuidance": "Implementar un patrón de arquitectura Circuit Breaker en la API Gateway o capa de orquestación que permita degradar el servicio o desviar peticiones a un flujo manual instantáneamente."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-06",
+      "title": "Precisión, Robustez y Ciberseguridad",
+      "shortDescription": "Resiliencia técnica frente a errores, fallos y ataques ciberseguros.",
+      "fullDescription": "Garantía de un nivel adecuado de precisión, robustez operacional y ciberseguridad para resistir intentos de manipulación adversarial, inyecciones de prompts y degradación.",
+      "order": 6,
+      "controls": [
+        {
+          "id": "EUAI-06.1",
+          "title": "Protección Contra Ataques Adversariales e Inyección de Prompts",
+          "description": "Implementar salvaguardas y mecanismos defensivos contra inyecciones de prompts, envenenamiento de datos/RAG y evasión de modelos.",
+          "level": "L3",
+          "objective": "Proteger el modelo contra manipulaciones maliciosas que alteren su comportamiento, salidas o confidencialidad.",
+          "verificationGuidance": "Realizar pruebas de seguridad defensiva verificando la integración de filtros de entrada/salida y clasificadores de seguridad antes del procesamiento por el LLM/modelo.",
+          "remediationGuidance": "Desplegar un cortafuegos para IA (LLM Guard, NeMo Guardrails) e implementar sanitized prompts y cifrado de embeddings en la base de datos vectorial RAG."
+        },
+        {
+          "id": "EUAI-06.2",
+          "title": "Resiliencia y Tolerancia a Fallos Operacionales",
+          "description": "Diseñar la arquitectura para ser resiliente ante fallos de componentes, inconsistencias de datos de entrada o pérdida de conectividad.",
+          "level": "L2",
+          "objective": "Mantener la continuidad operativa y evitar decisiones erróneas por degradación del entorno.",
+          "verificationGuidance": "Revisar los tests de Chaos Engineering e inspeccionar políticas de reintentos, timeouts y fallbacks a modelos secundarios o reglas heurísticas.",
+          "remediationGuidance": "Implementar patrones de redundancia activa, fallbacks deterministas y validación estricta de esquemas Pydantic/JSON Schema en los endpoints del modelo."
+        }
+      ]
+    }
+  ]
+}

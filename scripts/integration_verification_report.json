@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-21T19:26:52.016Z",
+  "tests": [
+    {
+      "name": "1. Endpoint de Salud (/api/health)",
+      "passed": true,
+      "details": "HTTP 200"
+    },
+    {
+      "name": "2. Catálogo Dinámico de Marcos (/api/frameworks)",
+      "passed": true,
+      "details": "Total marcos: 3 (EU AI Act: true, LFPDPPP: true, LFPC: true)"
+    },
+    {
+      "name": "3. Integridad Estructural LFPDPPP (/api/frameworks/:id)",
+      "passed": true,
+      "details": "Capítulos: 6/6, Controles: 14/14"
+    },
+    {
+      "name": "4. Integridad Estructural LFPC (/api/frameworks/:id)",
+      "passed": true,
+      "details": "Capítulos: 6/6, Controles: 14/14"
+    },
+    {
+      "name": "5. Verificación de Inferencia y Conexión Gemini (/api/admin/test-connection)",
+      "passed": true,
+      "details": "Modelo: gemini-3.1-flash-lite, Latencia: 72174ms, Respuesta: OK"
+    },
+    {
+      "name": "6. Frontend SPA y Cabeceras HTTP de Seguridad",
+      "passed": true,
+      "details": "HTTP 200, nosniff: true, SAMEORIGIN: true"
+    }
+  ],
+  "allPassed": true
+}
