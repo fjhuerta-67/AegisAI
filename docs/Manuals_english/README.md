@@ -67,3 +67,4 @@ Welcome to the official English documentation for **AegisAI Enterprise Edition (
 | **Google Cloud Deployment Guide** | [`6_STEP_BY_STEP_GOOGLE_CLOUD_DEPLOYMENT_GUIDE.md`](6_STEP_BY_STEP_GOOGLE_CLOUD_DEPLOYMENT_GUIDE.md) | [`pdf/6_Step_by_Step_Google_Cloud_Deployment_Guide.pdf`](pdf/6_Step_by_Step_Google_Cloud_Deployment_Guide.pdf) |
 | **Development & Maintenance Guide** | [`7_DEVELOPMENT_AND_MAINTENANCE_GUIDE.md`](7_DEVELOPMENT_AND_MAINTENANCE_GUIDE.md) | [`pdf/7_Development_and_Maintenance_Guide.pdf`](pdf/7_Development_and_Maintenance_Guide.pdf) |
 | **Engineering Prompts Book** | [`AEGIS_AI_ENGINEERING_PROMPTS.md`](AEGIS_AI_ENGINEERING_PROMPTS.md) | [`pdf/AegisAI_Engineering_Prompts_Book.pdf`](pdf/AegisAI_Engineering_Prompts_Book.pdf) |
+| **Executive & Technical Presentation** | [`AEGISAI_EXECUTIVE_PRESENTATION.md`](AEGISAI_EXECUTIVE_PRESENTATION.md) | [`pdf/AegisAI_Executive_Presentation.pdf`](pdf/AegisAI_Executive_Presentation.pdf) |
