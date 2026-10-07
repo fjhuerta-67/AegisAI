@@ -34,10 +34,11 @@ export function Login({ onDemoLogin }: LoginProps) {
         return;
       }
     } catch (e: any) {
-      console.error("Google Auth error:", e);
       if (e?.code === 'auth/unauthorized-domain') {
         const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'este host';
         setError(`El dominio "${currentHost}" no está en los "Authorized Domains" de Firebase Auth. Agrégalo en Firebase Console > Authentication > Settings o utiliza el botón de Modo Demo.`);
+      } else if (e?.code === 'auth/api-key-not-valid' || e?.message?.includes('api-key-not-valid')) {
+        setError('Clave de API de Firebase no configurada o inválida. Puedes ingresar de inmediato haciendo clic abajo en "Probar en Modo Demo / Vista Previa".');
       } else if (e?.code === 'auth/popup-closed-by-user') {
         setError('La ventana de autenticación fue cerrada antes de completar el inicio de sesión.');
       } else {

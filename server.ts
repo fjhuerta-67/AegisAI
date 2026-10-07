@@ -279,12 +279,13 @@ function getGeminiClient(customKey?: string): GoogleGenAI {
 // Read firebase config manually since import json asserts are experimental
 let firebaseConfig: any = {};
 try {
-  const cfgPath = path.join(process.cwd(), 'firebase-applet-config.json');
+  const localCfgPath = path.join(process.cwd(), 'firebase-applet-config.local.json');
+  const cfgPath = fs.existsSync(localCfgPath) ? localCfgPath : path.join(process.cwd(), 'firebase-applet-config.json');
   if (fs.existsSync(cfgPath)) {
     firebaseConfig = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
   }
 } catch (e) {
-  console.warn("Could not load firebase-applet-config.json");
+  console.warn("Could not load firebase config");
 }
 
 if (!firebaseConfig.projectId) {

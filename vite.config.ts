@@ -1,15 +1,22 @@
+import fs from 'fs';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
+const localFirebaseConfig = path.resolve(__dirname, 'firebase-applet-config.local.json');
+const hasLocalFirebase = fs.existsSync(localFirebaseConfig);
+
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      },
+      alias: [
+        { find: '@', replacement: path.resolve(__dirname, '.') },
+        ...(hasLocalFirebase ? [
+          { find: /(.*)firebase-applet-config\.json$/, replacement: localFirebaseConfig }
+        ] : [])
+      ],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
