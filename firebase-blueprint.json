@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "AuditReport": {
+      "title": "AuditReport",
+      "description": "An OWASP AISVS Audit Report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "date": { "type": "string", "maxLength": 100 },
+        "systemName": { "type": "string", "maxLength": 500 },
+        "technicalLead": { "type": "string", "maxLength": 200 },
+        "email": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 100000 },
+        "overallScore": { "type": "number" },
+        "executiveSummary": { "type": "string", "maxLength": 100000 },
+        "chapters": { "type": "list" }
+      },
+      "required": ["id", "date", "systemName", "technicalLead", "email", "description", "overallScore", "executiveSummary", "chapters"]
+    },
+    "StandardChapter": {
+      "title": "StandardChapter",
+      "description": "A comprehensive chapter in the OWASP AI-SVS standard containing granular sub-controls",
+      "type": "object",
+      "properties": {
+        "chapterId": { "type": "string", "maxLength": 32 },
+        "title": { "type": "string", "maxLength": 200 },
+        "shortDescription": { "type": "string", "maxLength": 500 },
+        "fullDescription": { "type": "string", "maxLength": 5000 },
+        "controls": { "type": "list" },
+        "order": { "type": "number" }
+      },
+      "required": ["chapterId", "title", "shortDescription", "fullDescription", "controls", "order"]
+    }
+  },
+  "firestore": {
+    "/audits/{auditId}": {
+      "schema": { "$ref": "#/entities/AuditReport" },
+      "description": "Global collection of all audit reports."
+    },
+    "/standards_aisvs/{chapterId}": {
+      "schema": { "$ref": "#/entities/StandardChapter" },
+      "description": "Exhaustive OWASP AI-SVS standard chapters and controls stored in database."
+    },
+    "/standards_iso42001/{chapterId}": {
+      "schema": { "$ref": "#/entities/StandardChapter" },
+      "description": "Exhaustive ISO/IEC 42001 standard clauses and controls stored in database."
+    }
+  }
+}

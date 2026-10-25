@@ -1,0 +1,11 @@
+{
+  "projectId": "aegis-ai-demo",
+  "appId": "1:123456789012:web:abcdef1234567890",
+  "apiKey": "AIzaSyDemoFallbackKeyForOpenSourceCommunity",
+  "authDomain": "aegis-ai-demo.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "aegis-ai-demo.firebasestorage.app",
+  "messagingSenderId": "123456789012",
+  "oAuthClientId": "123456789012-sampleclientid.apps.googleusercontent.com",
+  "measurementId": ""
+}

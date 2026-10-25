@@ -1,0 +1,192 @@
+{
+  "id": "fw-lfpc-mex-2026",
+  "shortCode": "LFPC-MX",
+  "name": "Ley Federal de Protección al Consumidor (LFPC)",
+  "jurisdiction": "México (PROFECO)",
+  "description": "Marco legal mexicano de orden público e interés social que regula y protege los derechos de los consumidores en plataformas digitales, comercio electrónico, chatbots comerciales, sistemas de recomendación y contratación automatizada por IA.",
+  "createdAt": "2026-09-16T17:11:00.000Z",
+  "totalChapters": 6,
+  "totalControls": 14,
+  "chapters": [
+    {
+      "chapterId": "CAP-01",
+      "title": "Identificación y Transparencia en la Interacción con IA",
+      "shortDescription": "Revelación obligatoria de la naturaleza no humana del agente y especificación clara de sus capacidades.",
+      "fullDescription": "Disposiciones para garantizar que el consumidor conozca de forma inmediata e inequívoca que interactúa con un sistema automatizado de IA y no con una persona física, conforme al Art. 76 BIS de la LFPC.",
+      "order": 1,
+      "controls": [
+        {
+          "id": "LFPC-01.1",
+          "title": "Revelación Obligatoria de Identidad del Asistente Virtual",
+          "description": "El sistema debe informar de manera visible, clara y comprensible al inicio de toda conversación que el usuario está interactuando con un agente de Inteligencia Artificial.",
+          "level": "L1",
+          "objective": "Garantizar la transparencia comercial y el derecho del consumidor a saber si interactúa con un humano o un bot automatizado.",
+          "verificationGuidance": "Verificar en la interfaz de usuario que el mensaje de bienvenida y el encabezado del chat identifiquen explícitamente al asistente como 'Asistente de IA' o 'Bot Automatizado'.",
+          "remediationGuidance": "Configurar en el frontend y en el prompt del sistema un saludo inicial no modificable que declare: 'Hola, soy un asistente virtual impulsado por IA'."
+        },
+        {
+          "id": "LFPC-01.2",
+          "title": "Información Clara sobre Alcance, Limitaciones y Términos",
+          "description": "El asistente de IA debe informar con exactitud sus capacidades operativas, horarios de atención de soporte humano y condiciones de prestación del servicio.",
+          "level": "L1",
+          "objective": "Evitar falsas expectativas en el consumidor sobre las facultades del asistente automatizado.",
+          "verificationGuidance": "Inspeccionar las respuestas del asistente ante preguntas sobre sus facultades legales, transaccionales y de resolución de quejas.",
+          "remediationGuidance": "Incorporar en la base de conocimiento un documento canónico de capacidades y límites operativos del bot para guiar las respuestas del modelo."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-02",
+      "title": "Veracidad de la Información y Prevención de Alucinaciones",
+      "shortDescription": "Factual grounding en precios, ofertas vinculantes y prohibición de publicidad engañosa generativa.",
+      "fullDescription": "Exigencias de veracidad y comprobabilidad de la información comercial provista por modelos de lenguaje, prohibiendo afirmaciones falsas, alucinaciones de precios o promociones inexistentes.",
+      "order": 2,
+      "controls": [
+        {
+          "id": "LFPC-02.1",
+          "title": "Factual Grounding en Precios, Tarifas y Disponibilidad",
+          "description": "El agente de IA debe consultar exclusivamente fuentes autorizadas y estructuradas en tiempo real para informar precios, cargos y existencias, prohibiendo la estimación o alucinación de montos.",
+          "level": "L2",
+          "objective": "Cumplir con el Art. 7 de la LFPC que obliga al proveedor a respetar los precios y condiciones informadas al consumidor.",
+          "verificationGuidance": "Auditar la integración técnica con APIs de catálogo o bases de datos relacionales y constatar que el modelo no invente cotizaciones.",
+          "remediationGuidance": "Implementar llamadas a herramientas (tool calling / function calling) obligatorias para consultas de precios y forzar temperatura 0.0 en cotizaciones."
+        },
+        {
+          "id": "LFPC-02.2",
+          "title": "Carácter Vinculante de Ofertas y Promociones Emitidas por la IA",
+          "description": "Toda oferta, descuento, paquete o condición comercial informada al consumidor por el agente de IA dentro de su ámbito autorizado debe ser respetada por la empresa.",
+          "level": "L2",
+          "objective": "Prevenir discrepancias entre lo prometido por el bot y lo facturado por el sistema comercial conforme al Art. 7 y 48 de la LFPC.",
+          "verificationGuidance": "Verificar la persistencia y trazabilidad de las cotizaciones emitidas por el bot asociadas a un identificador de sesión y plazo de validez.",
+          "remediationGuidance": "Generar un código de folio de cotización temporal con vigencia verificada en la base de datos de pedidos al momento de ofrecer un precio."
+        },
+        {
+          "id": "LFPC-02.3",
+          "title": "Filtros contra Publicidad Engañosa y Patrones Oscuros (Dark Patterns)",
+          "description": "El sistema debe contar con salvaguardas que impidan al modelo emplear técnicas coercitivas, urgencia artificial engañosa o afirmaciones inexactas sobre cualidades de productos.",
+          "level": "L2",
+          "objective": "Erradicar la publicidad engañosa o abusiva generada por algoritmos de IA conforme al Art. 32 de la LFPC.",
+          "verificationGuidance": "Revisar los prompts de alineación (system instructions) y verificar que prohíban expresamente afirmaciones exageradas, comparaciones no demostrables o falsas advertencias de stock.",
+          "remediationGuidance": "Incorporar reglas de validación en guardrails de salida que detecten y bloqueen mensajes con patrones oscuros de venta forzosa."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-03",
+      "title": "Comercio Electrónico y Contratación Automatizada",
+      "shortDescription": "Resumen previo de transacción, confirmación expresa, comprobantes digitales y derecho de retracto.",
+      "fullDescription": "Mecanismos y flujos que garantizan la validez jurídica, el consentimiento informado y el derecho de revocación del consumidor en compras o contrataciones realizadas con agentes de IA.",
+      "order": 3,
+      "controls": [
+        {
+          "id": "LFPC-03.1",
+          "title": "Resumen Previo y Aceptación Expresa de la Transacción",
+          "description": "Antes de procesar cualquier transacción o cargo, el sistema debe presentar un desglose íntegro (precio, impuestos, envío, cargos adicionales) y requerir una acción positiva e inequívoca de confirmación.",
+          "level": "L1",
+          "objective": "Cumplir con el Art. 76 BIS Fracc. IV de la LFPC asegurando el consentimiento informado y deliberado del comprador.",
+          "verificationGuidance": "Comprobar en el flujo de interacción que el bot nunca procese una compra automáticamente sin presentar el resumen y recibir una confirmación expresa del usuario.",
+          "remediationGuidance": "Diseñar un widget de confirmación de pedido que liste todos los costos con botones claros de 'Aceptar y Comprar' y 'Cancelar'."
+        },
+        {
+          "id": "LFPC-03.2",
+          "title": "Generación Inmediata de Comprobante Digital con Folio de Rastreo",
+          "description": "El sistema debe emitir y enviar de forma instantánea al consumidor un recibo, factura digital o comprobante electrónico con número de folio identificador de la operación.",
+          "level": "L1",
+          "objective": "Proporcionar al consumidor el respaldo documental de su compra conforme al Art. 76 BIS Fracc. V de la LFPC.",
+          "verificationGuidance": "Verificar la emisión automática del comprobante por correo electrónico o enlace de descarga inmediatamente tras la confirmación de la orden.",
+          "remediationGuidance": "Integrar un servicio transaccional que despache el correo de confirmación con el PDF del pedido y el número de guía de seguimiento."
+        },
+        {
+          "id": "LFPC-03.3",
+          "title": "Mecanismo de Derecho de Retracto y Cancelación (5 Días Hábiles)",
+          "description": "El asistente debe ofrecer un comando o flujo directo para que el consumidor pueda ejercer su derecho de revocación o cancelación sin penalización dentro de los 5 días hábiles conforme al Art. 56 de la LFPC.",
+          "level": "L2",
+          "objective": "Facilitar el ejercicio del derecho legal de desistimiento en compras por medios electrónicos.",
+          "verificationGuidance": "Probar que el asistente reconozca solicitudes de 'cancelar mi compra' o 'devolver mi pedido' y guíe al consumidor en el procedimiento de retracto.",
+          "remediationGuidance": "Habilitar un intent o función de cancelación que verifique la fecha de entrega y active el proceso de reembolso automático si está dentro del plazo legal."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-04",
+      "title": "No Discriminación y Equidad en Precios Dinámicos",
+      "shortDescription": "Prohibición de sesgos discriminatorios en algoritmos de recomendación y fijación de tarifas.",
+      "fullDescription": "Garantías para impedir que los modelos de perfilamiento o tarificación algorítmica discriminen o perjudiquen arbitrariamente a determinados grupos de consumidores.",
+      "order": 4,
+      "controls": [
+        {
+          "id": "LFPC-04.1",
+          "title": "Prohibición de Precios Discriminatorios por Perfilamiento",
+          "description": "Los algoritmos de precios dinámicos y ofertas no deben discriminar ni establecer condiciones inequitativas basadas en género, raza, nacionalidad, condición social o geolocalización arbitraria.",
+          "level": "L3",
+          "objective": "Garantizar el cumplimiento del Art. 58 de la LFPC que prohíbe negar servicios o imponer condiciones arbitrarias.",
+          "verificationGuidance": "Revisar los modelos de precios y auditar que las variables protegidas (demográficas o de perfilamiento sensible) no intervengan en la fijación de tarifas.",
+          "remediationGuidance": "Excluir explícitamente variables protegidas de las matrices de recomendación y precios, aplicando pruebas periódicas de paridad de precios."
+        },
+        {
+          "id": "LFPC-04.2",
+          "title": "Accesibilidad Universal para Personas con Discapacidad",
+          "description": "La interfaz de interacción del agente de IA debe cumplir estándares de accesibilidad digital (WCAG 2.1 AA) para no excluir a personas con discapacidad visual o auditiva.",
+          "level": "L1",
+          "objective": "Garantizar el acceso equitativo a bienes y servicios digitales conforme al principio de no discriminación de la LFPC.",
+          "verificationGuidance": "Evaluar la interfaz de chat con lectores de pantalla, verificar contraste de color y soporte de entrada/salida por voz o texto alternativo.",
+          "remediationGuidance": "Añadir etiquetas ARIA completas, soporte de navegación por teclado y transcripción de audio accesible en los componentes de chat."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-05",
+      "title": "Supervisión Humana y Atención de Quejas ante PROFECO",
+      "shortDescription": "Escalamiento irrestricto a agentes humanos y trazabilidad de tickets para conciliación.",
+      "fullDescription": "Canales y procesos que salvaguardan el derecho del consumidor a no quedar atrapado en bucles automatizados y a contar con atención humana para resolver inconformidades.",
+      "order": 5,
+      "controls": [
+        {
+          "id": "LFPC-05.1",
+          "title": "Escalamiento Inmediato a un Representante Humano",
+          "description": "El consumidor tiene el derecho inalienable de solicitar hablar o ser transferido a un agente humano en cualquier momento, debiendo el bot canalizar la solicitud sin bloqueos.",
+          "level": "L2",
+          "objective": "Cumplir con el Art. 76 BIS Fracc. VII de la LFPC asegurando canales accesibles y eficaces de atención a quejas.",
+          "verificationGuidance": "Comprobar que comandos como 'quiero hablar con una persona', 'humano' o 'agente' activen inmediatamente la transferencia o solicitud de contacto.",
+          "remediationGuidance": "Programar un enrutador de soporte que capture la intención de contacto humano y abra un ticket en la plataforma de CRM (Zendesk, Salesforce) con historial."
+        },
+        {
+          "id": "LFPC-05.2",
+          "title": "Registro y Folio Formal de Reclamaciones para PROFECO",
+          "description": "Toda queja, inconformidad o reclamación no resuelta debe generar un número de folio oficial rastreable para efectos de procedimientos de conciliación ante PROFECO.",
+          "level": "L1",
+          "objective": "Facilitar la documentación probatoria y trazabilidad en caso de controversias mercantiles o quejas formales.",
+          "verificationGuidance": "Verificar que el sistema genere y proporcione al usuario un número de reporte con fecha y hora al manifestar una queja formal.",
+          "remediationGuidance": "Implementar la generación automática de tickets con código alfanumérico único almacenado en la base de datos de auditoría inmutable."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-06",
+      "title": "Seguridad en Pasarelas y Transacciones Agénticas",
+      "shortDescription": "Protección de credenciales financieras, tokens y reversión de cargos no autorizados.",
+      "fullDescription": "Medidas de seguridad técnicas para impedir que agentes autónomos de IA capturen o filtren información de pago no tokenizada o ejecuten compras no autorizadas.",
+      "order": 6,
+      "controls": [
+        {
+          "id": "LFPC-06.1",
+          "title": "Aislamiento y Tokenización de Medios de Pago en Agentes de IA",
+          "description": "Los modelos de lenguaje y agentes de IA nunca deben recibir, procesar ni almacenar en contexto números completos de tarjetas (PAN) ni códigos CVV, delegando la captura a pasarelas PCI-DSS aisladas.",
+          "level": "L3",
+          "objective": "Cumplir con el Art. 76 BIS Fracc. VI de la LFPC que exige confidencialidad y seguridad estricta en datos de pago.",
+          "verificationGuidance": "Comprobar que los campos de pago estén renderizados en iframes seguros de pasarelas certificadas (Stripe, Mercado Pago) y que los prompts no contengan datos de tarjetas.",
+          "remediationGuidance": "Implementar un filtro de rechazo automático en el input del chat que detecte números de tarjeta y los desvíe a un formulario PCI tokenizado."
+        },
+        {
+          "id": "LFPC-06.2",
+          "title": "Mecanismo de Reversión y Cancelación de Cargos no Autorizados",
+          "description": "Procedimiento ágil para cancelar y reembolsar de forma inmediata transacciones procesadas erróneamente o sin el consentimiento explícito del titular por mal funcionamiento del agente.",
+          "level": "L2",
+          "objective": "Proteger el patrimonio del consumidor frente a errores técnicos o alucinaciones transaccionales del agente de IA.",
+          "verificationGuidance": "Verificar la existencia de un protocolo de reversión que devuelva los fondos en un plazo no mayor a 48 horas tras comprobarse la anomalía.",
+          "remediationGuidance": "Habilitar una API interna de reembolso con doble factor de aprobación administrativa para resolver incidentes transaccionales de bots."
+        }
+      ]
+    }
+  ]
+}

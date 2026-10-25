@@ -1,0 +1,12 @@
+{
+  "provider": "gemini",
+  "geminiApiKey": "",
+  "preferredModel": "gemini-2.0-flash",
+  "openaiApiKey": "",
+  "openaiBaseUrl": "https://api.openai.com/v1",
+  "openaiModel": "gpt-4o",
+  "customHeaders": {},
+  "temperature": 0.0,
+  "maxTokens": 8192,
+  "fallbackModel": ""
+}

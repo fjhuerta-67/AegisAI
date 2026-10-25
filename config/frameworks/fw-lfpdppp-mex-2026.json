@@ -1,0 +1,192 @@
+{
+  "id": "fw-lfpdppp-mex-2026",
+  "shortCode": "LFPDPPP-MX",
+  "name": "Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP)",
+  "jurisdiction": "México (INAI)",
+  "description": "Marco legal mexicano de orden público que regula el tratamiento legítimo, seguro y controlado de datos personales por particulares en sistemas de IA, bases vectoriales (RAG), inferencia LLM y transferencias transfronterizas.",
+  "createdAt": "2026-09-16T17:10:00.000Z",
+  "totalChapters": 6,
+  "totalControls": 14,
+  "chapters": [
+    {
+      "chapterId": "CAP-01",
+      "title": "Principios Rectores del Tratamiento de Datos en IA",
+      "shortDescription": "Licitud, lealtad, finalidad y minimización de datos en el ciclo de vida de modelos y prompts.",
+      "fullDescription": "Garantiza que el tratamiento de datos personales en pipelines de IA cumpla con los principios fundamentales de la legislación mexicana, prohibiendo la recolección engañosa y exigiendo proporcionalidad estricta.",
+      "order": 1,
+      "controls": [
+        {
+          "id": "LFPDPPP-01.1",
+          "title": "Principio de Licitud y Lealtad Algorítmica",
+          "description": "El sistema de IA no debe obtener ni enriquecer datos de los titulares a través de medios engañosos, scraping no autorizado o técnicas clandestinas de perfilamiento.",
+          "level": "L2",
+          "objective": "Asegurar que todas las fuentes de datos que alimentan modelos o bases de conocimiento RAG cuenten con base legal y consentimiento legítimo.",
+          "verificationGuidance": "Verificar la trazabilidad y procedencia legal de todos los documentos y registros indexados en bases vectoriales y conjuntos de fine-tuning.",
+          "remediationGuidance": "Auditar y purgar fuentes de datos no autorizadas; documentar el origen contractual o consentimiento explícito de cada repositorio de conocimiento."
+        },
+        {
+          "id": "LFPDPPP-01.2",
+          "title": "Principio de Finalidad y No Reutilización Indebida",
+          "description": "Los datos recopilados para un fin determinado no deben ser re-utilizados para entrenar, calibrar o re-entrenar modelos de IA sin una nueva autorización del titular.",
+          "level": "L2",
+          "objective": "Prevenir el desvío de finalidad en los flujos de inferencia y bases de conocimiento corporativas.",
+          "verificationGuidance": "Revisar políticas de aislamiento de datos y confirmar que los datos de clientes no se incorporen a datasets de entrenamiento general.",
+          "remediationGuidance": "Establecer barreras técnicas de datos y cláusulas contractuales con proveedores de modelos de nube que prohíban el uso de prompts para re-entrenamiento."
+        },
+        {
+          "id": "LFPDPPP-01.3",
+          "title": "Principio de Proporcionalidad y Minimización en Prompts",
+          "description": "El sistema debe inyectar en la ventana de contexto de los modelos únicamente los datos personales estrictamente indispensables para satisfacer la consulta.",
+          "level": "L1",
+          "objective": "Reducir la superficie de exposición de información confidencial en interacciones con modelos de lenguaje.",
+          "verificationGuidance": "Inspeccionar las plantillas de prompts y componentes de ensamblado RAG para verificar filtros de extracción granular por chunks mínimos.",
+          "remediationGuidance": "Implementar pre-filtros de consulta que extraigan solo fragmentos relevantes y redacten campos no pertinentes antes de invocar la API del modelo."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-02",
+      "title": "Aviso de Privacidad y Consentimiento para Sistemas de IA",
+      "shortDescription": "Transparencia obligatoria y consentimiento expreso para datos sensibles en plataformas de IA.",
+      "fullDescription": "Establece los requisitos formales del Aviso de Privacidad Integral respecto al uso de Inteligencia Artificial Generativa y la obtención de consentimiento para datos biométricos y de salud.",
+      "order": 2,
+      "controls": [
+        {
+          "id": "LFPDPPP-02.1",
+          "title": "Declaración del Uso de IA en el Aviso de Privacidad",
+          "description": "El Aviso de Privacidad debe informar expresamente al titular sobre el uso de tecnologías de IA, modelos generativos y toma de decisiones automatizadas sobre sus datos.",
+          "level": "L1",
+          "objective": "Cumplir con el deber de información del Art. 16 de la LFPDPPP, permitiendo al usuario conocer el tratamiento automatizado de su información.",
+          "verificationGuidance": "Revisar el texto del Aviso de Privacidad vigente y verificar que describa con claridad el alcance del asistente de IA y las finalidades secundarias.",
+          "remediationGuidance": "Actualizar el Aviso de Privacidad incorporando un apartado específico sobre tratamiento algorítmico, proveedores de nube e inferencia generativa."
+        },
+        {
+          "id": "LFPDPPP-02.2",
+          "title": "Consentimiento Expreso para Datos Sensibles y Biometría",
+          "description": "Cuando el sistema de IA procese biometría (voz, rasgos faciales) o datos de salud, ideología o finanzas, debe recabar el consentimiento expreso y documentado del titular.",
+          "level": "L3",
+          "objective": "Garantizar el cumplimiento reforzado para categorías especiales de datos personales conforme al Art. 9 de la LFPDPPP.",
+          "verificationGuidance": "Validar la existencia de mecanismos de opt-in activo, firma electrónica o casilla no pre-marcada con bitácora inmutable de consentimientos otorgados.",
+          "remediationGuidance": "Bloquear la captura de datos biométricos o sensibles en agentes de IA hasta que el usuario confirme expresamente la autorización en una interfaz dedicada."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-03",
+      "title": "Medidas de Seguridad Técnicas y Deber de Confidencialidad",
+      "shortDescription": "Cifrado de vectores, enmascaramiento previo a la inferencia y blindaje de logs.",
+      "fullDescription": "Adopción de medidas de seguridad administrativas, físicas y técnicas para salvaguardar la confidencialidad de los datos personales en la arquitectura de IA.",
+      "order": 3,
+      "controls": [
+        {
+          "id": "LFPDPPP-03.1",
+          "title": "Cifrado y Control de Acceso en Bases Vectoriales (RAG)",
+          "description": "Las bases de datos vectoriales que contengan representaciones densas (embeddings) de datos personales deben estar cifradas en reposo y protegidas por ACLs granulares.",
+          "level": "L2",
+          "objective": "Evitar ataques de reconstrucción vectorial o exfiltración masiva de información confidencial desde almacenes de RAG.",
+          "verificationGuidance": "Comprobar el cifrado AES-256 en el cluster vectorial y verificar que cada consulta aplique pre-filtrado por identificador de tenant o usuario.",
+          "remediationGuidance": "Habilitar cifrado administrado por el cliente (CMEK) en bases vectoriales y configurar filtros de metadatos estrictos en las consultas semánticas."
+        },
+        {
+          "id": "LFPDPPP-03.2",
+          "title": "Enmascaramiento y Redacción Previa de PII (Data Loss Prevention)",
+          "description": "Implementar un módulo automatizado de DLP que detecte y enmascare identificadores personales (CURP, RFC, correos, teléfonos) antes de enviar el prompt al LLM.",
+          "level": "L2",
+          "objective": "Impedir que datos personales en texto claro viajen innecesariamente a los endpoints de inferencia o queden registrados en memorias temporales.",
+          "verificationGuidance": "Verificar en el código la integración de herramientas de redacción de PII (ej. Microsoft Presidio, Google Cloud Sensitive Data Protection) en el middleware.",
+          "remediationGuidance": "Configurar un pipeline de sanitización con expresiones regulares y NER (Named Entity Recognition) que reemplace PII por tokens sintéticos antes de llamar al modelo."
+        },
+        {
+          "id": "LFPDPPP-03.3",
+          "title": "Deber de Confidencialidad y Sanitización de Logs",
+          "description": "Las bitácoras de eventos, telemetría y trazabilidad del sistema de IA no deben almacenar prompts ni respuestas en texto claro que contengan datos personales.",
+          "level": "L1",
+          "objective": "Preservar el deber de confidencialidad del Art. 21 de la LFPDPPP evitando fugas de información a través de sistemas de observabilidad.",
+          "verificationGuidance": "Examinar los logs de SIEM, Cloud Logging o consola y validar que los payloads de prompts se encuentren anonimizados o con hashing criptográfico.",
+          "remediationGuidance": "Aplicar filtros de supresión de contenido sensible en los transportadores de logs (Winston, Fluentd, OpenTelemetry)."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-04",
+      "title": "Derechos ARCO en Sistemas Algorítmicos y RAG",
+      "shortDescription": "Procedimientos para atender solicitudes de Acceso, Rectificación, Cancelación y Oposición.",
+      "fullDescription": "Mecanismos operativos y técnicos para garantizar que los titulares puedan ejercer sus derechos constitucionales de protección de datos frente a sistemas de IA.",
+      "order": 4,
+      "controls": [
+        {
+          "id": "LFPDPPP-04.1",
+          "title": "Derecho de Acceso y Explicabilidad Algorítmica",
+          "description": "El responsable debe poder entregar al titular la información que sobre él se encuentra indexada y explicar la lógica general aplicada en decisiones automatizadas.",
+          "level": "L2",
+          "objective": "Permitir al usuario conocer y verificar los datos tratados por el sistema de IA conforme al Art. 23 de la LFPDPPP.",
+          "verificationGuidance": "Revisar la existencia de una API o procedimiento administrativo para listar y exportar los chunks de datos personales asociados a un titular.",
+          "remediationGuidance": "Desarrollar una función de exportación que busque en la base vectorial por ID de usuario y genere un informe legible de datos indexados."
+        },
+        {
+          "id": "LFPDPPP-04.2",
+          "title": "Derecho de Cancelación y Olvido en Índices Semánticos",
+          "description": "Procedimiento técnico automatizado para purgar, eliminar o disociar de inmediato los vectores y documentos de un titular ante una solicitud de cancelación.",
+          "level": "L2",
+          "objective": "Garantizar el bloqueo y supresión de datos personales en almacenes de memoria de IA conforme al Art. 25 de la LFPDPPP.",
+          "verificationGuidance": "Comprobar que las operaciones de borrado eliminen tanto el documento fuente como los embeddings vectoriales vinculados en los índices.",
+          "remediationGuidance": "Implementar un trigger de borrado en cascada que remueva vectores de Pinecone, Qdrant o pgvector al recibir una solicitud ARCO de cancelación."
+        },
+        {
+          "id": "LFPDPPP-04.3",
+          "title": "Derecho de Oposición a Decisiones Exclusivamente Automatizadas",
+          "description": "El titular tiene derecho a oponerse a que sus solicitudes, evaluaciones o perfiles sean procesados únicamente por un agente de IA sin revisión humana.",
+          "level": "L3",
+          "objective": "Evitar afectaciones desfavorables en la esfera jurídica del titular derivadas de dictámenes puramente algorítmicos.",
+          "verificationGuidance": "Verificar la existencia de un canal de revisión manual o escalamiento humano ante inconformidad con decisiones de elegibilidad o crédito.",
+          "remediationGuidance": "Configurar una bandera de exclusión que desvíe el caso a una cola de dictaminación humana cuando el titular active su derecho de oposición."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-05",
+      "title": "Transferencias Internacionales y Proveedores de IA en la Nube",
+      "shortDescription": "Garantías contractuales, Zero Data Retention (ZDR) y cumplimiento transfronterizo.",
+      "fullDescription": "Condiciones legales y técnicas obligatorias al transferir datos personales a proveedores de inferencia en la nube o servicios de IA alojados en el extranjero.",
+      "order": 5,
+      "controls": [
+        {
+          "id": "LFPDPPP-05.1",
+          "title": "Garantía Contractual de Zero Data Retention (ZDR)",
+          "description": "Los contratos de servicios con proveedores de API de IA (Google Cloud, etc.) deben garantizar por escrito que no almacenan ni reutilizan datos de clientes.",
+          "level": "L2",
+          "objective": "Asegurar que los datos transmitidos a terceros queden sujetos a las mismas obligaciones de confidencialidad que el responsable.",
+          "verificationGuidance": "Revisar los términos de servicio empresarial (Enterprise SLA) y constatar que el perfil de plataforma incluya ZDR habilitado.",
+          "remediationGuidance": "Utilizar exclusivamente cuentas empresariales (Enterprise SaaS / PaaS) que garanticen el aislamiento de datos y prohibición de entrenamiento."
+        },
+        {
+          "id": "LFPDPPP-05.2",
+          "title": "Cumplimiento en Transferencias Transfronterizas",
+          "description": "Verificar que el envío de datos personales a servidores ubicados fuera de México cumpla con las excepciones o cláusulas contractuales del Art. 36 y 37 de la LFPDPPP.",
+          "level": "L2",
+          "objective": "Proteger la legalidad de los flujos de datos transfronterizos requeridos para la inferencia de modelos de lenguaje en centros de datos internacionales.",
+          "verificationGuidance": "Validar que el Aviso de Privacidad incluya la cláusula de transferencias a proveedores de cómputo en la nube y el consentimiento correspondiente.",
+          "remediationGuidance": "Formalizar cláusulas contractuales tipo (Data Processing Addendum - DPA) con los proveedores internacionales de nube de IA."
+        }
+      ]
+    },
+    {
+      "chapterId": "CAP-06",
+      "title": "Gestión de Brechas de Seguridad y Rendición de Cuentas",
+      "shortDescription": "Detección de exfiltraciones, notificación de incidentes y registro de tratamientos.",
+      "fullDescription": "Procedimientos para identificar fugas de información, notificar vulneraciones al INAI y mantener la evidencia técnica del cumplimiento de seguridad.",
+      "order": 6,
+      "controls": [
+        {
+          "id": "LFPDPPP-06.1",
+          "title": "Detección de Exfiltración de PII por Prompt Injection",
+          "description": "Monitoreo continuo en tiempo real para detectar y bloquear intentos de inyección indirecta de prompts orientados a exfiltrar datos de otros usuarios.",
+          "level": "L3",
+          "objective": "Prevenir vulneraciones de seguridad que comprometan de forma masiva los datos personales almacenados en bases de conocimiento corporativas.",
+          "verificationGuidance": "Revisar registros de eventos del WAF de IA o middleware de detección de prompt injection y las alertas de anomalías en respuestas de salida.",
+          "remediationGuidance": "Implementar guardrails defensivos (NeMo Guardrails, Llama Guard o delimitadores XML estrictos) y rate limiting por tenant."
+        }
+      ]
+    }
+  ]
+}
