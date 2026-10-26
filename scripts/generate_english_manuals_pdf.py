@@ -335,12 +335,18 @@ manuals_to_compile = [
         "pdf": "7_Development_and_Maintenance_Guide.pdf",
         "title": "Development & Maintenance Guide",
         "sub": "Coding Standards, Testing Frameworks & Contribution Guidelines"
+    },
+    {
+        "md": "docs/Manuals_english/8_ISO_42001_AIMS_GOVERNANCE_AND_POLICIES.md",
+        "pdf": "8_ISO_42001_AIMS_Governance_and_Policies_AegisAI.pdf",
+        "title": "ISO/IEC 42001:2023 AIMS Governance & Policies Manual",
+        "sub": "Corporate AI Policy, Impact Assessment (AIIA), Whistleblowing, Asset Inventory & Management Review"
     }
 ]
 
 os.makedirs("docs/Manuals_english/pdf", exist_ok=True)
 
-print("=== Compiling High-Fidelity English PDFs for all 7 Manuals ===")
+print("=== Compiling High-Fidelity English PDFs for all 8 Manuals ===")
 
 for item in manuals_to_compile:
     md_file = item["md"]
@@ -413,4 +419,133 @@ for item in manuals_to_compile:
     kb = os.path.getsize(out_path_1) / 1024
     print(f" -> Generated {out_path_1} ({kb:.1f} KB)")
 
-print("\nAll 7 English Manuals compiled to PDF successfully!")
+spanish_manuals_to_compile = [
+    {
+        "md": "docs/MANUAL_DE_USUARIO_FINAL.md",
+        "pdf": "1_Manual_de_Uso_AegisAI.pdf",
+        "title": "Manual de Uso del Operador y Auditor",
+        "sub": "Guía Operativa para Evaluación y Verificación de Arquitecturas de IA"
+    },
+    {
+        "md": "docs/MANUAL_DE_ADMINISTRACION_Y_OPERACION.md",
+        "pdf": "2_Manual_de_Diseno_AegisAI.pdf",
+        "title": "Manual de Administración, Operación y Diseño",
+        "sub": "Gobernanza DevSecOps, Secretos, Cuotas Anti-DoW y Telemetría AIMS"
+    },
+    {
+        "md": "docs/DOCUMENTO_DE_ARQUITECTURA_DE_SOFTWARE.md",
+        "pdf": "3_Manual_de_Arquitectura_AegisAI.pdf",
+        "title": "Documento de Arquitectura de Software",
+        "sub": "Arquitectura Desacoplada, Modelado de Amenazas y Cumplimiento OWASP AI-SVS + ISO/IEC 42001"
+    },
+    {
+        "md": "docs/PLAN_E_INFORME_DE_PRUEBAS.md",
+        "pdf": "4_Manual_de_Pruebas_AegisAI.pdf",
+        "title": "Plan e Informe de Pruebas y Verificación QA",
+        "sub": "Aseguramiento de Calidad, Pruebas de Integración y Regresión"
+    },
+    {
+        "md": "docs/MANUAL_DE_ADMINISTRACION_Y_OPERACION.md",
+        "pdf": "5_Manual_de_Pruebas_de_Seguridad_AegisAI.pdf",
+        "title": "Manual de Seguridad, Operaciones y Defensa OWASP LLM Top 10",
+        "sub": "Endurecimiento Zero-Trust, Alertamiento C12.2 y Mitigación de Inyecciones C02.10"
+    },
+    {
+        "md": "docs/MANUAL_DE_INSTALACION_Y_DESPLIEGUE.md",
+        "pdf": "6_Manual_de_Instalacion_y_Despliegue_AegisAI.pdf",
+        "title": "Manual de Instalación y Despliegue",
+        "sub": "Guía Autocontenida para Cloud Run, Docker Read-Only (C04.1) y Perímetro IAP (C04.3)"
+    },
+    {
+        "md": "docs/GUIA_DE_INSTALACION_GOOGLE_CLOUD_PASO_A_PASO.md",
+        "pdf": "Manual_de_Instalacion_y_Despliegue_Google_Cloud.pdf",
+        "title": "Guía Paso a Paso de Despliegue en Google Cloud",
+        "sub": "Procedimiento Zero-Trust con Cloud Run, Cloud IAP, VPC Egress y Secret Manager"
+    },
+    {
+        "md": "docs/GUIA_DE_DESARROLLO_Y_MANTENIMIENTO.md",
+        "pdf": "7_Guia_de_Desarrollo_y_Mantenimiento_AegisAI.pdf",
+        "title": "Guía de Desarrollo y Mantenimiento",
+        "sub": "Estándares de Código, Pruebas de Seguridad y Extensibilidad"
+    },
+    {
+        "md": "docs/MANUAL_DE_GOBERNANZA_AIMS_ISO_42001.md",
+        "pdf": "8_Manual_de_Gobernanza_AIMS_ISO_42001_AegisAI.pdf",
+        "title": "Manual de Gobernanza y Políticas AIMS ISO/IEC 42001:2023",
+        "sub": "Política Corporativa de IA, Evaluación de Impacto (AIIA), Canal Ético, Inventario A.4.1 y Revisión por la Dirección"
+    }
+]
+
+print("\n=== Compiling High-Fidelity Spanish PDFs for all Manuals in docs/manuales_pdf ===")
+
+for item in spanish_manuals_to_compile:
+    md_file = item["md"]
+    pdf_name = item["pdf"]
+    print(f"\nProcessing {md_file} -> {pdf_name}...")
+
+    with open(md_file, 'r', encoding='utf-8') as f:
+        md_text = f.read()
+
+    body_html = md_to_html_body(md_text)
+
+    full_html = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{html.escape(item['title'])} - AegisAI</title>
+  <style>{css}</style>
+</head>
+<body>
+  <div class="cover-page">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20mm;">
+        <span style="font-size:20pt; font-weight:800; color:#2563eb; letter-spacing:-0.5px;">AEGIS<span style="color:#0f172a;">AI</span></span>
+        <span style="background:#dbeafe; color:#1d4ed8; font-size:8pt; font-weight:700; padding:2px 8px; border-radius:4px;">ENTERPRISE EDITION</span>
+      </div>
+      <div class="cover-hero-card">
+        <span class="cover-tag">SUITE DE DOCUMENTACIÓN TÉCNICA</span>
+        <div class="cover-title">{html.escape(item['title'])}</div>
+        <div class="cover-subtitle">{html.escape(item['sub'])}</div>
+      </div>
+    </div>
+    <div>
+      <table style="width:100%; border-collapse:collapse; margin-bottom:15mm; font-size:8pt;">
+        <tr>
+          <td style="padding:6px 0; color:#64748b; width:25%;">Versión de Plataforma:</td>
+          <td style="padding:6px 0; font-weight:600; color:#0f172a;">2.5.0 Enterprise Edition</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0; color:#64748b;">Alcance Normativo:</td>
+          <td style="padding:6px 0; font-weight:600; color:#0f172a;">OWASP AISVS v1.0, ISO/IEC 42001:2023, Google Cloud Security</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0; color:#64748b;">Licencia:</td>
+          <td style="padding:6px 0; font-weight:600; color:#0f172a;">Apache License 2.0 (Open Source)</td>
+        </tr>
+      </table>
+      <div style="border-top:1px solid #cbd5e1; padding-top:4mm; font-size:7.5pt; color:#64748b; display:flex; justify-content:space-between;">
+        <span>Equipo de Ingeniería AegisAI</span>
+        <span>Clasificación: Público / Open Source</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="page-break-after:always;"></div>
+  {body_html}
+</body>
+</html>
+"""
+
+    temp_html = f"/tmp/esp_{pdf_name}.html"
+    with open(temp_html, 'w', encoding='utf-8') as f:
+        f.write(full_html)
+
+    out_path_es = os.path.join("docs/manuales_pdf", pdf_name)
+    cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{out_path_es}" --no-pdf-header-footer "{temp_html}"'
+    subprocess.run(cmd, shell=True, check=True)
+
+    kb = os.path.getsize(out_path_es) / 1024
+    print(f" -> Generated {out_path_es} ({kb:.1f} KB)")
+
+print("\nAll English and Spanish Manuals compiled to PDF successfully!")
+

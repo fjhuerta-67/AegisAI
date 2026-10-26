@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Key, Copy, Plus, Trash2, CheckCircle2 } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { ApiKey } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
@@ -29,12 +29,18 @@ export function ApiConnectionView() {
     setLoading(true);
 
     const rawKey = `aisvs_${crypto.randomUUID().replace(/-/g, '')}`;
+    const currentUid = auth.currentUser?.uid;
+    const currentEmail = auth.currentUser?.email || '';
+    const currentTenant = currentEmail.includes('@') ? currentEmail.split('@')[1].toLowerCase() : '';
     const newApiKey: ApiKey = {
       id: rawKey,
       key: rawKey,
       name: newKeyName,
       createdAt: new Date().toISOString(),
-      status: 'active'
+      status: 'active',
+      ...(currentUid ? { ownerUid: currentUid } : {}),
+      ...(currentEmail ? { ownerEmail: currentEmail } : {}),
+      ...(currentTenant ? { tenantDomain: currentTenant } : {}),
     };
 
     try {

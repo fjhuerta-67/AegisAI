@@ -59,10 +59,12 @@ export default function App() {
           setUser(null);
         }
       } else {
-        const demoUser = localStorage.getItem('aegis_demo_user');
+        // Demo sessions are only honored when demo mode is enabled at build time.
+        const demoUser = import.meta.env.VITE_ENABLE_DEMO_MODE === 'true' && localStorage.getItem('aegis_demo_user');
         if (demoUser) {
           setUser({ email: 'auditor@aegisai.enterprise', displayName: 'Auditor Open Source' } as any);
         } else {
+          localStorage.removeItem('aegis_demo_user');
           setUser(null);
         }
       }
@@ -171,13 +173,26 @@ export default function App() {
     setCurrentView('report');
   };
 
+  const attachTenantOwnership = (report: AuditReport): AuditReport => {
+    const currentUid = auth.currentUser?.uid;
+    const currentEmail = auth.currentUser?.email || '';
+    const currentTenant = currentEmail.includes('@') ? currentEmail.split('@')[1].toLowerCase() : '';
+    return {
+      ...report,
+      ...(currentUid ? { ownerUid: currentUid } : {}),
+      ...(currentEmail ? { ownerEmail: currentEmail } : {}),
+      ...(currentTenant ? { tenantDomain: currentTenant } : {}),
+    };
+  };
+
   const handleAuditSubmit = async (report: AuditReport) => {
+    const ownedReport = attachTenantOwnership(report);
     try {
-      await setDoc(doc(db, 'audits', report.id), report);
-      setSelectedAuditId(report.id);
+      await setDoc(doc(db, 'audits', ownedReport.id), ownedReport);
+      setSelectedAuditId(ownedReport.id);
       setCurrentView('report');
     } catch (e) {
-      handleFirestoreError(e, OperationType.CREATE, `audits/${report.id}`);
+      handleFirestoreError(e, OperationType.CREATE, `audits/${ownedReport.id}`);
     }
   };
 
@@ -248,7 +263,17 @@ export default function App() {
               <GcpLiveScannerView 
                 onAuditComplete={async (report) => {
                   const auditId = report.id || `gcp-audit-${Date.now()}`;
-                  const reportWithId = { ...report, id: auditId };
+                  // The scanner result carries no form metadata; fill the fields every stored audit needs (see firestore.rules).
+                  const projectLabel = report.gcpProjectId || 'Google Cloud';
+                  const reportWithId = attachTenantOwnership({
+                    ...report,
+                    id: auditId,
+                    date: report.date || new Date().toISOString(),
+                    systemName: report.systemName || `GCP Live Scan: ${projectLabel}`,
+                    technicalLead: report.technicalLead || '',
+                    email: report.email || '',
+                    description: (report.description || `Auditoría en vivo del proyecto ${projectLabel} (GCP Live Scanner).`).slice(0, 100000),
+                  });
                   try {
                     await setDoc(doc(db, 'audits', auditId), reportWithId);
                   } catch (err) {
@@ -290,6 +315,32 @@ export default function App() {
             <AdminSettingsView />
           )}
         </Suspense>
+
+        {/* ISO/IEC 42001:2023 AIMS Governance & Whistleblowing Bar */}
+        <footer className="border-t border-[#ECECEC] bg-[#FAFAFA] px-5 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#4D4D4D] shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#1A1A1A]">AegisAI AIMS (ISO/IEC 42001:2023 &amp; OWASP AI-SVS)</span>
+            <span className="hidden md:inline text-[#767676]">|</span>
+            <span className="hidden md:inline">Uso sujeto a Política Corporativa de IA (A.2.1) y Uso Aceptable (A.9.1)</span>
+          </div>
+          <div className="flex items-center gap-3 text-[11px]">
+            <a
+              href="mailto:ai-ethics-whistleblower@aegisai.enterprise?subject=Escalamiento%20Etico%20Confidencial%20ISO%2042001%20A.3.3"
+              className="text-[#1B5FA6] hover:underline font-medium"
+              title="Canal confidencial de escalamiento ético y preocupaciones sobre IA (ISO/IEC 42001 A.3.3)"
+            >
+              Canal Ético Confidencial (A.3.3)
+            </a>
+            <span className="text-[#CCCCCC]">•</span>
+            <a
+              href="mailto:ai-appeals@aegisai.enterprise?subject=Impugnacion%20y%20Revision%20Humana%20ISO%2042001%20A.5.2"
+              className="text-[#1B5FA6] hover:underline font-medium"
+              title="Solicitar revisión humana o impugnar un dictamen algorítmico (ISO/IEC 42001 A.5.2)"
+            >
+              Impugnar Dictamen / Revisión Humana (A.5.2)
+            </a>
+          </div>
+        </footer>
       </main>
     </div>
   );

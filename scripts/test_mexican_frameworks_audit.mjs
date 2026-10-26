@@ -1,7 +1,7 @@
 import http from 'http';
 import fs from 'fs';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 
 const sampleMexicanBankingArch = `
 ESPECIFICACIÓN DE ARQUITECTURA TÉCNICA Y DE CUMPLIMIENTO

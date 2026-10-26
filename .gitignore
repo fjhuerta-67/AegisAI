@@ -19,3 +19,7 @@ coverage/
 docs/.temp_html/
 scratch/
 *.key
+
+# Per-environment deployment settings (project IDs, domains)
+scripts/argolis/config.env
+.firebaserc

@@ -149,25 +149,21 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --role="roles/storage.admin" --quiet
 ```
 
-### 4.4 Crear la Cuenta de Servicio de Ejecución (Runtime Service Account)
-Por seguridad Zero-Trust, el contenedor en Cloud Run **no debe ejecutarse con la cuenta predeterminada de Compute**. Se crea una cuenta con mínimos privilegios:
+### 4.4 Crear la Cuenta de Servicio de Ejecución con Mínimo Privilegio (`C05.2`)
+Por seguridad Zero-Trust, el contenedor en Cloud Run **no debe ejecutarse con la cuenta predeterminada de Compute** ni recibir roles amplios de lectura de proyecto (`roles/viewer`). Se crea una cuenta con mínimo privilegio estricto:
 ```bash
 SA_NAME="aegis-runner-sa"
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 gcloud iam service-accounts create "${SA_NAME}" \
-  --description="Identidad de ejecucion para AegisAI Cloud Run" \
+  --description="Identidad de ejecucion con minimo privilegio para AegisAI Cloud Run" \
   --display-name="AegisAI Runner" \
   --project="$PROJECT_ID"
 
-# Asignar roles de Vertex AI, lectura de telemetría y Firestore
+# Asignar UNICAMENTE roles de Vertex AI y Firestore (C05.2)
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:${SA_EMAIL}" \
   --role="roles/aiplatform.user" --quiet
-
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member="serviceAccount:${SA_EMAIL}" \
-  --role="roles/viewer" --quiet
 
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:${SA_EMAIL}" \
@@ -179,6 +175,7 @@ AegisAI almacena catálogos regulatorios personalizados y reportes de auditoría
 ```bash
 # Verificar o crear la base de datos en modo Nativo
 gcloud firestore databases create \
+  --database="aegis-ai-db" \
   --location="nam5" \
   --type="firestore-native" \
   --project="$PROJECT_ID" --quiet || echo "Base de datos ya existe."
@@ -201,6 +198,7 @@ Para que los usuarios inicien sesión de forma segura:
      "appId": "1:XXXXXXXXXX:web:XXXXXXXXXXXX",
      "apiKey": "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
      "authDomain": "your-gcp-project-id.firebaseapp.com",
+     "firestoreDatabaseId": "aegis-ai-db",
      "storageBucket": "your-gcp-project-id.firebasestorage.app",
      "messagingSenderId": "XXXXXXXXXX"
    }
@@ -224,9 +222,9 @@ docker push "$IMAGE_URL"
 ```
 *(Si no dispone de Docker localmente, puede compilar directamente en la nube con: `gcloud builds submit --tag "$IMAGE_URL" .`)*.
 
-### 4.8 Desplegar en Google Cloud Run
+### 4.8 Desplegar en Google Cloud Run con Perímetro Zero-Trust IAP y VPC Egress (`C04.3`, `C05.3`)
 ```bash
-gcloud run deploy "$SERVICE_NAME" \
+gcloud beta run deploy "$SERVICE_NAME" \
   --image "$IMAGE_URL" \
   --project "$PROJECT_ID" \
   --region "$REGION" \
@@ -238,8 +236,12 @@ gcloud run deploy "$SERVICE_NAME" \
   --cpu 1 \
   --timeout 300s \
   --port 8080 \
-  --set-env-vars "NODE_ENV=production,PORT=8080,PROJECT_ID=${PROJECT_ID}" \
-  --allow-unauthenticated
+  --set-env-vars "NODE_ENV=production,PORT=8080,PROJECT_ID=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},GOOGLE_GENAI_USE_VERTEXAI=true,FIRESTORE_DATABASE_ID=aegis-ai-db" \
+  --set-secrets "ADMIN_API_TOKEN=aegis-admin-token:latest" \
+  --vpc-connector "aegis-vpc-connector" \
+  --vpc-egress "private-ranges-only" \
+  --no-allow-unauthenticated \
+  --iap
 ```
 
 ### 4.9 Registrar el Dominio Autorizado en Firebase
@@ -254,20 +256,27 @@ echo "URL asignada: $SERVICE_URL"
 
 ---
 
-## 5. Control de Acceso y Filtro de Dominios Corporativos
+## 5. Control de Acceso Multi-Tenant, Filtro de Dominios Corporativos y Reglas Firestore (`C05.4`)
 
-AegisAI cuenta con una capa de control de acceso en frontend y backend:
+AegisAI aplica control de acceso en profundidad en tres capas (Cloud IAP, OAuth Frontend y Reglas Criptográficas de Firestore):
 
-- **Dominios Permitidos Configurable**: Puede definir los dominios permitidos mediante la variable de entorno `VITE_ALLOWED_DOMAINS` (por ejemplo `*` para permitir cualquier cuenta de Google, o `tu-empresa.com,aliado.com` para restringir a su organización).
-- **Validación Criptográfica y de Acceso**:
-  - En frontend, `Login.tsx` valida el dominio contra `VITE_ALLOWED_DOMAINS` al completar el flujo de Google OAuth.
-  - En base de datos, `firestore.rules` comprueba que el usuario cuente con sesión válida y token firmado:
+- **Dominios Permitidos Configurables**: Puede definir los dominios corporativos autorizados mediante `VITE_ALLOWED_DOMAINS` (por ejemplo `google.com,example.com`).
+- **Validación Criptográfica de Tenant y Propietario (`C05.4`)**:
+  - En frontend, `Login.tsx` valida el dominio contra `VITE_ALLOWED_DOMAINS`, y `App.tsx` / `ApiConnectionView.tsx` vinculan `ownerUid`, `ownerEmail` y `tenantDomain` a cada reporte y clave de API creada.
+  - En base de datos, `firestore.rules` valida pertenencia a los dominios corporativos autorizados (`isAllowedDomain()`), propiedad en la creación (`hasValidOwnershipOnCreate()`) e inmutabilidad de propietario (`ownershipUnchanged()`):
     ```javascript
-    function isSignedIn() {
-      return request.auth != null;
+    function isAllowedDomain() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email_verified == true
+        && (
+          request.auth.token.email.matches('.*@google\\.com$') ||
+          request.auth.token.email.matches('.*@example\\.com$') ||
+          request.auth.token.email.matches('.*@yourcompany\\.com$')
+        );
     }
     ```
-- Si un usuario inicia sesión con una cuenta no autorizada, será notificado con la alerta: `Acceso Denegado: La cuenta no pertenece a los dominios autorizados`.
+- Si un usuario intenta iniciar sesión con una cuenta no autorizada, la sesión se revoca de inmediato tanto en Cloud IAP como en Firestore.
 
 ---
 

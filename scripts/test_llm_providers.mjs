@@ -1,6 +1,6 @@
 import http from 'http';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 const ADMIN_TOKEN = 'aisvs_admin_sec_2026_9f8d1c4e7b2a';
 
 async function makeRequest(path, method = 'GET', body = null) {

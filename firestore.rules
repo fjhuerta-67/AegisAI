@@ -1,118 +1,279 @@
 rules_version = '2';
 
+// =====================================================================
+// AegisAI - Cloud Firestore Security Rules
+// Database: aegis-ai-db (Native mode)
+// =====================================================================
+//
+// SCOPE
+//   These rules only govern the browser client (Firebase JS SDK v12 with
+//   Firebase Auth Google sign-in). The Express server uses the Firebase
+//   Admin SDK (service account), which bypasses Security Rules entirely.
+//
+// ACCESS MODEL
+//   - The deployment is NOT public. Every allowed operation requires
+//     isAllowedUser(): signed in + verified email + allowed email domain.
+//   - Default deny: anything not explicitly allowed below is rejected,
+//     including unknown collections and every sub-collection.
+//
+// =====================================================================
+// Assumed Data Model
+// =====================================================================
+//
+// Collection: audits                  (client: list / get / create / update)
+// Document ID: == `id` field; 1-128 chars of [A-Za-z0-9_.-]
+// Fields:
+//   - id: string (required, == document ID, therefore immutable)
+//   - date: string (required, <= 100 chars) - ISO-8601 audit date. Mutable:
+//     re-seeding the sample audits rewrites it.
+//   - systemName: string (required, <= 500)
+//   - technicalLead: string (required, <= 200)
+//   - email: string (required, <= 200) - technical lead contact. NOTE: PII
+//     that every allowed user can read (shared, org-wide audit dashboard).
+//   - description: string (required, <= 100,000)
+//   - overallScore: number (required, 0..100, fractions allowed)
+//   - executiveSummary: string (required, <= 100,000)
+//   - chapters: list (required, <= 500 entries)
+//   - standard: string (optional, <= 32) - AI-SVS | ISO-42001 | FULL | CUSTOM | MULTI
+//   - remediatedArchitectureDoc: string (optional, <= 200,000)
+//   - ownerUid: string (optional, <= 128; if present on create, must == request.auth.uid;
+//     if present on existing doc, immutable on update)
+//   - ownerEmail: string (optional, <= 200; if present on create, must match
+//     request.auth.token.email case-insensitively)
+//   - tenantDomain: string (optional, <= 100)
+//   - Any other report metadata produced by the evaluation engine
+//     (standards, standardsBreakdown, customFrameworkId/Name, targetLevel,
+//     assessedLevel, levelAssessmentRationale, techPlatform/Name,
+//     deploymentType, modelUsed, latencyMs, promptTokens, completionTokens,
+//     isLiveGcpScan, gcpProjectId, gcpTelemetry, ...) is accepted without
+//     per-field checks; it is bounded by Firestore's 1 MiB document limit.
+//   - Never deleted by clients (immutable audit trail).
+//
+// Collections: standards_aisvs, standards_iso42001
+//                                     (client: list / get / create / update)
+// Document ID: == `chapterId` field; 1-32 chars of [A-Za-z0-9_.-], single
+//              inner spaces allowed (the ISO/IEC 42001 seed uses "Clause 4").
+// Fields (exactly these, no others):
+//   - chapterId: string (required, <= 32, == document ID)
+//   - title: string (required, <= 200)
+//   - shortDescription: string (required, <= 1,000)
+//   - fullDescription: string (required, <= 10,000)
+//   - controls: list (required, <= 200 entries)
+//   - order: number (required)
+//   - Never deleted by clients.
+//
+// Collection: apiKeys                 (client: list / get / create / delete)
+// Document ID: the API key itself, 'aisvs_' + 32..64 alphanumerics
+//              (the UI generates 'aisvs_' + 32 lowercase hex characters).
+// Fields on create (only these allowed):
+//   - id: string (required, == document ID)
+//   - key: string (required, == document ID)
+//   - name: string (required, 1..200 chars)
+//   - createdAt: string (required, ISO-8601 UTC, e.g. 2026-01-31T12:00:00.000Z)
+//   - status: string (required, must be 'active' on create)
+//   - ownerUid: string (optional, <= 128; if present on create, must == request.auth.uid;
+//     if present on existing doc, only ownerUid or admin@sandbox.example.com can delete)
+//   - ownerEmail: string (optional, <= 200)
+//   - tenantDomain: string (optional, <= 100)
+//   - Client updates are denied (revocation == delete). Server-managed
+//     fields such as lastUsedAt are written by the Admin SDK only.
+//
+// Collections: asyncAudits, custom_frameworks, system_config
+//   - Server-only (Admin SDK). ALL client access is denied.
+//
+// =====================================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} { 
-      allow read, write: if false; 
+
+    // =================================================================
+    // Default deny (explicit for documentation; rules are deny-by-default)
+    // =================================================================
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    function isSignedIn() { 
-      return request.auth != null; 
+    // =================================================================
+    // Identity
+    // =================================================================
+
+    // Allowed corporate email domains (plain form):
+    //   - google.com
+    //   - sandbox.example.com
+    // ALLOWED_DOMAINS in the deploy script MUST list exactly these domains:
+    // the deploy script greps this file for the escaped regex form of each
+    // domain (every dot written as [.]) to verify consistency.
+    // Exact domain match only (case-insensitive): subdomains such as
+    // user@evil.google.com and look-alikes such as user@notgoogle.com do
+    // NOT match. Unverified emails are always rejected.
+    function isAllowedUser() {
+      return request.auth != null
+        && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.get('email', null) is string
+        && request.auth.token.email.lower().matches('.*@(google[.]com|sandbox[.]example[.]com)$');
     }
 
-    function isValidId(id) { 
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$'); 
+    // =================================================================
+    // Generic helpers
+    // =================================================================
+
+    function incoming() {
+      return request.resource.data;
     }
-    
-    function incoming() { 
-      return request.resource.data; 
+
+    // Audit document IDs (unchanged from the previous rules).
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128
+        && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
     }
-    
-    function existing() { 
-      return resource.data; 
+
+    // Standard chapter document IDs: same charset as isValidId() plus single
+    // inner spaces, because the ISO/IEC 42001 seed uses IDs like "Clause 10".
+    function isValidChapterId(id) {
+      return id is string && id.size() > 0 && id.size() <= 32
+        && id.matches('^[a-zA-Z0-9_.-]+( [a-zA-Z0-9_.-]+)*$');
     }
+
+    // API key document IDs: 'aisvs_' + 32..64 alphanumerics.
+    function isValidApiKeyId(id) {
+      return id is string && id.matches('^aisvs_[a-zA-Z0-9]{32,64}$');
+    }
+
+    // ISO-8601 UTC string as produced by Date.prototype.toISOString().
+    function isIsoUtcString(value) {
+      return value is string && value.size() <= 40
+        && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]{1,9})?Z$');
+    }
+
+    // Optional field: absent, or a string of at most maxLen characters.
+    function isOptionalString(data, field, maxLen) {
+      return !(field in data)
+        || (data[field] is string && data[field].size() <= maxLen);
+    }
+
+    // =================================================================
+    // Domain validators (called on BOTH create and update)
+    // =================================================================
 
     function isValidAuditReport(data) {
-      return data.keys().hasAll(['id', 'date', 'systemName', 'technicalLead', 'email', 'description', 'overallScore', 'executiveSummary', 'chapters'])
+      return data.keys().hasAll(['id', 'date', 'systemName', 'technicalLead', 'email',
+                                 'description', 'overallScore', 'executiveSummary', 'chapters'])
         && data.id is string && data.id.size() <= 128
         && data.date is string && data.date.size() <= 100
         && data.systemName is string && data.systemName.size() <= 500
         && data.technicalLead is string && data.technicalLead.size() <= 200
         && data.email is string && data.email.size() <= 200
         && data.description is string && data.description.size() <= 100000
-        && data.overallScore is number
+        && data.overallScore is number && data.overallScore >= 0 && data.overallScore <= 100
         && data.executiveSummary is string && data.executiveSummary.size() <= 100000
-        && data.chapters is list
-        && (!data.keys().hasAny(['standard']) || (data.standard is string && data.standard.size() <= 32))
-        && (!data.keys().hasAny(['remediatedArchitectureDoc']) || (data.remediatedArchitectureDoc is string && data.remediatedArchitectureDoc.size() <= 200000));
+        && data.chapters is list && data.chapters.size() <= 500
+        && isOptionalString(data, 'standard', 32)
+        && isOptionalString(data, 'remediatedArchitectureDoc', 200000)
+        && isOptionalString(data, 'ownerUid', 128)
+        && isOptionalString(data, 'ownerEmail', 200)
+        && isOptionalString(data, 'tenantDomain', 100);
     }
 
     function isValidStandardChapter(data) {
       return data.keys().hasAll(['chapterId', 'title', 'shortDescription', 'fullDescription', 'controls', 'order'])
+        && data.keys().hasOnly(['chapterId', 'title', 'shortDescription', 'fullDescription', 'controls', 'order'])
         && data.chapterId is string && data.chapterId.size() <= 32
         && data.title is string && data.title.size() <= 200
         && data.shortDescription is string && data.shortDescription.size() <= 1000
         && data.fullDescription is string && data.fullDescription.size() <= 10000
-        && data.controls is list
+        && data.controls is list && data.controls.size() <= 200
         && data.order is number;
     }
 
-    function isValidAsyncAudit(data) {
-      return data.keys().hasAll(['id', 'status', 'createdAt', 'systemName'])
-        && data.id is string && data.id.size() <= 128
-        && data.status is string && (data.status in ['PROCESSING', 'COMPLETED', 'FAILED'])
-        && data.createdAt is string && data.createdAt.size() <= 100
-        && data.systemName is string && data.systemName.size() <= 500
-        && (!data.keys().hasAny(['technicalLead']) || (data.technicalLead is string && data.technicalLead.size() <= 200))
-        && (!data.keys().hasAny(['email']) || (data.email is string && data.email.size() <= 200))
-        && (!data.keys().hasAny(['standard']) || (data.standard is string && data.standard.size() <= 32))
-        && (!data.keys().hasAny(['completedAt']) || (data.completedAt is string && data.completedAt.size() <= 100))
-        && (!data.keys().hasAny(['error']) || (data.error is string && data.error.size() <= 10000));
+    // Document written by ApiConnectionView.generateApiKey() (plus optional C05.4 ownership fields).
+    function isValidNewApiKey(data, keyId) {
+      return data.keys().hasAll(['id', 'key', 'name', 'createdAt', 'status'])
+        && data.keys().hasOnly(['id', 'key', 'name', 'createdAt', 'status', 'ownerUid', 'ownerEmail', 'tenantDomain'])
+        && data.id == keyId
+        && data.key == keyId
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && isIsoUtcString(data.createdAt)
+        && data.status == 'active'
+        && isOptionalString(data, 'ownerUid', 128)
+        && isOptionalString(data, 'ownerEmail', 200)
+        && isOptionalString(data, 'tenantDomain', 100)
+        && (!('ownerUid' in data) || data.ownerUid == request.auth.uid);
     }
 
-    match /standards_aisvs/{chapterId} {
-      allow read, list: if isSignedIn();
-      allow create, update: if isSignedIn()
-        && isValidId(chapterId)
+    // Shared write check for both standards catalogs.
+    function canWriteStandardChapter(chapterId) {
+      return isAllowedUser()
+        && isValidChapterId(chapterId)
         && isValidStandardChapter(incoming())
         && incoming().chapterId == chapterId;
-      allow delete: if false;
     }
 
-    match /standards_iso42001/{chapterId} {
-      allow read, list: if isSignedIn();
-      allow create, update: if isSignedIn()
-        && isValidId(chapterId)
-        && isValidStandardChapter(incoming())
-        && incoming().chapterId == chapterId;
-      allow delete: if false;
-    }
+    // =================================================================
+    // Collections
+    // =================================================================
 
-    match /apiKeys/{keyId} {
-      allow get, list, create, update, delete: if isSignedIn();
-    }
-
-    match /asyncAudits/{jobId} {
-      allow read: if true; // Permit status checks
-      allow create: if true
-        && isValidId(jobId)
-        && incoming().id == jobId
-        && isValidAsyncAudit(incoming());
-      allow update: if true
-        && isValidAsyncAudit(incoming())
-        && incoming().id == existing().id; // ID is immutable
-      allow delete: if false; // Maintain execution trail
-    }
-
+    // Audit reports. The UI lists them with query(collection, limit(50)),
+    // creates them with setDoc (seeding + new reports) and updates them with
+    // setDoc on an existing id (remediation toggles, re-seeding).
     match /audits/{auditId} {
-      allow read, list: if true; // Permit API consumers to read
-      
-      allow create: if true // Permit server to create
+      allow read: if isAllowedUser();
+      allow create: if isAllowedUser()
         && isValidId(auditId)
         && isValidAuditReport(incoming())
-        && incoming().id == auditId;
-        
-      allow update: if isSignedIn()
+        && incoming().id == auditId
+        && (!('ownerUid' in incoming()) || incoming().ownerUid == request.auth.uid)
+        && (!('ownerEmail' in incoming()) || incoming().ownerEmail.lower() == request.auth.token.email.lower());
+      allow update: if isAllowedUser()
+        && isValidId(auditId)
         && isValidAuditReport(incoming())
-        && incoming().id == existing().id; // ID is immutable
-        
-      allow delete: if false; // Invariant: Audits are immutable and cannot be deleted (Audit Trail)
+        && incoming().id == auditId
+        && (!('ownerUid' in resource.data) || incoming().get('ownerUid', null) == resource.data.ownerUid);
+      // Invariant: audits are an immutable audit trail and are never deleted.
+      allow delete: if false;
     }
 
+    // OWASP AISVS catalog (CatalogView: getDocs + setDoc seeding).
+    match /standards_aisvs/{chapterId} {
+      allow read: if isAllowedUser();
+      allow create, update: if canWriteStandardChapter(chapterId);
+      allow delete: if false;
+    }
+
+    // ISO/IEC 42001 catalog (CatalogView: getDocs + setDoc seeding).
+    match /standards_iso42001/{chapterId} {
+      allow read: if isAllowedUser();
+      allow create, update: if canWriteStandardChapter(chapterId);
+      allow delete: if false;
+    }
+
+    // API keys (ApiConnectionView: onSnapshot list, setDoc create, deleteDoc).
+    match /apiKeys/{keyId} {
+      allow read: if isAllowedUser();
+      allow create: if isAllowedUser()
+        && isValidApiKeyId(keyId)
+        && isValidNewApiKey(incoming(), keyId);
+      allow update: if false;
+      allow delete: if isAllowedUser()
+        && (resource.data.get('ownerUid', null) == null
+            || resource.data.ownerUid == request.auth.uid
+            || request.auth.token.email.lower() == 'admin@sandbox.example.com');
+    }
+
+    // Async API audit jobs: written and read by the server (Admin SDK) only.
+    match /asyncAudits/{jobId} {
+      allow read, write: if false;
+    }
+
+    // Custom (BYOF) frameworks: served through the server's /api/frameworks
+    // endpoints (Admin SDK) only.
     match /custom_frameworks/{frameworkId} {
-      allow read, list: if true;
-      allow create, update, delete: if true
-        && isValidId(frameworkId);
+      allow read, write: if false;
+    }
+
+    // Server configuration (e.g. admin_settings): persisted by server.ts via
+    // the Admin SDK so /app/config in the container can be strictly read-only.
+    match /system_config/{configId} {
+      allow read, write: if false;
     }
   }
 }

@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "algorithm": "SHA-256",
+  "generatedAt": "2026-10-25T23:10:57.353Z",
+  "standard": "OWASP AI-SVS C01.4 / ISO 42001 A.7.2",
+  "snapshots": {
+    "owasp-aisvs-context.md": {
+      "sha256": "02405174ac4390bab5a3ab1fb0b3dbf9ce6df7f42dca0525ae2abc1020802c02",
+      "bytes": 11500
+    },
+    "iso-42001-context.md": {
+      "sha256": "59c351fdc60e46643f626f53b1e568034dfb0a0ea432a4751baee20b731788c0",
+      "bytes": 13944
+    },
+    "config/frameworks/fw-dsm-01-mubn2f1y.json": {
+      "sha256": "dd30b012be822737088d686459f11e12436b8242f9edd6f029f45d93d5be441d",
+      "bytes": 3618
+    },
+    "config/frameworks/fw-eu-ai-act-mtug5x39.json": {
+      "sha256": "e4d509d93d9bc29995b0d45e95072e04acf38f749c2183495de73e21c2cbd772",
+      "bytes": 11303
+    },
+    "config/frameworks/fw-lfpc-mex-2026.json": {
+      "sha256": "3d87fab07bb94ce00edf1d14a6ebcdc5383ecf99e65d0bc983ff2b1caaa53c76",
+      "bytes": 15694
+    },
+    "config/frameworks/fw-lfpdppp-mex-2026.json": {
+      "sha256": "8452d9a17625765c373bfd1de8018cc6ead27a2c6f30abb7a1e1e1f505214374",
+      "bytes": 15419
+    }
+  }
+}

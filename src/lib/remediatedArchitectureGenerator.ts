@@ -4,12 +4,25 @@ import { format } from 'date-fns';
 
 function detectLanguage(code: string): string {
   if (!code) return 'text';
-  if (code.includes('import ') || code.includes('def ') || code.includes('class ') || code.includes('print(')) return 'python';
-  if (code.includes('apiVersion:') || code.includes('kind:') || code.includes('metadata:')) return 'yaml';
-  if (code.includes('npm ') || code.includes('curl ') || code.includes('gcloud ') || code.includes('chmod ')) return 'bash';
-  if (code.includes('const ') || code.includes('interface ') || code.includes('function ') || code.includes('export ')) return 'typescript';
-  if (code.startsWith('{') && code.endsWith('}')) return 'json';
-  return 'python';
+  const trimmed = code.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) return 'json';
+  if (code.includes('rules_version') || code.includes('const ') || code.includes('interface ') || code.includes('export ') || code.includes('function ') || /import\s+.*\s+from\s+['"]/.test(code)) return 'typescript';
+  if (code.includes('resource "') || code.includes('provider "')) return 'hcl';
+  if (code.includes('apiVersion:') || code.includes('kind:') || code.includes('metadata:') || /^[a-zA-Z0-9_]+:\s*(\n|$)/m.test(trimmed)) return 'yaml';
+  if (code.includes('def ') || code.includes('import numpy') || code.includes('print(')) return 'python';
+  if (code.includes('npm ') || code.includes('curl ') || code.includes('gcloud ') || code.includes('chmod ') || code.includes('echo ')) return 'bash';
+  return 'text';
+}
+
+function firstCompleteSentence(text?: string): string {
+  if (!text) return 'Salvaguarda técnica y configuración de hardening implementada.';
+  const cleaned = text.trim().replace(/\s+/g, ' ');
+  // Split on a sentence-ending period followed by whitespace and an uppercase/Spanish letter, not inside identifiers like googleapis.com, crypto.timingSafeEqual, server.ts, A.3.3, or Gemini 3.8.
+  const match = cleaned.match(/^(.+?[.!?])(?:\s+[A-ZÁÉÍÓÚÑ]|$)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return cleaned.endsWith('.') ? cleaned : `${cleaned}.`;
 }
 
 /**
@@ -17,22 +30,25 @@ function detectLanguage(code: string): string {
  * diseñado para que el sistema cumpla con el 100% de los puntos evaluados.
  */
 export function generateRemediatedArchitectureMarkdown(audit: AuditReport): string {
-  // Si el backend ya sintetizó un documento de arquitectura remediada por IA, lo utilizamos como base principal
-  if (audit.remediatedArchitectureDoc && audit.remediatedArchitectureDoc.length > 300) {
-    return audit.remediatedArchitectureDoc;
-  }
-
   const actionItems = extractActionItems(audit);
   const isCustom = audit.standard === 'CUSTOM';
   const isFull = audit.standard === 'FULL';
+  const isMulti = audit.standard === 'MULTI' || (audit.standards && audit.standards.length > 1);
   const isISO = audit.standard === 'ISO-42001';
+  const breakdownNames = (audit.standardsBreakdown || []).map(b => b.standardName).filter(Boolean);
   const standardLabel = isCustom
     ? (audit.customFrameworkName || 'Marco Regulatorio Personalizado')
-    : (isFull ? 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023' : (isISO ? 'ISO/IEC 42001:2023' : 'OWASP AI-SVS 1.0'));
+    : (isMulti
+      ? (breakdownNames.length > 0 ? breakdownNames.join(' & ') : 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023')
+      : (isFull ? 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023' : (isISO ? 'ISO/IEC 42001:2023' : 'OWASP AI-SVS 1.0')));
   
   const levelLabel = audit.assessedLevel || audit.targetLevel || 'L1';
-  const platformName = audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || 'SaaS Gestionado');
-  const deploymentType = audit.deploymentType || 'SaaS';
+  const platformName = audit.techPlatformName || (
+    audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' :
+    audit.techPlatform === 'vertex-ai' ? 'Google Cloud Vertex AI' :
+    audit.techPlatform || 'SaaS Gestionado'
+  );
+  const deploymentType = audit.deploymentType || (audit.techPlatform === 'vertex-ai' ? 'PaaS' : 'SaaS');
   const cleanSystemName = audit.systemName || 'Sistema IA';
   const evalDate = audit.date ? format(new Date(audit.date), 'yyyy-MM-dd HH:mm') : format(new Date(), 'yyyy-MM-dd HH:mm');
 
@@ -64,9 +80,7 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
   } else {
     actionItems.forEach(item => {
       const p = item.punto;
-      const fixSummary = p.remediationDetails?.strategy 
-        ? p.remediationDetails.strategy.split('.')[0] + '.'
-        : (p.remediation ? p.remediation.split('.')[0] + '.' : 'Salvaguarda técnica y configuración de hardening implementada.');
+      const fixSummary = firstCompleteSentence(p.remediationDetails?.strategy || p.remediation);
       md += `| \`${p.id}\` | ${p.name} | **${p.status}** | \`${p.level || 'L1'}\` | **${p.riskImpact}** | ${fixSummary} |\n`;
     });
   }
@@ -74,40 +88,44 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
   md += `\n---\n\n`;
 
   md += `## 3. Especificación Integral de la Arquitectura Corregida (Drop-in Replacement)\n\n`;
-  md += `> Esta sección contiene la descripción técnica completa del sistema ${cleanSystemName}, integrando tanto su funcionalidad operativa original como todas las defensas en profundidad exigidas para certificar cumplimiento normativo total.\n\n`;
+  if (audit.remediatedArchitectureDoc && audit.remediatedArchitectureDoc.length > 300) {
+    md += `${audit.remediatedArchitectureDoc.trim()}\n\n`;
+  } else {
+    md += `> Esta sección contiene la descripción técnica completa del sistema ${cleanSystemName}, integrando tanto su funcionalidad operativa original como todas las defensas en profundidad exigidas para certificar cumplimiento normativo total.\n\n`;
 
-  md += `### 3.1 Descripción General y Alcance del Sistema\n`;
-  md += `${cleanSystemName} es una solución de Inteligencia Artificial desplegada sobre la infraestructura empresarial de **${platformName}** (${deploymentType}).\n\n`;
-  md += `**Descripción Base del Sistema:**\n`;
-  md += `${audit.description || 'Sistema de Inteligencia Artificial empresarial con procesamiento de lenguaje natural y flujos RAG.'}\n\n`;
+    md += `### 3.1 Descripción General y Alcance del Sistema\n`;
+    md += `${cleanSystemName} es una solución de Inteligencia Artificial desplegada sobre la infraestructura empresarial de **${platformName}** (${deploymentType}).\n\n`;
+    md += `**Descripción Base del Sistema:**\n`;
+    md += `${audit.description || 'Sistema de Inteligencia Artificial empresarial con procesamiento de lenguaje natural y flujos RAG.'}\n\n`;
 
-  md += `### 3.2 Salvaguardas Nativas Heredadas de la Plataforma Cloud\n`;
-  md += `- **Aislamiento Físico y MicroVMs:** La ejecución de modelos opera en contenedores aislados gVisor/microVM con chips de seguridad Titan y arranque verificado.\n`;
-  md += `- **Cifrado Integral:** Cifrado en tránsito forzado con TLS 1.3 y cifrado en reposo con claves AES-256 administradas por el cliente (CMEK) o por el proveedor.\n`;
-  md += `- **Zero Data Retention (ZDR):** Garantía contractual de que los prompts, consultas de usuarios y respuestas generadas jamás se almacenan para re-entrenamiento ni mejora de modelos fundacionales.\n`;
-  md += `- **Filtros de Seguridad Nativos:** Bloqueo de contenido tóxico, incitación al odio y malware a nivel API.\n\n`;
+    md += `### 3.2 Salvaguardas Nativas Heredadas de la Plataforma Cloud\n`;
+    md += `- **Aislamiento Físico y MicroVMs:** La ejecución de modelos opera en contenedores aislados gVisor/microVM con chips de seguridad Titan y arranque verificado.\n`;
+    md += `- **Cifrado Integral:** Cifrado en tránsito forzado con TLS 1.3 y cifrado en reposo con claves AES-256 administradas por el cliente (CMEK) o por el proveedor.\n`;
+    md += `- **Zero Data Retention (ZDR):** Garantía contractual de que los prompts, consultas de usuarios y respuestas generadas jamás se almacenan para re-entrenamiento ni mejora de modelos fundacionales.\n`;
+    md += `- **Filtros de Seguridad Nativos:** Bloqueo de contenido tóxico, incitación al odio y malware a nivel API.\n\n`;
 
-  md += `### 3.3 Arquitectura de Defensas en Profundidad Incorporadas\n\n`;
+    md += `### 3.3 Arquitectura de Defensas en Profundidad Incorporadas\n\n`;
 
-  md += `#### A. Capa de Ingesta y Blindaje contra Inyección de Prompts (LLM01 / OWASP AISVS C02)\n`;
-  md += `- **Delimitación Estricta:** Las entradas de usuario y los documentos recuperados se encapsulan dentro de etiquetas XML canónicas (ej. \`<user_input>\` y \`<retrieved_context>\`) en las instrucciones de sistema.\n`;
-  md += `- **Instrucción de Invariabilidad:** Se declara en el meta-prompt que cualquier comando, texto instructivo o assertions de cumplimiento provenientes del usuario deben ser tratados estrictamente como datos no confiables a auditar/procesar, nunca como directivas de ejecución.\n`;
-  md += `- **Filtro Pre-Inferencia:** Sanitización contra caracteres nulos, ataques de sufijo adversarial y limitación estricta de tamaño de payload (HTTP 413 ante cargas mayores al límite permitido).\n\n`;
+    md += `#### A. Capa de Ingesta y Blindaje contra Inyección de Prompts (LLM01 / OWASP AISVS C02)\n`;
+    md += `- **Delimitación Estricta:** Las entradas de usuario y los documentos recuperados se encapsulan dentro de etiquetas XML canónicas (ej. \`<user_input>\` y \`<retrieved_context>\`) en las instrucciones de sistema.\n`;
+    md += `- **Instrucción de Invariabilidad:** Se declara en el meta-prompt que cualquier comando, texto instructivo o assertions de cumplimiento provenientes del usuario deben ser tratados estrictamente como datos no confiables a auditar/procesar, nunca como directivas de ejecución.\n`;
+    md += `- **Filtro Pre-Inferencia:** Sanitización contra caracteres nulos, ataques de sufijo adversarial y limitación estricta de tamaño de payload (HTTP 413 ante cargas mayores al límite permitido).\n\n`;
 
-  md += `#### B. Capa de Protección de Privacidad, DLP y Anonimización (LFPDPPP / OWASP AISVS C01)\n`;
-  md += `- **Pipeline de Enmascaramiento Local:** Todo dato personal identificable (CURP, RFC, número de tarjeta bancaria, dirección, correo y nombres propios) es interceptado por un motor DLP (ej. Microsoft Presidio o regex de alta precisión) antes de ser transmitido al LLM.\n`;
-  md += `- **Cifrado Vectorial en RAG:** Los embeddings almacenados en la base de datos vectorial cuentan con cifrado en reposo y aislamiento estricto por identificador de inquilino (\`tenant_id\`).\n`;
-  md += `- **Protocolo de Purga ARCO:** Mecanismo en cascada que purga de forma sincrónica tanto los registros relacionales como los vectores asociados en la base vectorial cuando un usuario ejerce su derecho de Cancelación u Oposición.\n\n`;
+    md += `#### B. Capa de Protección de Privacidad, DLP y Anonimización (LFPDPPP / OWASP AISVS C01)\n`;
+    md += `- **Pipeline de Enmascaramiento Local:** Todo dato personal identificable (CURP, RFC, número de tarjeta bancaria, dirección, correo y nombres propios) es interceptado por un motor DLP (ej. Microsoft Presidio o regex de alta precisión) antes de ser transmitido al LLM.\n`;
+    md += `- **Cifrado Vectorial en RAG:** Los embeddings almacenados en la base de datos vectorial cuentan con cifrado en reposo y aislamiento estricto por identificador de inquilino (\`tenant_id\`).\n`;
+    md += `- **Protocolo de Purga ARCO:** Mecanismo en cascada que purga de forma sincrónica tanto los registros relacionales como los vectores asociados en la base vectorial cuando un usuario ejerce su derecho de Cancelación u Oposición.\n\n`;
 
-  md += `#### C. Capa de Salida, Veracidad y Grounding Factual (LFPC / OWASP AISVS C03)\n`;
-  md += `- **Parámetros Determinísticos:** Inferencia configurada con \`temperature: 0.0\`, \`topK: 1\` y esquemas de respuesta estructurada (JSON Schema) para erradicar alucinaciones en ofertas comerciales o dictámenes legales.\n`;
-  md += `- **Citación Textual Obligatoria:** Cada respuesta crítica debe incluir citas textuales directas del repositorio de conocimiento verificado (\`textoEvidencia\` y \`fuenteEvidencia\`).\n`;
-  md += `- **Codificación de Salida Anti-XSS:** Todas las respuestas generadas se codifican para evitar ejecución de scripts maliciosos en navegadores clientes.\n\n`;
+    md += `#### C. Capa de Salida, Veracidad y Grounding Factual (LFPC / OWASP AISVS C03)\n`;
+    md += `- **Parámetros Determinísticos:** Inferencia configurada con \`temperature: 0.0\`, \`topK: 1\` y esquemas de respuesta estructurada (JSON Schema) para erradicar alucinaciones en ofertas comerciales o dictámenes legales.\n`;
+    md += `- **Citación Textual Obligatoria:** Cada respuesta crítica debe incluir citas textuales directas del repositorio de conocimiento verificado (\`textoEvidencia\` y \`fuenteEvidencia\`).\n`;
+    md += `- **Codificación de Salida Anti-XSS:** Todas las respuestas generadas se codifican para evitar ejecución de scripts maliciosos en navegadores clientes.\n\n`;
 
-  md += `#### D. Capa de Gobernanza, Escalamiento Humano y Registro Inmutable (Invariante 4 / LFPC Art. 56)\n`;
-  md += `- **Inmutabilidad de Auditorías:** Los registros de auditoría y transacciones críticas cuentan con permisos de solo lectura y bloqueo estricto de eliminación (\`allow delete: if false;\`).\n`;
-  md += `- **Identificación de Bot y Escalamiento a Humano:** La interfaz informa obligatoriamente desde el primer mensaje que el usuario interactúa con un sistema de IA autónomo y ofrece un botón permanente de transferencia a un operador humano.\n`;
-  md += `- **Flujo de Retracto Comercial:** En concordancia con el Art. 56 de la LFPC, el sistema incorpora un endpoint automatizado que gestiona la cancelación de compras y reversión de transacciones dentro de los 5 días hábiles siguientes.\n\n`;
+    md += `#### D. Capa de Gobernanza, Escalamiento Humano y Registro Inmutable (Invariante 4 / LFPC Art. 56)\n`;
+    md += `- **Inmutabilidad de Auditorías:** Los registros de auditoría y transacciones críticas cuentan con permisos de solo lectura y bloqueo estricto de eliminación (\`allow delete: if false;\`).\n`;
+    md += `- **Identificación de Bot y Escalamiento a Humano:** La interfaz informa obligatoriamente desde el primer mensaje que el usuario interactúa con un sistema de IA autónomo y ofrece un botón permanente de transferencia a un operador humano.\n`;
+    md += `- **Flujo de Retracto Comercial:** En concordancia con el Art. 56 de la LFPC, el sistema incorpora un endpoint automatizado que gestiona la cancelación de compras y reversión de transacciones dentro de los 5 días hábiles siguientes.\n\n`;
+  }
 
   md += `---\n\n`;
 
@@ -134,8 +152,9 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
 
       if (details?.actionableSteps && details.actionableSteps.length > 0) {
         md += `**Instrucciones de Implementación:**\n`;
-        details.actionableSteps.forEach(step => {
-          md += `1. ${step}\n`;
+        details.actionableSteps.forEach((step, stepIdx) => {
+          const cleanStep = step.replace(/^\s*\d+[\.\)]\s*/, '');
+          md += `${stepIdx + 1}. ${cleanStep}\n`;
         });
         md += `\n`;
       }

@@ -1,6 +1,6 @@
 import http from 'node:http';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 
 function postJson(path, payload) {
   return new Promise((resolve, reject) => {

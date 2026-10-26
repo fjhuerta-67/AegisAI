@@ -15,6 +15,8 @@ export function Login({ onDemoLogin }: LoginProps) {
   const allowedDomainsRaw = (import.meta.env.VITE_ALLOWED_DOMAINS || '*').trim();
   const isWildcard = allowedDomainsRaw === '*' || allowedDomainsRaw === '';
   const allowedList = allowedDomainsRaw.split(',').map((d: string) => d.trim().toLowerCase()).filter(Boolean);
+  // Demo mode bypasses Google sign-in, so it is only available when explicitly enabled at build time.
+  const demoModeEnabled = import.meta.env.VITE_ENABLE_DEMO_MODE === 'true';
 
   const handleGoogleLogin = async () => {
     setError(null);
@@ -36,9 +38,9 @@ export function Login({ onDemoLogin }: LoginProps) {
     } catch (e: any) {
       if (e?.code === 'auth/unauthorized-domain') {
         const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'este host';
-        setError(`El dominio "${currentHost}" no está en los "Authorized Domains" de Firebase Auth. Agrégalo en Firebase Console > Authentication > Settings o utiliza el botón de Modo Demo.`);
+        setError(`El dominio "${currentHost}" no está en los "Authorized Domains" de Firebase Auth. Agrégalo en Firebase Console > Authentication > Settings${demoModeEnabled ? ' o utiliza el botón de Modo Demo' : ''}.`);
       } else if (e?.code === 'auth/api-key-not-valid' || e?.message?.includes('api-key-not-valid')) {
-        setError('Clave de API de Firebase no configurada o inválida. Puedes ingresar de inmediato haciendo clic abajo en "Probar en Modo Demo / Vista Previa".');
+        setError(`Clave de API de Firebase no configurada o inválida.${demoModeEnabled ? ' Puedes ingresar de inmediato haciendo clic abajo en "Probar en Modo Demo / Vista Previa".' : ' Contacta al administrador de la plataforma.'}`);
       } else if (e?.code === 'auth/popup-closed-by-user') {
         setError('La ventana de autenticación fue cerrada antes de completar el inicio de sesión.');
       } else {
@@ -50,6 +52,7 @@ export function Login({ onDemoLogin }: LoginProps) {
   };
 
   const handleDemoAccess = () => {
+    if (!demoModeEnabled) return;
     localStorage.setItem('aegis_demo_user', 'true');
     if (onDemoLogin) {
       onDemoLogin();
@@ -118,14 +121,36 @@ export function Login({ onDemoLogin }: LoginProps) {
             {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar sesión con Google'}
           </button>
 
-          {/* Botón Secundario: Acceso Rápido Modo Demo / Open Source */}
-          <button
-            onClick={handleDemoAccess}
-            className="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 text-xs border border-slate-700 cursor-pointer"
-          >
-            <Sparkles size={14} className="text-[#1A73E8]" />
-            <span>Probar en Modo Demo / Vista Previa</span>
-          </button>
+          {/* Botón Secundario: Acceso Rápido Modo Demo / Open Source (solo si VITE_ENABLE_DEMO_MODE=true) */}
+          {demoModeEnabled && (
+            <button
+              onClick={handleDemoAccess}
+              className="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 text-xs border border-slate-700 cursor-pointer"
+            >
+              <Sparkles size={14} className="text-[#1A73E8]" />
+              <span>Probar en Modo Demo / Vista Previa</span>
+            </button>
+          )}
+        </div>
+
+        {/* ISO/IEC 42001 AIMS Governance & Acceptable Use Notice */}
+        <div className="w-full mt-6 pt-4 border-t border-slate-800/90 text-[10.5px] text-slate-400 leading-relaxed text-left space-y-1.5">
+          <div className="flex items-center justify-between text-slate-300 font-semibold">
+            <span>Gobernanza AIMS ISO/IEC 42001:2023</span>
+            <span className="text-[10px] font-mono text-[#1A73E8]">A.2.1 · A.3.3 · A.5.2 · A.9.1</span>
+          </div>
+          <p>
+            Al ingresar, aceptas la <strong>Política de Uso Aceptable (AUP)</strong> y la <strong>Política Corporativa de IA</strong>: los dictámenes son de apoyo técnico y requieren validación humana antes de decisiones vinculantes.
+          </p>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400 pt-0.5">
+            <a href="mailto:ai-ethics-whistleblower@aegisai.enterprise?subject=Reporte%20Etico%20Confidencial%20ISO%2042001%20A.3.3" className="text-[#1A73E8] hover:underline">
+              Canal Ético Confidencial (A.3.3)
+            </a>
+            <span>•</span>
+            <a href="mailto:ai-appeals@aegisai.enterprise?subject=Impugnacion%20de%20Dictamen%20AegisAI%20ISO%2042001%20A.5.2" className="text-[#1A73E8] hover:underline">
+              Impugnación de Dictamen (A.5.2)
+            </a>
+          </div>
         </div>
       </div>
     </div>

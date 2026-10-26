@@ -168,9 +168,9 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 
 ---
 
-### Paso 4: Crear la Cuenta de Servicio de Ejecución (`aegis-runner-sa`)
+### Paso 4: Crear la Cuenta de Servicio de Ejecución con Mínimo Privilegio (`aegis-runner-sa` — `C05.2`)
 
-Siguiendo las mejores prácticas de **Mínimo Privilegio (Least Privilege)**, creamos una identidad dedicada para Cloud Run en lugar de usar la cuenta por defecto:
+Siguiendo las mejores prácticas de **Mínimo Privilegio Estricto (`OWASP AI-SVS C05.2`)**, creamos una identidad dedicada para Cloud Run con **únicamente** `roles/aiplatform.user` y `roles/datastore.user` (sin otorgar `roles/viewer` al contenedor de ejecución):
 
 ```bash
 SA_NAME="aegis-runner-sa"
@@ -179,7 +179,7 @@ SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 # 1. Crear la cuenta de servicio si no existe
 if ! gcloud iam service-accounts describe "${SA_EMAIL}" --project="$PROJECT_ID" &>/dev/null; then
     gcloud iam service-accounts create "${SA_NAME}" \
-      --description="Identidad de ejecucion para AegisAI Cloud Run" \
+      --description="Identidad de ejecucion con minimo privilegio para AegisAI Cloud Run" \
       --display-name="AegisAI Runner" \
       --project="$PROJECT_ID"
     echo "Cuenta de servicio creada: ${SA_EMAIL}"
@@ -196,11 +196,6 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:${SA_EMAIL}" \
   --role="roles/datastore.user" --quiet
-
-# 4. Asignar rol de lectura (Viewer) para el GCP Live Scanner
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member="serviceAccount:${SA_EMAIL}" \
-  --role="roles/viewer" --quiet
 ```
 
 ---
@@ -210,10 +205,11 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 AegisAI almacena los dictámenes de auditoría inmutables y los marcos regulatorios personalizados en Firestore:
 
 ```bash
-# Verificar si la base de datos (default) ya existe; si no, crearla
-if ! gcloud firestore databases list --project="$PROJECT_ID" --format="value(name)" 2>/dev/null | grep -q "(default)"; then
-    echo "Creando base de datos Firestore (default) en modo Nativo..."
+# Verificar si la base de datos aegis-ai-db ya existe; si no, crearla
+if ! gcloud firestore databases list --project="$PROJECT_ID" --format="value(name)" 2>/dev/null | grep -q "aegis-ai-db"; then
+    echo "Creando base de datos Firestore aegis-ai-db en modo Nativo..."
     gcloud firestore databases create \
+      --database="aegis-ai-db" \
       --location="nam5" \
       --type="firestore-native" \
       --project="$PROJECT_ID" --quiet
@@ -247,7 +243,7 @@ Para que los auditores y oficiales de cumplimiento puedan iniciar sesión median
   "appId": "1:123456789012:web:abcdef1234567890",
   "apiKey": "AIzaSyTuApiKeyDeFirebase",
   "authDomain": "tu-proyecto-gcp-id.firebaseapp.com",
-  "firestoreDatabaseId": "(default)",
+  "firestoreDatabaseId": "aegis-ai-db",
   "storageBucket": "tu-proyecto-gcp-id.firebasestorage.app",
   "messagingSenderId": "123456789012"
 }
@@ -300,18 +296,12 @@ docker push "$IMAGE_URL"
 
 ---
 
-### Paso 9: Desplegar el Servicio en Google Cloud Run
+### Paso 9: Desplegar el Servicio en Google Cloud Run con Perímetro Zero-Trust IAP y VPC Egress (`C04.3`, `C05.3`)
 
-Despliegue el contenedor en Cloud Run con los recursos óptimos:
+Despliegue el contenedor en Cloud Run detrás de **Cloud Identity-Aware Proxy (`--no-allow-unauthenticated` + `--iap`)**, montando `ADMIN_API_TOKEN` desde Secret Manager y enrutando el tráfico privado por Serverless VPC Access (`--vpc-egress private-ranges-only`):
 
 ```bash
-# Variables de entorno adicionales (ej. GEMINI_API_KEY si está disponible)
-ENV_VARS_EXTRA=""
-if [ -n "$GEMINI_API_KEY" ]; then
-    ENV_VARS_EXTRA=",GEMINI_API_KEY=${GEMINI_API_KEY}"
-fi
-
-gcloud run deploy "$SERVICE_NAME" \
+gcloud beta run deploy "$SERVICE_NAME" \
   --image "$IMAGE_URL" \
   --project "$PROJECT_ID" \
   --region "$REGION" \
@@ -323,12 +313,16 @@ gcloud run deploy "$SERVICE_NAME" \
   --cpu 1 \
   --timeout 300s \
   --port 8080 \
-  --set-env-vars "NODE_ENV=production,PORT=8080,PROJECT_ID=${PROJECT_ID},VITE_ALLOWED_DOMAINS=${ALLOWED_DOMAINS}${ENV_VARS_EXTRA}" \
-  --allow-unauthenticated
+  --set-env-vars "NODE_ENV=production,PORT=8080,PROJECT_ID=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},GOOGLE_GENAI_USE_VERTEXAI=true,FIRESTORE_DATABASE_ID=aegis-ai-db,VITE_ALLOWED_DOMAINS=${ALLOWED_DOMAINS}" \
+  --set-secrets "ADMIN_API_TOKEN=aegis-admin-token:latest" \
+  --vpc-connector "aegis-vpc-connector" \
+  --vpc-egress "private-ranges-only" \
+  --no-allow-unauthenticated \
+  --iap
 ```
 
 > [!NOTE]
-> Si la política de su organización bloquea `--allow-unauthenticated` (política `constraints/iam.allowedPolicyMemberDomains`), consulte el apartado de **Troubleshooting (Incidente 5)** para otorgar permisos a su dominio corporativo.
+> Aplicar `--no-allow-unauthenticated` e `--iap` cumple con las políticas organizacionales de compartición restringida por dominio (`constraints/iam.allowedPolicyMemberDomains`) y el control `C04.3` de OWASP AI-SVS.
 
 ---
 

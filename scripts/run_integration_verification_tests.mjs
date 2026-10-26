@@ -1,7 +1,7 @@
 import http from 'http';
 import fs from 'fs';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 
 function request(path, options = {}) {
   const url = `${BASE_URL}${path}`;
@@ -37,7 +37,7 @@ function request(path, options = {}) {
 
 async function runIntegrationVerification() {
   console.log('🧪 INICIANDO SUITE DE INTEGRACIÓN Y VERIFICACIÓN FUNCIONAL');
-  console.log('🎯 Servidor: http://localhost:3000');
+  console.log(`🎯 Servidor: ${BASE_URL}`);
   console.log(`⏰ Fecha: ${new Date().toISOString()}\n`);
 
   const tests = [];

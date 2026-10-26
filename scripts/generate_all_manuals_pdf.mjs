@@ -1446,15 +1446,10 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:\${SA_EMAIL}" \
   --role="roles/aiplatform.user" --quiet
 
-# Almacenamiento en Firestore
+# Almacenamiento en Firestore (Mínimo Privilegio C05.2 — sin roles/viewer)
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:\${SA_EMAIL}" \
-  --role="roles/datastore.user" --quiet
-
-# Lectura de infraestructura para el GCP Live Scanner
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member="serviceAccount:\${SA_EMAIL}" \
-  --role="roles/viewer" --quiet</code></pre>
+  --role="roles/datastore.user" --quiet</code></pre>
 
   <h3>Paso 4.5: Aprovisionar Cloud Firestore en Modo Nativo</h3>
   <pre><code>gcloud firestore databases create \
@@ -1484,26 +1479,25 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 
 gcloud builds submit --tag "$IMAGE_URL" --project="$PROJECT_ID" .</code></pre>
 
-  <h3>Paso 4.9: Desplegar el Servicio en Google Cloud Run</h3>
-  <pre><code>ENV_VARS_EXTRA=""
-if [ -n "$GEMINI_API_KEY" ]; then
-    ENV_VARS_EXTRA=",GEMINI_API_KEY=\${GEMINI_API_KEY}"
-fi
-
-gcloud run deploy "$SERVICE_NAME" \
+  <h3>Paso 4.9: Desplegar el Servicio en Google Cloud Run (Perímetro Zero-Trust C04.3)</h3>
+  <pre><code>gcloud run deploy "$SERVICE_NAME" \
   --image "$IMAGE_URL" \
   --project "$PROJECT_ID" \
   --region "$REGION" \
   --platform managed \
   --service-account "\${SA_EMAIL}" \
   --min-instances 0 \
-  --max-instances 10 \
-  --memory 1Gi \
-  --cpu 1 \
-  --timeout 300s \
+  --max-instances 1 \
+  --memory 2Gi \
+  --cpu 2 \
+  --timeout 3600s \
   --port 8080 \
-  --set-env-vars "NODE_ENV=production,PORT=8080,PROJECT_ID=\${PROJECT_ID},VITE_ALLOWED_DOMAINS=\${ALLOWED_DOMAINS}\${ENV_VARS_EXTRA}" \
-  --allow-unauthenticated</code></pre>
+  --set-env-vars "NODE_ENV=production,GOOGLE_GENAI_USE_ENTERPRISE=true,GOOGLE_CLOUD_PROJECT=\${PROJECT_ID}" \
+  --set-secrets "ADMIN_API_TOKEN=aegis-admin-token:latest" \
+  --vpc-connector "aegis-vpc-connector" \
+  --vpc-egress "private-ranges-only" \
+  --iap \
+  --no-allow-unauthenticated</code></pre>
 
   <h3>Paso 4.10: Autorizar el Dominio de Cloud Run en Firebase Authentication</h3>
   <pre><code># Obtener la URL del servicio

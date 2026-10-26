@@ -376,20 +376,15 @@ with open(temp_html_path, 'w', encoding='utf-8') as f:
 print(f"Saved temporary HTML to {temp_html_path} ({len(html_content)} bytes).")
 
 # Compile PDF using headless chrome
-output_pdf_1 = "docs/manuales_pdf/AegisAI_Engineering_Prompts_Book.pdf"
-output_pdf_2 = "docs/Manuals_english/pdf/AegisAI_Engineering_Prompts_Book.pdf"
+output_pdf_1 = "docs/Manuals_english/pdf/AegisAI_Engineering_Prompts_Book.pdf"
 
-os.makedirs("docs/manuales_pdf", exist_ok=True)
 os.makedirs("docs/Manuals_english/pdf", exist_ok=True)
 
 cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{output_pdf_1}" --no-pdf-header-footer "{temp_html_path}"'
 print("Rendering PDF via headless Chrome...")
 subprocess.run(cmd, shell=True, check=True)
 
-import shutil
-shutil.copy(output_pdf_1, output_pdf_2)
 
 size_kb = os.path.getsize(output_pdf_1) / 1024
 print(f"SUCCESS: Prompts Book PDF generated at:")
 print(f" -> {output_pdf_1} ({size_kb:.1f} KB)")
-print(f" -> {output_pdf_2} ({size_kb:.1f} KB)")

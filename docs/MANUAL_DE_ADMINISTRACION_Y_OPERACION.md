@@ -28,15 +28,22 @@ AegisAI implementa tres mecanismos complementarios de autenticación:
 | **Automatización CI/CD** | API Key de Servicio | Cabecera `x-api-key` | Invocación de auditorías asíncronas vía `/api/v1/audits` desde GitHub Actions o GitLab CI. |
 | **Operador Local** | Sesión de Emergencia | Token de bootstrap | Acceso a la interfaz de usuario en modo autónomo cuando Firebase Auth no está disponible. |
 
-### 2.2 Middleware de Autenticación Administrativa
-El endpoint `/api/admin/*` está protegido por el middleware `authenticateAdmin` en `server.ts`:
+### 2.2 Middleware de Autenticación Administrativa en Tiempo Constante (`C05.3`)
+El endpoint `/api/admin/*` está protegido por el middleware `authenticateAdmin` en `server.ts` utilizando `crypto.timingSafeEqual` sobre digests SHA-256 para erradicar ataques laterales de temporización (*timing attacks*):
 ```typescript
+function timingSafeTokenMatch(provided: string | null | undefined, configured: string | null | undefined): boolean {
+  if (!provided || !configured) return false;
+  const hashProvided = crypto.createHash('sha256').update(String(provided), 'utf8').digest();
+  const hashConfigured = crypto.createHash('sha256').update(String(configured), 'utf8').digest();
+  return crypto.timingSafeEqual(hashProvided, hashConfigured) && provided.length === configured.length;
+}
+
 const authenticateAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const configuredToken = process.env.ADMIN_API_TOKEN;
-  const providedToken = req.headers['x-admin-token'] || 
+  const providedToken = (req.headers['x-admin-token'] as string) || 
     (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
 
-  if (configuredToken && providedToken === configuredToken) {
+  if (timingSafeTokenMatch(providedToken, configuredToken)) {
     return next();
   }
   return res.status(401).json({ error: 'Acceso no autorizado: Token de administración inválido o ausente.' });

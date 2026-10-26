@@ -207,19 +207,19 @@ AegisAI ha sido sometido y blindado frente a las 10 categorías de amenazas de *
 | **LLM01** | Prompt Injection | Delimitadores estrictos `<user_candidate_architecture>`, parámetros deterministas (`temp: 0.0`) y aislamiento de datos de entrada como no confiables. |
 | **LLM02** | Insecure Output Handling | Tipado rígido en esquemas JSON, sanitización contra XSS en React y renderizado seguro en exportadores de PDF y Markdown. |
 | **LLM03** | Data Poisoning | Validación estructural obligatoria en la ingesta de normativas (`frameworkDecomposerSchema`). |
-| **LLM04** | Model Denial of Service | Límite máximo de payload en Express (15MB), rechazo HTTP 413 ante cargas mayores y streaming SSE con control de flujo. |
-| **LLM05** | Supply Chain Vulnerabilities | Dependencias reducidas, bloqueo en `package-lock.json` y cero dependencias con CVEs críticas. |
-| **LLM06** | Information Disclosure | Máscaras automáticas en logs que impiden la exfiltración de claves de API (`AIzaSy...`) o tokens en respuestas de error. |
-| **LLM07** | Insecure Plugin Design | Middlewares estrictos `authenticateAdmin` (`x-admin-token`) y `authenticateApi` (`x-api-key`) para endpoints sensibles. |
-| **LLM08** | Excessive Agency | Invariante 4 de OWASP AI-SVS: Las auditorías son inmutables; no existen rutas HTTP DELETE para eliminar reportes. |
-| **LLM09** | Overreliance (Alucinación) | Obligatoriedad de citas textuales de evidencia; si la documentación no lo menciona, el dictamen es "Falta Evidencia". |
-| **LLM10** | Model Theft / File Probing | Middleware anti-sondeo que bloquea solicitudes a dotfiles (`/.env`, `.key`, `.git`) retornando HTTP 404 inmediato. |
+| **LLM04** | Model Denial of Service & Denial of Wallet (`C11.1`) | Límite máximo de payload en Express (30MB) con rechazo HTTP 413, más limitador de tasa por identidad (`10 req/min`), tope de concurrencia (`2 auditorías activas/usuario`) y presupuesto rodante de tokens (`500,000 tokens/hora`) con respuesta `HTTP 429` y cabecera `Retry-After`. |
+| **LLM05** | Supply Chain & MCP Integrity (`C01.4`, `C10.1`) | Dependencias reducidas, bloqueo en `package-lock.json`, manifiesto criptográfico SHA-256 (`integrity-manifest.json`) y firma HMAC-SHA256 para conectores MCP (`/api/mcp/verify`). |
+| **LLM06** | Information Disclosure & Model Extraction (`C11.4`) | Máscaras automáticas en logs (`redactSensitiveStrings`) y supresión explícita de probabilidades/logits (`responseLogprobs: false`). |
+| **LLM07** | Insecure Plugin Design (`C05.3`, `C10.5`) | Comparación en tiempo constante (`crypto.timingSafeEqual`), propagación de identidad Firebase/IAP, guardia contra DNS Rebinding y bloqueo SSRF (`validateOutboundEndpoint`). |
+| **LLM08** | Excessive Agency (`C05.2`, `C09.4`) | Invariante 4 de OWASP AI-SVS: Auditorías inmutables (`allow delete: if false;`), identidad `aegis-runner-sa` con mínimo privilegio estricto (`aiplatform.user` y `datastore.user`) y saga de compensación transaccional (`runCompensatingSaga`). |
+| **LLM09** | Overreliance (Alucinación — `C08.4`) | Obligatoriedad de citas textuales literales y telemetría continua de fundamentación citatriz (`/api/admin/aims-telemetry`, SLO $\ge 95\%$). |
+| **LLM10** | Model Theft / File Probing (`C04.1`) | Sistema de archivos de contenedor de solo lectura (`chmod -R a-w /app`), usuario sin privilegios `aegisuser` y bloqueo HTTP 404 de dotfiles (`/.env`, `.key`, `.git`). |
 
 ---
 
 ## 7. Vista de Despliegue en la Nube (Cloud Deployment View)
 
-La arquitectura de infraestructura de AegisAI aprovecha el ecosistema administrado de **Google Cloud Platform (GCP)** para garantizar alta disponibilidad (99.95%), cero mantenimiento de servidores y aislamiento estricto de red:
+La arquitectura de infraestructura de AegisAI aprovecha el ecosistema administrado de **Google Cloud Platform (GCP)** para garantizar alta disponibilidad (99.95%), cero mantenimiento de servidores y aislamiento estricto de red Zero-Trust:
 
 ```mermaid
 flowchart LR
@@ -227,39 +227,41 @@ flowchart LR
         Browser["Navegador Seguro\n(Chrome / Safari / Firefox)"]
     end
 
-    subgraph GCP_Project ["Proyecto Google Cloud (Tenant Enterprise / Public)"]
-        subgraph IngressLayer ["Capa de Entrada y CDN"]
+    subgraph GCP_Project ["Proyecto Google Cloud (Tenant Enterprise: your-project-id)"]
+        subgraph IngressLayer ["Capa de Entrada Zero-Trust (C04.3)"]
+            CloudIAP["Cloud Identity-Aware Proxy (IAP)\n(--no-allow-unauthenticated / OAuth 2.0)"]
             CloudRunFront["Google Cloud Run Ingress\n(HTTPS TLS 1.3 / Port 8080)"]
-            FirebaseAuth["Firebase Auth / Identity Platform\n(Filtro OAuth Configurable: VITE_ALLOWED_DOMAINS)"]
+            FirebaseAuth["Firebase Auth / Identity Platform\n(Filtro OAuth: google.com, example.com)"]
         end
 
-        subgraph ComputeLayer ["Capa de Cómputo Serverless"]
-            Container["Contenedor AegisAI\n(Node.js 22 LTS, Runner sin Root: aegisuser)\nExpress API + Frontend SPA + Motor AISVS"]
-            ServiceAccount["Runtime SA: aegis-runner-sa\nRoles: aiplatform.user, datastore.user, viewer"]
+        subgraph ComputeLayer ["Capa de Cómputo Serverless Inmutable (C04.1, C05.2)"]
+            Container["Contenedor AegisAI (Solo Lectura /app: chmod a-w)\n(Node.js 22 LTS, Runner sin Root: aegisuser)\nCaché Efímero: /tmp/aegis-runtime-cache"]
+            ServiceAccount["Runtime SA: aegis-runner-sa\nMínimo Privilegio Estricto:\naiplatform.user, datastore.user"]
         end
 
-        subgraph DataAndAILayer ["Servicios de Persistencia e IA Gestionados"]
-            FirestoreDB["Cloud Firestore (Modo Nativo)\nReglas Criptográficas firestore.rules"]
-            VertexAI["Google Cloud Vertex AI\nModelos Gemini 2.5 / 3.x Flash & Pro"]
+        subgraph DataAndAILayer ["Servicios de Persistencia, Secretos e IA Gestionados"]
+            FirestoreDB["Cloud Firestore Nativo (aegis-ai-db)\nReglas Criptográficas firestore.rules (C05.4)"]
+            VertexAI["Google Cloud Vertex AI (us-central1)\nModelos Gemini 3.8 Flash / 3.1 Flash-Lite (ADC)"]
             ArtifactReg["Artifact Registry (Docker)\ncloud-run-source-deploy"]
         end
     end
 
-    Browser -->|HTTPS GET/POST| CloudRunFront
-    Browser -.->|OAuth Popup| FirebaseAuth
+    Browser -->|HTTPS TLS 1.3| CloudIAP
+    CloudIAP -->|Identidad Verificada| CloudRunFront
+    Browser -.->|OAuth Popup + ID Token| FirebaseAuth
     CloudRunFront --> Container
     Container --- ServiceAccount
     ServiceAccount -->|Lectura/Escritura IAM| FirestoreDB
-    ServiceAccount -->|Inferencia y Telemetría| VertexAI
+    ServiceAccount -->|Inferencia ADC| VertexAI
     Container -.->|Despliegue de Imagen| ArtifactReg
 ```
 
 ### 7.1 Componentes de Infraestructura y Mapeo de Servicios
 | Componente GCP | Servicio Técnico | Rol y Responsabilidad |
 | :--- | :--- | :--- |
-| **Cómputo Serverless** | Google Cloud Run | Aloja el contenedor monolítico optimizado (`dist/server.cjs` + SPA estática). Escala de 0 a 10 instancias en función de la demanda. |
-| **Registro de Contenedores** | Google Artifact Registry | Almacena y escanea las imágenes Docker multi-stage firmadas. |
-| **Identidad y Acceso** | Firebase Auth / Identity Platform | Provee inicio de sesión corporativo federado con Google Workspace y valida pertenencia a dominios corporativos autorizados. |
-| **Base de Datos NoSQL** | Cloud Firestore (Nativo) | Almacena reportes emitidos, metadatos de auditoría y catálogos normativos personalizados con persistencia distribuida. |
-| **Inferencia e IA** | Vertex AI / Gemini API | Ejecuta las consultas Map-Reduce de auditoría y extrae telemetría factual del proyecto. |
-| **Automatización CI/CD** | Google Cloud Build | Orquesta la compilación en la nube sin requerir Docker en las estaciones de trabajo de los desarrolladores. |
+| **Perímetro Zero-Trust** | Cloud Identity-Aware Proxy (IAP) & Cloud Run | Aplica `--no-allow-unauthenticated` en el borde (`C04.3`), permitiendo solo cuentas corporativas autorizadas (`google.com`, `example.com`). |
+| **Cómputo Serverless** | Google Cloud Run (`aegis-ai`) | Aloja el contenedor inmutable (`chmod -R a-w /app`, `C04.1`) con `--vpc-egress private-ranges-only` y protección SSRF (`C04.3`). |
+| **Identidad de Ejecución** | Cloud IAM (`aegis-runner-sa`) | Cuenta de servicio con mínimo privilegio estricto: exclusivamente `roles/aiplatform.user` y `roles/datastore.user` (`C05.2`). |
+| **Base de Datos NoSQL** | Cloud Firestore Nativo (`aegis-ai-db`) | Almacena reportes inmutables y catálogos protegidos por `firestore.rules` con vinculación de propietario y tenant (`C05.4`). |
+| **Inferencia e IA** | Vertex AI (`us-central1`) | Ejecuta consultas Map-Reduce deterministas (`temperature: 0.0`, `responseLogprobs: false`, `C11.4`) vía ADC. |
+| **Automatización CI/CD** | Google Cloud Build | Orquesta la compilación en la nube con cuenta dedicada `aegis-build-sa`. |

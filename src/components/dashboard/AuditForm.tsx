@@ -34,6 +34,7 @@ import {
 
 import { StandardType, StandardBreakdown } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
+import { auth } from '../../lib/firebase';
 
 interface AuditFormProps {
   onSubmit: (report: AuditReport) => void;
@@ -121,7 +122,16 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
     const fetchCustomFrameworks = async () => {
       setLoadingFrameworks(true);
       try {
-        const res = await fetch('/api/frameworks');
+        const headers: Record<string, string> = {};
+        if (auth.currentUser) {
+          try {
+            const idToken = await auth.currentUser.getIdToken();
+            headers['Authorization'] = `Bearer ${idToken}`;
+          } catch {
+            // Proceed without bearer token if demo/unauthenticated
+          }
+        }
+        const res = await fetch('/api/frameworks', { headers });
         if (res.ok) {
           const list: CustomFramework[] = await res.json();
           // Prioritize LFPDPPP, LFPC, and EU AI Act at the top
@@ -241,11 +251,21 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
         data.append('specification', files[0]);
       }
 
+      const evalHeaders: Record<string, string> = {
+        'Accept': 'text/event-stream'
+      };
+      if (auth.currentUser) {
+        try {
+          const idToken = await auth.currentUser.getIdToken();
+          evalHeaders['Authorization'] = `Bearer ${idToken}`;
+        } catch {
+          // Proceed without bearer token if demo/unauthenticated
+        }
+      }
+
       const res = await fetch('/api/evaluate', {
         method: 'POST',
-        headers: {
-          'Accept': 'text/event-stream'
-        },
+        headers: evalHeaders,
         body: data,
       });
 
@@ -260,6 +280,7 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
       const decoder = new TextDecoder();
       let buffer = '';
       let resultData: any = null;
+      let serverError: string | null = null;
 
       while (true) {
         const { value, done } = await reader.read();
@@ -283,6 +304,8 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
                 });
               } else if (event.type === 'result') {
                 resultData = event.data;
+              } else if (event.type === 'error') {
+                serverError = event.error || 'El motor de auditoría reportó un error.';
               }
             } catch (parseError) {
               console.warn('Error parsing SSE event:', parseError);
@@ -291,6 +314,9 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
         }
       }
 
+      if (serverError) {
+        throw new Error(serverError);
+      }
       if (!resultData) {
         throw new Error('No se recibió el dictamen final de la auditoría. Por favor intenta nuevamente.');
       }

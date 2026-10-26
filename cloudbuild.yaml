@@ -1,0 +1,29 @@
+# Cloud Build: builds the AegisAI container and pushes it to Artifact Registry.
+# Invoked by deploy_cloud_run.sh with the dedicated build service account (aegis-build-sa).
+# Frontend settings are build-time (Vite), so they are passed as Docker build args here.
+substitutions:
+  _REGION: us-central1
+  _REPO: cloud-run-source-deploy
+  _SERVICE: aegis-ai
+  _TAG: latest
+  _ALLOWED_DOMAINS: "*"
+  _ENABLE_DEMO_MODE: "false"
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=VITE_ALLOWED_DOMAINS=${_ALLOWED_DOMAINS}
+      - --build-arg=VITE_ENABLE_DEMO_MODE=${_ENABLE_DEMO_MODE}
+      - --tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}
+      - .
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}
+
+options:
+  # Required when the build runs as a user-specified service account.
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

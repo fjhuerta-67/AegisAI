@@ -1,12 +1,20 @@
 node_modules
 dist
+build
+coverage
 .git
+.vscode
 .env
-.env.local
+.env.*
+!.env.example
 *.log
 scratch
 *.zip
 *.tar.gz
 aisvs-src
-aisvs-src.zip
 docs/*.md
+docs/Manuals_english
+docs/.temp_html
+# Ajustes guardados localmente desde la UI de Administración (pueden contener claves): no se incluyen en la imagen.
+config/admin-settings.json
+scripts/argolis/config.env

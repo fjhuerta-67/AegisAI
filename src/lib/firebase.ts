@@ -1,12 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
+// Reports carry optional fields set to `undefined` (e.g. customFrameworkId); drop them instead of rejecting the write.
+const firestoreSettings = { ignoreUndefinedProperties: true };
 export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
+  ? initializeFirestore(app, firestoreSettings, firebaseConfig.firestoreDatabaseId)
+  : initializeFirestore(app, firestoreSettings);
 export const auth = getAuth(app);
 
 export enum OperationType {

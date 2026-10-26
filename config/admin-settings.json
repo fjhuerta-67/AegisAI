@@ -1,7 +1,7 @@
 {
   "provider": "gemini",
   "geminiApiKey": "",
-  "preferredModel": "gemini-2.0-flash",
+  "preferredModel": "gemini-3.8-flash",
   "openaiApiKey": "",
   "openaiBaseUrl": "https://api.openai.com/v1",
   "openaiModel": "gpt-4o",

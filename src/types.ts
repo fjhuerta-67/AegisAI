@@ -88,6 +88,9 @@ export interface AuditReport {
   isLiveGcpScan?: boolean;
   gcpProjectId?: string;
   gcpTelemetry?: GCPScanTelemetry;
+  ownerUid?: string;
+  ownerEmail?: string;
+  tenantDomain?: string;
 }
 
 export interface AuditRequestPayload {
@@ -133,6 +136,8 @@ export interface CustomFramework {
   totalChapters: number;
   totalControls: number;
   chapters: StandardChapter[];
+  allowedDomains?: string[];
+  tenantDomain?: string;
 }
 
 export interface ApiKey {
@@ -142,6 +147,9 @@ export interface ApiKey {
   createdAt: string;
   lastUsedAt?: string;
   status: 'active' | 'revoked';
+  ownerUid?: string;
+  ownerEmail?: string;
+  tenantDomain?: string;
 }
 
 export type AsyncAuditStatus = 'PROCESSING' | 'COMPLETED' | 'FAILED';

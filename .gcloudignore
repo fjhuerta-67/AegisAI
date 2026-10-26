@@ -1,0 +1,26 @@
+# Files uploaded to Cloud Build by `gcloud builds submit` (gitignore syntax).
+# Standalone on purpose: it does NOT include .gitignore, because the build needs
+# firebase-applet-config.local.json (gitignored) to bundle the real Firebase web config.
+# Keep in sync with .dockerignore.
+.gcloudignore
+.git
+.gitignore
+.vscode
+node_modules
+dist
+build
+coverage
+.env
+.env.*
+!.env.example
+*.log
+scratch
+*.zip
+*.tar.gz
+aisvs-src
+bun.lock
+docs/*.md
+docs/Manuals_english
+docs/.temp_html
+config/admin-settings.json
+scripts/argolis/config.env
