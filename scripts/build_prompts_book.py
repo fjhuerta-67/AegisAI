@@ -2,36 +2,8 @@ import json
 import os
 import subprocess
 
-PROMPTS_JSON = os.environ.get('PROMPTS_JSON', '/tmp/translated_prompts.json')
-with open(PROMPTS_JSON, 'r', encoding='utf-8') as f:
+with open('/tmp/translated_prompts.json', 'r', encoding='utf-8') as f:
     prompts = json.load(f)
-
-# --- Redaction (defense in depth): no keys, emails, project IDs, paths or IPs in the published book.
-# Extra organization-specific terms can be passed at runtime: REDACT_TERMS="term1,term2"
-import re as _re
-_EXTRA_TERMS = [t.strip() for t in os.environ.get('REDACT_TERMS', '').split(',') if t.strip()]
-_REDACTIONS = [
-    (r'AQ\.[\w-]{20,}|AIza[\w-]{35}|gh[pousr]_\w{20,}|github_pat_\w{20,}|ya29\.[\w-]+|sk-[\w-]{20,}', '[REDACTED_KEY]'),
-    (r'[\w.+-]+@[A-Za-z][\w-]*(?:\.[\w-]+)*\.[A-Za-z]{2,}', '[EMAIL]'),
-    (r'\d+-[a-z0-9]+\.apps\.googleusercontent\.com', '[OAUTH_CLIENT_ID]'),
-    (r'(?:/usr/local/\w+)?/home/[^/\s]+', '/home/[USER]'),
-    (r'\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b', '[ID]'),
-    (r'operations/build/[^\s"\'\]]+', 'operations/build/[ID]'),
-    (r'\b[a-z][a-z0-9-]{3,28}-\d{6}\b', '[PROJECT_ID]'),
-    (r'\b\d{12}\b', '[PROJECT_NUMBER]'),
-    (r'\b(?!127\.0\.0\.1\b)(?!0\.0\.0\.0\b)(?:\d{1,3}\.){3}\d{1,3}\b', '[IP]'),
-]
-def redact(text):
-    if not isinstance(text, str):
-        return text
-    for term in _EXTRA_TERMS:
-        text = _re.sub(_re.escape(term), '[CLIENT]', text, flags=_re.IGNORECASE)
-    for pat, rep in _REDACTIONS:
-        text = _re.sub(pat, rep, text)
-    return text
-for _p in prompts:
-    for _k in ('translated', 'original', 'category'):
-        _p[_k] = redact(_p.get(_k, ''))
 
 print(f"Loaded {len(prompts)} prompts for Prompts Book compilation.")
 
@@ -376,15 +348,20 @@ with open(temp_html_path, 'w', encoding='utf-8') as f:
 print(f"Saved temporary HTML to {temp_html_path} ({len(html_content)} bytes).")
 
 # Compile PDF using headless chrome
-output_pdf_1 = "docs/Manuals_english/pdf/AegisAI_Engineering_Prompts_Book.pdf"
+output_pdf_1 = "docs/manuales_pdf/AegisAI_Engineering_Prompts_Book.pdf"
+output_pdf_2 = "docs/Manuals_english/pdf/AegisAI_Engineering_Prompts_Book.pdf"
 
+os.makedirs("docs/manuales_pdf", exist_ok=True)
 os.makedirs("docs/Manuals_english/pdf", exist_ok=True)
 
-cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{output_pdf_1}" --no-pdf-header-footer "{temp_html_path}"'
+cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{output_pdf_1}" --print-to-pdf-no-header "{temp_html_path}"'
 print("Rendering PDF via headless Chrome...")
 subprocess.run(cmd, shell=True, check=True)
 
+import shutil
+shutil.copy(output_pdf_1, output_pdf_2)
 
 size_kb = os.path.getsize(output_pdf_1) / 1024
 print(f"SUCCESS: Prompts Book PDF generated at:")
 print(f" -> {output_pdf_1} ({size_kb:.1f} KB)")
+print(f" -> {output_pdf_2} ({size_kb:.1f} KB)")

@@ -3,6 +3,7 @@ import { LayoutDashboard, PlusCircle, BookOpen, LogOut, Settings, Cloud, ShieldC
 import { auth } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { GoogleCloudIcon, GoogleCloudLogo } from './BrandAssets';
+import { LanguageSelector, useLanguage } from '../../lib/i18n';
 
 export type ViewType = 'dashboard' | 'form' | 'form_iso' | 'form_full' | 'form_custom' | 'gcp_scanner' | 'report' | 'catalog' | 'api' | 'architecture' | 'settings';
 
@@ -13,12 +14,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentView, setView, onLogout }: SidebarProps) {
+  const { t } = useLanguage();
   const navItems = [
-    { id: 'dashboard', num: '01', label: 'Panel Principal', icon: LayoutDashboard },
-    { id: 'form', num: '02', label: 'Nueva Auditoría', icon: PlusCircle },
-    { id: 'gcp_scanner', num: '03', label: 'Auditar Google Cloud', icon: Cloud },
-    { id: 'catalog', num: '04', label: 'Catálogos AI', icon: BookOpen },
-    { id: 'settings', num: '05', label: 'Configuración Admin', icon: Settings },
+    { id: 'dashboard', num: '01', label: t('Panel Principal'), icon: LayoutDashboard },
+    { id: 'form', num: '02', label: t('Nueva Auditoría'), icon: PlusCircle },
+    { id: 'gcp_scanner', num: '03', label: t('Auditar Google Cloud'), icon: Cloud },
+    { id: 'catalog', num: '04', label: t('Catálogos AI'), icon: BookOpen },
+    { id: 'settings', num: '05', label: t('Configuración Admin'), icon: Settings },
   ] as const;
 
   const handleLogout = async () => {
@@ -56,8 +58,13 @@ export function Sidebar({ currentView, setView, onLogout }: SidebarProps) {
           Google Cloud AI Security & Governance Platform
         </div>
 
+        {/* Selector rápido de Idioma en Barra Lateral */}
+        <div className="mt-3">
+          <LanguageSelector variant="sidebar" className="!px-0 !py-0" />
+        </div>
+
         {/* Separador metálico sutil */}
-        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent my-4" />
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent my-3.5" />
       </div>
 
       {/* Lista de Navegación con animaciones y transiciones suaves */}
@@ -115,7 +122,7 @@ export function Sidebar({ currentView, setView, onLogout }: SidebarProps) {
           className="flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50/80 transition-all duration-200 w-full rounded-xl cursor-pointer border border-transparent font-medium"
         >
           <LogOut size={14} />
-          Cerrar Sesión
+          {t('Cerrar Sesión')}
         </button>
       </div>
     </aside>

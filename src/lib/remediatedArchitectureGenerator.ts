@@ -29,7 +29,8 @@ function firstCompleteSentence(text?: string): string {
  * Genera el documento completo de Arquitectura Remediada y Correcciones Sugeridas
  * diseñado para que el sistema cumpla con el 100% de los puntos evaluados.
  */
-export function generateRemediatedArchitectureMarkdown(audit: AuditReport): string {
+export function generateRemediatedArchitectureMarkdown(audit: AuditReport, lang: string = 'es'): string {
+  const isEn = lang !== 'es';
   const actionItems = extractActionItems(audit);
   const isCustom = audit.standard === 'CUSTOM';
   const isFull = audit.standard === 'FULL';
@@ -37,7 +38,7 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
   const isISO = audit.standard === 'ISO-42001';
   const breakdownNames = (audit.standardsBreakdown || []).map(b => b.standardName).filter(Boolean);
   const standardLabel = isCustom
-    ? (audit.customFrameworkName || 'Marco Regulatorio Personalizado')
+    ? (audit.customFrameworkName || (isEn ? 'Custom Regulatory Framework' : 'Marco Regulatorio Personalizado'))
     : (isMulti
       ? (breakdownNames.length > 0 ? breakdownNames.join(' & ') : 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023')
       : (isFull ? 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023' : (isISO ? 'ISO/IEC 42001:2023' : 'OWASP AI-SVS 1.0')));
@@ -46,11 +47,169 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
   const platformName = audit.techPlatformName || (
     audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' :
     audit.techPlatform === 'vertex-ai' ? 'Google Cloud Vertex AI' :
-    audit.techPlatform || 'SaaS Gestionado'
+    audit.techPlatform || (isEn ? 'Managed SaaS' : 'SaaS Gestionado')
   );
   const deploymentType = audit.deploymentType || (audit.techPlatform === 'vertex-ai' ? 'PaaS' : 'SaaS');
-  const cleanSystemName = audit.systemName || 'Sistema IA';
+  const cleanSystemName = audit.systemName || (isEn ? 'AI System' : 'Sistema IA');
   const evalDate = audit.date ? format(new Date(audit.date), 'yyyy-MM-dd HH:mm') : format(new Date(), 'yyyy-MM-dd HH:mm');
+
+  if (isEn) {
+    let md = `# Remediated Architecture Specification for 100% Compliance\n\n`;
+    md += `**System:** ${cleanSystemName}  \n`;
+    md += `**Evaluated Standard:** ${standardLabel}  \n`;
+    md += `**Verification Level:** ${levelLabel}  \n`;
+    md += `**Technology Platform:** ${platformName} (${deploymentType})  \n`;
+    md += `**Technical Lead:** ${audit.technicalLead} (${audit.email})  \n`;
+    md += `**Base Audit ID:** \`${audit.id}\`  \n`;
+    md += `**Patch Generation Date:** ${evalDate}  \n`;
+    md += `**Initial Score:** ${audit.overallScore.toFixed(1)}% ➔ **Projected Score with this Specification:** **100.0% (Compliant)**\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 1. Compliance Statement & Document Purpose\n\n`;
+    md += `This technical document represents the **remediated architecture specification** for **${cleanSystemName}**. It has been formulated by the **AegisAI** assurance engine to comprehensively and verifiably resolve all non-conformities and missing evidence identified during the audit under **${standardLabel}**.\n\n`;
+    md += `By incorporating the safeguards, components, data flows, and configuration snippets defined below, the architecture satisfies **100% of applicable regulatory controls and requirements**.\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 2. Remediated Gaps Matrix (Addressed Opportunity Areas)\n\n`;
+    md += `Below are the structural corrections incorporated into this specification to close each gap:\n\n`;
+    md += `| Control ID | Control / Requirement | Previous Status | Level | Risk | Technical Correction Incorporated in this Document |\n`;
+    md += `| :---: | :--- | :---: | :---: | :---: | :--- |\n`;
+
+    if (actionItems.length === 0) {
+      md += `| 🟢 N/A | All controls are currently passed | Passed | ${levelLabel} | Low | No additional patches required. |\n`;
+    } else {
+      actionItems.forEach(item => {
+        const p = item.punto;
+        const fixSummary = firstCompleteSentence(p.remediationDetails?.strategy || p.remediation);
+        const statusDisp = p.status === 'Aprobado' ? 'Passed' : p.status === 'Fallido' ? 'Failed' : 'Missing Evidence';
+        const riskDisp = p.riskImpact === 'Alto' ? 'High' : p.riskImpact === 'Medio' ? 'Medium' : p.riskImpact === 'Bajo' ? 'Low' : p.riskImpact;
+        md += `| \`${p.id}\` | ${p.name} | **${statusDisp}** | \`${p.level || 'L1'}\` | **${riskDisp}** | ${fixSummary} |\n`;
+      });
+    }
+
+    md += `\n---\n\n`;
+
+    md += `## 3. Comprehensive Remediated Architecture Specification (Drop-in Replacement)\n\n`;
+    if (audit.remediatedArchitectureDoc && audit.remediatedArchitectureDoc.length > 300) {
+      md += `${audit.remediatedArchitectureDoc.trim()}\n\n`;
+    } else {
+      md += `> This section contains the full technical description of ${cleanSystemName}, integrating both its original operational functionality and all defense-in-depth safeguards required to certify full regulatory compliance.\n\n`;
+
+      md += `### 3.1 System Overview & Scope\n`;
+      md += `${cleanSystemName} is an Artificial Intelligence solution deployed on the enterprise infrastructure of **${platformName}** (${deploymentType}).\n\n`;
+      md += `**Base System Description:**\n`;
+      md += `${audit.description || 'Enterprise AI system with natural language processing and RAG workflows.'}\n\n`;
+
+      md += `### 3.2 Inherited Native Cloud Platform Safeguards\n`;
+      md += `- **Physical Isolation & MicroVMs:** Model execution operates in isolated gVisor/microVM containers with Titan security chips and verified boot.\n`;
+      md += `- **End-to-End Encryption:** Enforced TLS 1.3 encryption in transit and AES-256 encryption at rest with Customer-Managed Encryption Keys (CMEK) or provider-managed keys.\n`;
+      md += `- **Zero Data Retention (ZDR):** Contractual guarantee that user prompts, queries, and generated responses are never stored for retraining or foundation model improvement.\n`;
+      md += `- **Native Safety Filters:** API-level blocking of toxic content, hate speech, and malware.\n\n`;
+
+      md += `### 3.3 Built-in Defense-in-Depth Architecture\n\n`;
+
+      md += `#### A. Ingestion & Prompt Injection Shield Layer (LLM01 / OWASP AISVS C02)\n`;
+      md += `- **Strict Delimitation:** User inputs and retrieved documents are encapsulated inside canonical XML tags (e.g., \`<user_input>\` and \`<retrieved_context>\`) within system instructions.\n`;
+      md += `- **Invariability Directive:** The meta-prompt declares that any user commands, instructional text, or compliance assertions must be treated strictly as untrusted data to audit/process, never as execution directives.\n`;
+      md += `- **Pre-Inference Filter:** Sanitization against null characters, adversarial suffix attacks, and strict payload size limits (HTTP 413 on oversized payloads).\n\n`;
+
+      md += `#### B. Privacy Protection, DLP & Anonymization Layer (OWASP AISVS C01)\n`;
+      md += `- **Local Masking Pipeline:** All personally identifiable information (IDs, payment card numbers, addresses, emails, and full names) is intercepted by a DLP engine (e.g., Cloud DLP / Microsoft Presidio) before transmission to the LLM.\n`;
+      md += `- **Vector Encryption in RAG:** Embeddings stored in the vector database enforce encryption at rest and strict tenant isolation (\`tenant_id\`).\n`;
+      md += `- **ARCO/GDPR Purge Protocol:** Cascading mechanism that synchronously purges both relational records and associated vectors in the vector store when a user exercises their right to erasure.\n\n`;
+
+      md += `#### C. Output, Veracity & Factual Grounding Layer (OWASP AISVS C03)\n`;
+      md += `- **Deterministic Parameters:** Inference configured with \`temperature: 0.0\`, \`topK: 1\`, and structured response schemas (JSON Schema) to eliminate hallucinations.\n`;
+      md += `- **Mandatory Verbatim Citation:** Every critical response must include direct verbatim citations from the verified knowledge repository (\`textoEvidencia\` and \`fuenteEvidencia\`).\n`;
+      md += `- **Anti-XSS Output Encoding:** All generated responses are encoded to prevent malicious script execution in client browsers.\n\n`;
+
+      md += `#### D. Governance, Human Escalation & Immutable Logging Layer\n`;
+      md += `- **Audit Immutability:** Audit logs and critical transactions enforce read-only permissions and strict deletion locks (\`allow delete: if false;\`).\n`;
+      md += `- **Bot Disclosure & Human Escalation:** The interface explicitly discloses from the first message that the user is interacting with an autonomous AI system and provides a permanent human operator handoff button.\n\n`;
+    }
+
+    md += `### 3.4 Google Cloud ISO/IEC 42001 3-Phase AI Protection Stack\n\n`;
+    md += `- **Phase 3 — Development & Protection (AI System Design & Development):**\n`;
+    md += `  - **Visual & Evidence-Based Gap Map:** Generates a visual, evidence-backed map of gaps between the current and target state (\`L1\`/\`L2\`/\`L3\`).\n`;
+    md += `  - **Vertex AI Model Garden & Model Registry:** Model Garden provides a curated library of models reviewed, cryptographically signed, and verified by Google and trusted partners, while Model Registry governs private custom models—securing the AI supply chain instead of downloading unverified internet models with potential backdoors (\`ISO 42001 A.6.1.2 / A.7.3\`, \`OWASP C01.4 / C13.1\`).\n`;
+    md += `  - **Google Cloud Model Armor:** Positioned inline in front of LLMs (\`sanitizeUserPrompt\` / \`sanitizeModelResponse\`), sanitizing inputs and outputs in real time, detecting and blocking prompt injection and jailbreak attacks, and filtering toxic content from both user prompts and model responses alike (\`ISO 42001 A.6.2.6\`, \`OWASP C02.10 / C07.1\`).\n`;
+    md += `- **Phase 4 — Evaluation (Review of Applied Controls):**\n`;
+    md += `  - **Vertex Evaluation Service (AutoSxS & Safety Metrics):** Integrated Vertex AI evaluation framework using **AutoSxS** (an automated side-by-side evaluator that grades model responses like a teacher grading a student's assignment) alongside native safety metrics (hate speech, harassment, sexually explicit content, and dangerous content). Faster and more cost-effective than manual specialist reviews, providing the immutable audit trail required by \`ISO/IEC 42001 Clause 9.1 / A.6.2.4\` (\`OWASP C08.4\`).\n`;
+    md += `- **Phase 5 — Deployment (Controlled Production Deployment):**\n`;
+    md += `  - **Vertex AI Model Monitoring:** Continuously evaluates model performance in production, detecting **training-serving skew** (when production data diverges from training data) and **concept/feature drift** (when the real world changes and the model becomes obsolete), alerting immediately if the model stops operating safely (\`ISO 42001 Clause 9.1 / A.6.2.6\`, \`OWASP C08.4\`).\n`;
+    md += `  - **Security Command Center (SCC) with AI Protection:** Centralized threat and vulnerability detection in Google Cloud integrated with Vertex AI. Any prompt injection attack attempt surfaces immediately as an actionable security alert, enabling the SOC to respond in real time (\`ISO 42001 A.6.2.8 / Clause 10.1\`, \`OWASP C12.2\`).\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 4. Technical Patch & Remediation Code Cookbook\n\n`;
+    md += `The following code blocks and configurations must be deployed in the project repository to formalize the suggested fixes:\n\n`;
+
+    if (actionItems.length === 0) {
+      md += `> No additional code patches required. Current configuration is fully compliant.\n\n`;
+    } else {
+      actionItems.forEach((item, index) => {
+        const p = item.punto;
+        const details = p.remediationDetails;
+        const riskDisp = p.riskImpact === 'Alto' ? 'High' : p.riskImpact === 'Medio' ? 'Medium' : p.riskImpact === 'Bajo' ? 'Low' : p.riskImpact;
+        md += `### Patch ${index + 1}: ${p.id} — ${p.name}\n\n`;
+        md += `- **Regulatory Chapter:** ${item.chapterId} (${item.chapterName})\n`;
+        md += `- **Assigned Level:** \`${p.level || 'L1'}\` | **Risk Impact:** **${riskDisp}**\n`;
+        if (details?.effortLevel) {
+          md += `- **Estimated Application Time:** ${details.effortLevel}\n`;
+        }
+        md += `\n`;
+        
+        if (details?.strategy) {
+          md += `**Technical Strategy:**\n${details.strategy}\n\n`;
+        }
+
+        if (details?.actionableSteps && details.actionableSteps.length > 0) {
+          md += `**Implementation Instructions:**\n`;
+          details.actionableSteps.forEach((step, stepIdx) => {
+            const cleanStep = step.replace(/^\s*\d+[\.\)]\s*/, '');
+            md += `${stepIdx + 1}. ${cleanStep}\n`;
+          });
+          md += `\n`;
+        }
+
+        if (details?.codeOrConfigExample) {
+          const codeLang = detectLanguage(details.codeOrConfigExample);
+          md += `**Code / Configuration to Integrate:**\n`;
+          md += `\`\`\`${codeLang}\n${details.codeOrConfigExample}\n\`\`\`\n\n`;
+        }
+
+        if (details?.verificationRecipe) {
+          md += `**Post-Implementation Verification Test:**\n`;
+          md += `\`\`\`bash\n${details.verificationRecipe}\n\`\`\`\n\n`;
+        }
+
+        md += `---\n\n`;
+      });
+    }
+
+    md += `## 5. QA Verification Guide & Acceptance Criteria\n\n`;
+    md += `To verify that the system achieves a 100% compliance score after implementing this package:\n\n`;
+    md += `1. **Deploy Patches:** Integrate the configuration files and code middleware provided in Section 4.\n`;
+    md += `2. **Run Automated Tests:**\n`;
+    md += `   \`\`\`bash\n`;
+    md += `   # Run type and integrity checks\n`;
+    md += `   npm run lint\n\n`;
+    md += `   # Run security test suite against injections and leaks\n`;
+    md += `   npm run test:security\n\n`;
+    md += `   # Run integration tests for regulatory endpoints\n`;
+    md += `   npm run test:integration\n`;
+    md += `   \`\`\`\n`;
+    md += `3. **Re-audit in AegisAI:**\n`;
+    md += `   - Upload this file (\`${cleanSystemName.replace(/[^a-zA-Z0-9_-]/g, '_')}_Remediated_Architecture_100.md\`) in the *New Audit* module.\n`;
+    md += `   - Verify that the overall compliance score reaches **100.0% (Level ${levelLabel})** and that all ${audit.chapters.reduce((acc, c) => acc + (c.puntosProbados?.length || 0), 0)} evaluated controls appear in **Passed** status.\n\n`;
+
+    md += `---\n\n`;
+    md += `*Document automatically generated by AegisAI Assurance Engine — AI Security Audit & Verification Platform.*`;
+
+    return md;
+  }
 
   let md = `# Especificación de Arquitectura Remediada para Cumplimiento al 100%\n\n`;
   md += `**Sistema:** ${cleanSystemName}  \n`;
@@ -127,6 +286,17 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
     md += `- **Flujo de Retracto Comercial:** En concordancia con el Art. 56 de la LFPC, el sistema incorpora un endpoint automatizado que gestiona la cancelación de compras y reversión de transacciones dentro de los 5 días hábiles siguientes.\n\n`;
   }
 
+  md += `### 3.4 Stack de Protección Google Cloud para ISO/IEC 42001 (Fases 3, 4 y 5)\n\n`;
+  md += `- **Fase 3 — Desarrollo y Protecciones (Diseño de Sistemas IA y Desarrollo):**\n`;
+  md += `  - **Mapa Visual Basado en Evidencia de Brechas:** Genera un mapa visual y sustentado en evidencia de las brechas entre el estado actual y el deseado (\`L1\`/\`L2\`/\`L3\`).\n`;
+  md += `  - **Model Garden / Model Registry:** Model Garden es la librería de modelos revisados, firmados y verificados por Google y otros socios, mientras que Model Registry es la librería de modelos propios de la organización. Asegura la cadena de suministro de modelos de IA, evitando obtener modelos de Internet con posibles puertas traseras (\`ISO 42001 A.6.1.2 / A.7.3\`, \`OWASP C01.4 / C13.1\`).\n`;
+  md += `  - **Google Cloud Model Armor:** Se posiciona delante de los LLMs (\`sanitizeUserPrompt\` / \`sanitizeModelResponse\`). Sanitiza entradas y salidas en tiempo real, detecta y bloquea ataques de inyección de prompts y jailbreaks, y filtra contenido tóxico del usuario y de las respuestas por igual (\`ISO 42001 A.6.2.6\`, \`OWASP C02.10 / C07.1\`).\n`;
+  md += `- **Fase 4 — Evaluación (Revisión de los Controles Aplicados):**\n`;
+  md += `  - **Vertex Evaluation Service (AutoSxS):** Evalúa la seguridad de un modelo en Google Cloud mediante un framework integrado en Vertex AI que usa **AutoSxS** (un modelo que auto-categoriza las respuestas como un profesor calificando la tarea de un alumno) y métricas de seguridad: lenguaje de odio, acoso, contenido sexualmente explícito y contenido peligroso. Es una revisión más rápida y económica que la que haría un equipo especializado y provee el rastro de auditoría que requiere \`ISO/IEC 42001 Cláusula 9.1 / A.6.2.4\` (\`OWASP C08.4\`).\n`;
+  md += `- **Fase 5 — Despliegue (Despliegue Controlado de Aplicaciones en Producción):**\n`;
+  md += `  - **Vertex AI Model Monitoring:** Evalúa en producción el desempeño del modelo, detectando desviaciones (*Training-serving skew*: cuando la data en producción es diferente a la del entrenamiento) y *drift* (cuando el mundo cambia y el modelo es obsoleto). Si el modelo deja de funcionar de forma segura, la herramienta alerta de forma inmediata (\`ISO 42001 Cláusula 9.1 / A.6.2.6\`, \`OWASP C08.4\`).\n`;
+  md += `  - **Security Command Center (SCC) con Protección AI:** Detección de amenazas y vulnerabilidades en Google Cloud integrada con Vertex AI. Si alguien trata de enviar un ataque de inyección de prompt, se muestra como una alerta de seguridad permitiendo al SOC responder a tiempo (\`ISO 42001 A.6.2.8 / Cláusula 10.1\`, \`OWASP C12.2\`).\n\n`;
+
   md += `---\n\n`;
 
   md += `## 4. Recetario Técnico de Parches y Código de Remediación (Cookbook)\n\n`;
@@ -199,8 +369,9 @@ export function generateRemediatedArchitectureMarkdown(audit: AuditReport): stri
 /**
  * Dispara la descarga del archivo en el navegador del usuario final
  */
-export function downloadRemediatedArchitecture(audit: AuditReport, formatType: 'md' | 'txt' = 'md'): void {
-  const content = generateRemediatedArchitectureMarkdown(audit);
+export function downloadRemediatedArchitecture(audit: AuditReport, formatType: 'md' | 'txt' = 'md', lang: string = 'es'): void {
+  const isEn = lang !== 'es';
+  const content = generateRemediatedArchitectureMarkdown(audit, lang);
   const mimeType = formatType === 'md' ? 'text/markdown;charset=utf-8;' : 'text/plain;charset=utf-8;';
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -209,7 +380,7 @@ export function downloadRemediatedArchitecture(audit: AuditReport, formatType: '
   
   const cleanName = (audit.systemName || 'Sistema_IA').replace(/[^a-zA-Z0-9_-]/g, '_');
   const extension = formatType === 'md' ? 'md' : 'txt';
-  link.download = `${cleanName}_Arquitectura_Remediada_100_Cumplimiento_${audit.id}.${extension}`;
+  link.download = `${cleanName}_${isEn ? 'Remediated_Architecture_100_Compliance' : 'Arquitectura_Remediada_100_Cumplimiento'}_${audit.id}.${extension}`;
   
   document.body.appendChild(link);
   link.click();

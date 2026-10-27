@@ -109,8 +109,8 @@ async function runTests() {
 
     // Allowed identities.
     const googleDb = verified('alice_google', 'alice@google.com');
-    const sandboxDb = verified('bob_sandbox', 'bob@sandbox.example.com');
-    const adminAltoDb = verified('admin_sandbox', 'admin@sandbox.example.com');
+    const altostratDb = verified('bob_altostrat', 'bob@fjhuerta.altostrat.com');
+    const adminAltoDb = verified('admin_altostrat', 'admin@fjhuerta.altostrat.com');
     const mixedCaseDb = verified('carol_mixed', 'Carol.Smith@Google.COM');
 
     // Identities that must be denied everywhere.
@@ -121,12 +121,12 @@ async function runTests() {
       { label: "@google.com with email_verified='true' (string)", db: testEnv.authenticatedContext('u_strclaim', { email: 'mallory@google.com', email_verified: 'true' as unknown as boolean }).firestore() },
       { label: 'verified token without email claim', db: testEnv.authenticatedContext('u_noemail', { email_verified: true }).firestore() },
       { label: '@gmail.com', db: verified('u_gmail', 'eve@gmail.com') },
-      { label: '@yourcompany.com', db: verified('u_yourcompany', 'eve@yourcompany.com') },
+      { label: '@coppel.com', db: verified('u_coppel', 'eve@coppel.com') },
       { label: '@evil.google.com (subdomain)', db: verified('u_subdomain', 'eve@evil.google.com') },
       { label: '@google.com.evil.com (suffix trick)', db: verified('u_suffix', 'eve@google.com.evil.com') },
       { label: '@notgoogle.com (look-alike)', db: verified('u_lookalike', 'eve@notgoogle.com') },
-      { label: '@example.com (parent domain)', db: verified('u_parent', 'eve@example.com') },
-      { label: '@sub.sandbox.example.com (subdomain)', db: verified('u_subalto', 'eve@sub.sandbox.example.com') },
+      { label: '@altostrat.com (parent domain)', db: verified('u_parent', 'eve@altostrat.com') },
+      { label: '@sub.fjhuerta.altostrat.com (subdomain)', db: verified('u_subalto', 'eve@sub.fjhuerta.altostrat.com') },
     ];
 
     // Pre-existing documents (written with rules disabled, like the Admin SDK would).
@@ -148,8 +148,8 @@ async function runTests() {
     // -----------------------------------------------------------------------
     await test('verified @google.com user can list audits (limit 50)', () =>
       assertSucceeds(googleDb.collection('audits').limit(50).get()));
-    await test('verified @sandbox.example.com user can list audits (limit 50)', () =>
-      assertSucceeds(sandboxDb.collection('audits').limit(50).get()));
+    await test('verified @fjhuerta.altostrat.com user can list audits (limit 50)', () =>
+      assertSucceeds(altostratDb.collection('audits').limit(50).get()));
     await test('domain check is case-insensitive (Carol.Smith@Google.COM can get an audit)', () =>
       assertSucceeds(mixedCaseDb.collection('audits').doc(EXISTING_AUDIT).get()));
 
@@ -181,14 +181,14 @@ async function runTests() {
     // -----------------------------------------------------------------------
     await test('@google.com user can create a valid audit', () =>
       assertSucceeds(googleDb.collection('audits').doc('AISVS-2026-1234').set(validAudit('AISVS-2026-1234'))));
-    await test('@sandbox.example.com user can create a valid audit', () =>
-      assertSucceeds(sandboxDb.collection('audits').doc('ISO-2026-5678').set(validAudit('ISO-2026-5678'))));
-    await test('@sandbox.example.com user can get an audit created by another user', () =>
-      assertSucceeds(sandboxDb.collection('audits').doc('AISVS-2026-1234').get()));
+    await test('@fjhuerta.altostrat.com user can create a valid audit', () =>
+      assertSucceeds(altostratDb.collection('audits').doc('ISO-2026-5678').set(validAudit('ISO-2026-5678'))));
+    await test('@fjhuerta.altostrat.com user can get an audit created by another user', () =>
+      assertSucceeds(altostratDb.collection('audits').doc('AISVS-2026-1234').get()));
     await test('@google.com user can get an audit', () =>
       assertSucceeds(googleDb.collection('audits').doc('ISO-2026-5678').get()));
     await test('update via setDoc (remediation toggle: chapters + fractional overallScore) is allowed', () =>
-      assertSucceeds(sandboxDb.collection('audits').doc('AISVS-2026-1234').set({
+      assertSucceeds(altostratDb.collection('audits').doc('AISVS-2026-1234').set({
         ...validAudit('AISVS-2026-1234'),
         chapters: [{ chapterId: 'C1', chapterName: 'Chapter', puntosProbados: [], remediated: true }],
         overallScore: 200 / 3,
@@ -203,7 +203,7 @@ async function runTests() {
         tenantDomain: 'google.com',
       })));
     await test('updating an owned audit while preserving ownerUid is allowed', () =>
-      assertSucceeds(sandboxDb.collection('audits').doc('AISVS-2026-OWNED').set({
+      assertSucceeds(altostratDb.collection('audits').doc('AISVS-2026-OWNED').set({
         ...validAudit('AISVS-2026-OWNED'),
         ownerUid: 'alice_google',
         ownerEmail: 'alice@google.com',
@@ -241,8 +241,8 @@ async function runTests() {
       assertSucceeds(googleDb.collection('audits').doc('AISVS-2026-2000').set({ ...validAudit('AISVS-2026-2000'), remediatedArchitectureDoc: 'r'.repeat(200000) })));
     await test('@google.com user cannot delete an audit', () =>
       assertFails(googleDb.collection('audits').doc('AISVS-2026-1234').delete()));
-    await test('@sandbox.example.com user cannot delete an audit', () =>
-      assertFails(sandboxDb.collection('audits').doc(EXISTING_AUDIT).delete()));
+    await test('@fjhuerta.altostrat.com user cannot delete an audit', () =>
+      assertFails(altostratDb.collection('audits').doc(EXISTING_AUDIT).delete()));
 
     for (const sample of SAMPLE_AUDITS) {
       await test(`SAMPLE_AUDITS '${sample.id}' can be seeded (create)`, () =>
@@ -250,7 +250,7 @@ async function runTests() {
     }
     await test('SAMPLE_AUDITS can be re-seeded over existing docs with a new date (update)', async () => {
       for (const sample of SAMPLE_AUDITS) {
-        await assertSucceeds(sandboxDb.collection('audits').doc(sample.id).set({ ...sample, date: new Date().toISOString() }));
+        await assertSucceeds(altostratDb.collection('audits').doc(sample.id).set({ ...sample, date: new Date().toISOString() }));
       }
     });
 
@@ -307,15 +307,15 @@ async function runTests() {
         assertFails(audits.doc('AISVS-2026-3100').set({ ...validAudit('AISVS-2026-3100'), [field]: 'x'.repeat(size) })));
     }
     await test('create audit with spoofed ownerUid != request.auth.uid is denied', () =>
-      assertFails(audits.doc('AISVS-2026-3102').set({ ...validAudit('AISVS-2026-3102'), ownerUid: 'bob_sandbox' })));
+      assertFails(audits.doc('AISVS-2026-3102').set({ ...validAudit('AISVS-2026-3102'), ownerUid: 'bob_altostrat' })));
     await test('create audit with spoofed ownerEmail != request.auth.token.email is denied', () =>
-      assertFails(audits.doc('AISVS-2026-3103').set({ ...validAudit('AISVS-2026-3103'), ownerEmail: 'bob@sandbox.example.com' })));
+      assertFails(audits.doc('AISVS-2026-3103').set({ ...validAudit('AISVS-2026-3103'), ownerEmail: 'bob@fjhuerta.altostrat.com' })));
     await test('wrong type: ownerUid as a number is denied', () =>
       assertFails(audits.doc('AISVS-2026-3104').set({ ...validAudit('AISVS-2026-3104'), ownerUid: 123 })));
     await test('update that hijacks existing ownerUid is denied', () =>
-      assertFails(sandboxDb.collection('audits').doc('AISVS-2026-OWNED').update({ ownerUid: 'bob_sandbox' })));
+      assertFails(altostratDb.collection('audits').doc('AISVS-2026-OWNED').update({ ownerUid: 'bob_altostrat' })));
     await test('overwrite (setDoc) that drops existing ownerUid is denied', () =>
-      assertFails(sandboxDb.collection('audits').doc('AISVS-2026-OWNED').set(validAudit('AISVS-2026-OWNED'))));
+      assertFails(altostratDb.collection('audits').doc('AISVS-2026-OWNED').set(validAudit('AISVS-2026-OWNED'))));
     await test('chapters list with 501 entries is denied', () =>
       assertFails(audits.doc('AISVS-2026-3101').set({ ...validAudit('AISVS-2026-3101'), chapters: Array.from({ length: 501 }, (_, i) => i) })));
     await test('update bypass: valid audit updated with an oversized description is denied', () =>
@@ -326,8 +326,8 @@ async function runTests() {
     // -----------------------------------------------------------------------
     await test('@google.com user can list standards_aisvs', () =>
       assertSucceeds(googleDb.collection('standards_aisvs').get()));
-    await test('@sandbox.example.com user can list standards_iso42001', () =>
-      assertSucceeds(sandboxDb.collection('standards_iso42001').get()));
+    await test('@fjhuerta.altostrat.com user can list standards_iso42001', () =>
+      assertSucceeds(altostratDb.collection('standards_iso42001').get()));
     await test('@google.com user can get a chapter', () =>
       assertSucceeds(googleDb.collection('standards_iso42001').doc('Clause 4').get()));
     for (const chapter of aisvsDatabaseSeed) {
@@ -336,18 +336,18 @@ async function runTests() {
     }
     for (const chapter of iso42001DatabaseSeed) {
       await test(`iso42001DatabaseSeed '${chapter.chapterId}' can be seeded`, () =>
-        assertSucceeds(sandboxDb.collection('standards_iso42001').doc(chapter.chapterId).set(chapter)));
+        assertSucceeds(altostratDb.collection('standards_iso42001').doc(chapter.chapterId).set(chapter)));
     }
     await test('re-seeding (update) every AISVS and ISO chapter is allowed', async () => {
       for (const chapter of aisvsDatabaseSeed) {
-        await assertSucceeds(sandboxDb.collection('standards_aisvs').doc(chapter.chapterId).set(chapter));
+        await assertSucceeds(altostratDb.collection('standards_aisvs').doc(chapter.chapterId).set(chapter));
       }
       for (const chapter of iso42001DatabaseSeed) {
         await assertSucceeds(googleDb.collection('standards_iso42001').doc(chapter.chapterId).set(chapter));
       }
     });
     await test('valid chapter update by another allowed user is allowed', () =>
-      assertSucceeds(sandboxDb.collection('standards_aisvs').doc('C01').set({ ...validChapter('C01'), title: 'Updated title' })));
+      assertSucceeds(altostratDb.collection('standards_aisvs').doc('C01').set({ ...validChapter('C01'), title: 'Updated title' })));
 
     const aisvs = googleDb.collection('standards_aisvs');
     await test('chapterId != document id is denied', () =>
@@ -383,7 +383,7 @@ async function runTests() {
     await test('deleting a standards_aisvs chapter is denied', () =>
       assertFails(aisvs.doc('C01').delete()));
     await test('deleting a standards_iso42001 chapter is denied', () =>
-      assertFails(sandboxDb.collection('standards_iso42001').doc('Clause 4').delete()));
+      assertFails(altostratDb.collection('standards_iso42001').doc('Clause 4').delete()));
 
     // -----------------------------------------------------------------------
     console.log('\n# 5. apiKeys');
@@ -392,13 +392,13 @@ async function runTests() {
     await test('allowed user can create an API key with the exact UI shape', () =>
       assertSucceeds(googleDb.collection('apiKeys').doc(createdKey).set(validApiKey(createdKey))));
     await test('allowed user can list apiKeys (onSnapshot on the collection)', () =>
-      assertSucceeds(sandboxDb.collection('apiKeys').get()));
+      assertSucceeds(altostratDb.collection('apiKeys').get()));
     await test('updating an API key is denied (status -> revoked)', () =>
       assertFails(googleDb.collection('apiKeys').doc(createdKey).update({ status: 'revoked' })));
     await test('overwriting an existing API key with setDoc is denied', () =>
       assertFails(googleDb.collection('apiKeys').doc(createdKey).set(validApiKey(createdKey))));
     await test('another allowed user can delete (revoke) a legacy API key without ownerUid', () =>
-      assertSucceeds(sandboxDb.collection('apiKeys').doc(createdKey).delete()));
+      assertSucceeds(altostratDb.collection('apiKeys').doc(createdKey).delete()));
 
     const ownedKey1 = newApiKeyId();
     const ownedKey2 = newApiKeyId();
@@ -417,10 +417,10 @@ async function runTests() {
         tenantDomain: 'google.com',
       })));
     await test('non-owner allowed user cannot delete another user\'s owned API key', () =>
-      assertFails(sandboxDb.collection('apiKeys').doc(ownedKey1).delete()));
+      assertFails(altostratDb.collection('apiKeys').doc(ownedKey1).delete()));
     await test('owner can delete their own owned API key', () =>
       assertSucceeds(googleDb.collection('apiKeys').doc(ownedKey1).delete()));
-    await test('admin@sandbox.example.com can delete another user\'s owned API key', () =>
+    await test('admin@fjhuerta.altostrat.com can delete another user\'s owned API key', () =>
       assertSucceeds(adminAltoDb.collection('apiKeys').doc(ownedKey2).delete()));
 
     const keys = googleDb.collection('apiKeys');
@@ -438,7 +438,7 @@ async function runTests() {
         ['name of 201 chars', k, { ...validApiKey(k), name: 'n'.repeat(201) }],
         ["createdAt not ISO-8601 ('yesterday')", k, { ...validApiKey(k), createdAt: 'yesterday' }],
         ['createdAt as a timestamp', k, { ...validApiKey(k), createdAt: new Date() }],
-        ['spoofed ownerUid != request.auth.uid', k, { ...validApiKey(k), ownerUid: 'bob_sandbox' }],
+        ['spoofed ownerUid != request.auth.uid', k, { ...validApiKey(k), ownerUid: 'bob_altostrat' }],
         ['ownerUid of 129 chars', k, { ...validApiKey(k), ownerUid: 'u'.repeat(129) }],
         ['ownerEmail of 201 chars', k, { ...validApiKey(k), ownerEmail: 'e'.repeat(201) }],
         ['tenantDomain of 101 chars', k, { ...validApiKey(k), tenantDomain: 'd'.repeat(101) }],
@@ -459,7 +459,7 @@ async function runTests() {
       ['custom_frameworks', 'fw-eu-aiact', { id: 'fw-new', name: 'Injected framework', chapters: [] }],
       ['system_config', 'admin_settings', { id: 'injected_config', authMethod: 'sa' }],
     ];
-    const allowedDbs: [string, Db][] = [['@google.com', googleDb], ['@sandbox.example.com', sandboxDb]];
+    const allowedDbs: [string, Db][] = [['@google.com', googleDb], ['@fjhuerta.altostrat.com', altostratDb]];
     for (const [collection, existingId, payload] of serverOnly) {
       for (const [label, db] of allowedDbs) {
         await test(`[${label}] cannot list ${collection}`, () =>

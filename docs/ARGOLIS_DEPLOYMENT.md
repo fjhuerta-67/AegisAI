@@ -1,6 +1,6 @@
 # AegisAI on Google Cloud (Argolis) — Deployment Runbook
 
-How to run AegisAI on **Cloud Run** inside an Argolis organization (`<ldap>.example.com`). Access is limited to Google accounts from specific email domains, and the deployment is **keyless**: no API keys or service-account keys.
+How to run AegisAI on **Cloud Run** inside an Argolis organization (`<ldap>.altostrat.com`). Access is limited to Google accounts from specific email domains, and the deployment is **keyless**: no API keys or service-account keys.
 
 Everything is scripted and idempotent:
 
@@ -45,7 +45,7 @@ flowchart LR
 ```bash
 cp scripts/argolis/config.env.example scripts/argolis/config.env   # gitignored
 ```
-Set `PROJECT_ID`, `ALLOWED_DOMAINS` (exact email domains, e.g. `sandbox.example.com,google.com`), `FIRESTORE_DATABASE_ID` and `ACCESS_MODE` (`iap` recommended). `firestore.rules` must list the same domains in `isAllowedUser()`; the scripts check this.
+Set `PROJECT_ID`, `ALLOWED_DOMAINS` (exact email domains, e.g. `fjhuerta.altostrat.com,google.com`), `FIRESTORE_DATABASE_ID` and `ACCESS_MODE` (`iap` recommended). `firestore.rules` must list the same domains in `isAllowedUser()`; the scripts check this.
 
 ## Step 2 — Preflight (read-only)
 ```bash

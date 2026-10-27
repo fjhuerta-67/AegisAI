@@ -46,19 +46,136 @@ function detectLanguage(code: string): string {
   return 'python';
 }
 
-export function generateActionPlanMarkdown(audit: AuditReport): string {
+export function generateActionPlanMarkdown(audit: AuditReport, lang: string = 'es'): string {
+  const isEn = lang !== 'es';
   const actionItems = extractActionItems(audit);
   const isCustom = audit.standard === 'CUSTOM';
   const isFull = audit.standard === 'FULL';
   const isISO = audit.standard === 'ISO-42001';
   const standardLabel = isCustom
-    ? (audit.customFrameworkName || 'Marco Regulatorio Personalizado')
+    ? (audit.customFrameworkName || (isEn ? 'Custom Regulatory Framework' : 'Marco Regulatorio Personalizado'))
     : (isFull ? 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023' : (isISO ? 'ISO/IEC 42001:2023' : 'OWASP AI-SVS 1.0'));
   const levelLabel = audit.assessedLevel || audit.targetLevel || 'L1';
 
   const criticalCount = actionItems.filter(i => i.priorityWeight === 1).length;
   const mediumCount = actionItems.filter(i => i.priorityWeight === 2).length;
   const lowCount = actionItems.filter(i => i.priorityWeight === 3).length;
+
+  if (isEn) {
+    let md = `# AegisAI • Technical Action & AI Security Remediation Plan\n\n`;
+    md += `> **Reference Standard:** ${standardLabel}  \n`;
+    md += `> **Technology Platform:** **${audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || 'Managed SaaS')}** (${audit.deploymentType || 'SaaS'})  \n`;
+    md += `> **Audited Verification Level:** **${levelLabel}** ${audit.targetLevel === 'AUTO' ? '(Auto-detected by AI)' : '(Configured by User)'}  \n`;
+    if (audit.levelAssessmentRationale) {
+      md += `> **Criticality Rationale:** ${audit.levelAssessmentRationale}  \n`;
+    }
+    md += `> **Audited System:** ${audit.systemName}  \n`;
+    md += `> **Responsible Technical Lead:** ${audit.technicalLead} (${audit.email})  \n`;
+    md += `> **Audit ID:** \`${audit.id}\`  \n`;
+    md += `> **Evaluation Date:** ${format(new Date(audit.date), 'yyyy-MM-dd HH:mm')}  \n`;
+    md += `> **Compliance Score (Level ${levelLabel}):** **${audit.overallScore.toFixed(1)}%**  \n`;
+    md += `> **Total Controls to Remediate:** **${actionItems.length}** (${criticalCount} High/Critical, ${mediumCount} Medium, ${lowCount} Low)\n\n`;
+
+    md += `---\n\n`;
+    md += `## 1. Executive Security Summary\n\n`;
+    md += `${audit.executiveSummary || 'AI security controls compliance and verification audit.'}\n\n`;
+
+    md += `### Remediation Prioritization Matrix\n\n`;
+    md += `| Priority | Control ID | Control / Clause | Level | Scope | Risk | Estimated Effort | Status |\n`;
+    md += `| :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |\n`;
+    
+    if (actionItems.length === 0) {
+      md += `| 🟢 N/A | \`N/A\` | All evaluated controls are Passed | - | Compliant | Low | 0 days | [x] Compliant |\n`;
+    } else {
+      actionItems.forEach(item => {
+        const p = item.punto;
+        const prioLabel = item.priorityWeight === 1 ? '🔴 HIGH' : item.priorityWeight === 2 ? '🟡 MEDIUM' : '🟢 LOW';
+        const effort = p.remediationDetails?.effortLevel || '1-3 days';
+        const scopeLabel = p.isMandatoryForTargetLevel ? `**MANDATORY (Level ${levelLabel})**` : 'Higher Recommendation';
+        const riskDisp = p.riskImpact === 'Alto' ? 'High' : p.riskImpact === 'Medio' ? 'Medium' : p.riskImpact === 'Bajo' ? 'Low' : p.riskImpact;
+        md += `| ${prioLabel} | \`${p.id}\` | ${p.name} | ${p.level || 'L1'} | ${scopeLabel} | **${riskDisp}** | ${effort} | [ ] Pending |\n`;
+      });
+    }
+
+    md += `\n---\n\n`;
+    md += `## 2. Detailed Technical Implementation Checklist\n\n`;
+
+    if (actionItems.length === 0) {
+      md += `> [!NOTE]\n> Congratulations! No non-conformities requiring remediation were detected in this system. The evaluated architecture satisfactorily complies with required controls.\n\n`;
+    } else {
+      actionItems.forEach((item, index) => {
+        const p = item.punto;
+        const details = p.remediationDetails;
+        const prioBadge = item.priorityWeight === 1 ? '[CRITICAL / HIGH PRIORITY]' : item.priorityWeight === 2 ? '[MEDIUM PRIORITY]' : '[LOW PRIORITY]';
+        const riskDisp = p.riskImpact === 'Alto' ? 'High' : p.riskImpact === 'Medio' ? 'Medium' : p.riskImpact === 'Bajo' ? 'Low' : p.riskImpact;
+
+        md += `### ${index + 1}. ${prioBadge} ${p.id} - ${p.name}\n\n`;
+        md += `- **Chapter:** ${item.chapterId}: ${item.chapterName}\n`;
+        md += `- **Required Level:** \`${p.level || 'L1'}\`\n`;
+        md += `- **Risk Severity:** **${riskDisp}**\n`;
+        if (details?.effortLevel) {
+          md += `- **Estimated Implementation Effort:** ${details.effortLevel}\n`;
+        }
+        if (details?.recommendedTools && details.recommendedTools.length > 0) {
+          md += `- **Recommended Tools / Libraries:** ${details.recommendedTools.join(', ')}\n`;
+        }
+        md += `\n`;
+
+        md += `#### Diagnosis & Root Cause of Non-Conformity\n`;
+        md += `> [!WARNING]\n`;
+        md += `> **Root Cause:** ${p.comoFallo || p.remediation || 'Missing technical implementation evidence or insufficient safeguard configuration.'}\n`;
+        if (p.textoEvidencia && p.textoEvidencia !== 'N/A') {
+          md += `>\n> *Detected Evidence (${p.fuenteEvidencia || 'Documentation/Code'}):* "${p.textoEvidencia}"\n`;
+        }
+        md += `\n`;
+
+        if (details?.strategy) {
+          md += `#### Defense-in-Depth Strategy\n`;
+          md += `${details.strategy}\n\n`;
+        }
+
+        md += `#### Actionable Engineering Checklist\n`;
+        if (details?.actionableSteps && details.actionableSteps.length > 0) {
+          details.actionableSteps.forEach(step => {
+            md += `- [ ] ${step}\n`;
+          });
+        } else {
+          md += `- [ ] Apply recommended mitigation: ${p.remediation}\n`;
+          md += `- [ ] Validate and record evidence in pre-production environment.\n`;
+        }
+        md += `\n`;
+
+        if (details?.codeOrConfigExample) {
+          md += `#### Reference Code / Technical Configuration Snippet\n`;
+          md += `\`\`\`${detectLanguage(details.codeOrConfigExample)}\n${details.codeOrConfigExample}\n\`\`\`\n\n`;
+        }
+
+        if (details?.verificationRecipe) {
+          md += `#### Acceptance Criteria & QA Verification Test\n`;
+          md += `\`\`\`bash\n${details.verificationRecipe}\n\`\`\`\n\n`;
+        }
+
+        md += `---\n\n`;
+      });
+    }
+
+    md += `## 3. Roles & Responsibilities Matrix (RACI) for Remediation\n\n`;
+    md += `| Role | Responsibility in Remediation Plan |\n`;
+    md += `| :--- | :--- |\n`;
+    md += `| **Responsible (R)** | Software Engineer / ML Ops / DevSecOps (Implements fixes and code patches) |\n`;
+    md += `| **Accountable (A)** | Technical Lead (${audit.technicalLead}) & CISO (Approve technical closure of non-conformity) |\n`;
+    md += `| **Consulted (C)** | Cloud Architect / AI Security Specialist (Provides hardening guidelines) |\n`;
+    md += `| **Informed (I)** | Product Owner / Compliance (Monitors mitigation progress) |\n\n`;
+
+    md += `## 4. Vulnerability Sign-off & Closure Log\n\n`;
+    md += `| Phase | Responsible | Signature | Date |\n`;
+    md += `| :--- | :--- | :--- | :--- |\n`;
+    md += `| **1. Remediation Implemented** | Developer / DevSecOps | _________________________ | ____/____/________ |\n`;
+    md += `| **2. QA Tests Verified** | QA Engineer / Pentester | _________________________ | ____/____/________ |\n`;
+    md += `| **3. Final Closure & Compliance** | Technical Lead / CISO | _________________________ | ____/____/________ |\n`;
+
+    return md;
+  }
 
   let md = `# AegisAI • Plan de Acción y Remediación Técnica de Seguridad IA\n\n`;
   md += `> **Normativa de Referencia:** ${standardLabel}  \n`;
@@ -173,7 +290,8 @@ export function generateActionPlanMarkdown(audit: AuditReport): string {
   return md;
 }
 
-export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
+export async function generateActionPlanPDF(audit: AuditReport, lang: string = 'es'): Promise<void> {
+  const isEn = lang !== 'es';
   const { default: jsPDF } = await import('jspdf');
   const autoTableModule = await import('jspdf-autotable');
   const autoTable = (autoTableModule as any).default || autoTableModule;
@@ -183,7 +301,7 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
   const isFull = audit.standard === 'FULL';
   const isISO = audit.standard === 'ISO-42001';
   const standardLabel = isCustom
-    ? (audit.customFrameworkName || 'Marco Regulatorio Personalizado')
+    ? (audit.customFrameworkName || (isEn ? 'Custom Regulatory Framework' : 'Marco Regulatorio Personalizado'))
     : (isFull ? 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023' : (isISO ? 'ISO/IEC 42001:2023' : 'OWASP AI-SVS 1.0'));
 
   // Header Banner
@@ -193,11 +311,11 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(15);
   doc.setFont('helvetica', 'bold');
-  doc.text('AEGIS AI • PLAN DE ACCIÓN Y REMEDIACIÓN TÉCNICA', 14, 15);
+  doc.text(isEn ? 'AEGIS AI • TECHNICAL ACTION & REMEDIATION PLAN' : 'AEGIS AI • PLAN DE ACCIÓN Y REMEDIACIÓN TÉCNICA', 14, 15);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`AegisAI Assurance Platform | Normativa: ${standardLabel}`, 14, 23);
+  doc.text(`AegisAI Assurance Platform | ${isEn ? 'Standard' : 'Normativa'}: ${standardLabel}`, 14, 23);
 
   // Metadata Card
   doc.setTextColor(30, 41, 59);
@@ -208,38 +326,44 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
   doc.roundedRect(14, 38, 182, 44, 2, 2, 'FD');
 
   const levelLabel = audit.assessedLevel || audit.targetLevel || 'L1';
-  const platformLabel = audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || 'SaaS Gestionado');
+  const platformLabel = audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || (isEn ? 'Managed SaaS' : 'SaaS Gestionado'));
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Sistema Auditado:', 18, 44);
+  doc.text(isEn ? 'Audited System:' : 'Sistema Auditado:', 18, 44);
   doc.setFont('helvetica', 'normal');
   doc.text(`${audit.systemName}`, 56, 44);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Plataforma / Tipo:', 18, 51);
+  doc.text(isEn ? 'Platform / Type:' : 'Plataforma / Tipo:', 18, 51);
   doc.setFont('helvetica', 'normal');
   doc.text(`${platformLabel} (${audit.deploymentType || 'SaaS'})`, 56, 51);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Líder Técnico:', 18, 58);
+  doc.text(isEn ? 'Technical Lead:' : 'Líder Técnico:', 18, 58);
   doc.setFont('helvetica', 'normal');
   doc.text(`${audit.technicalLead} (${audit.email})`, 56, 58);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Nivel / Clasificación:', 18, 65);
+  doc.text(isEn ? 'Level / Tier:' : 'Nivel / Clasificación:', 18, 65);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Nivel ${levelLabel} ${audit.targetLevel === 'AUTO' ? '(Auto-detectado por IA)' : '(Seleccionado)'}`, 56, 65);
+  doc.text(`${isEn ? 'Level' : 'Nivel'} ${levelLabel} ${audit.targetLevel === 'AUTO' ? (isEn ? '(Auto-detected by AI)' : '(Auto-detectado por IA)') : (isEn ? '(Selected)' : '(Seleccionado)')}`, 56, 65);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Fecha / ID:', 18, 72);
+  doc.text(isEn ? 'Date / ID:' : 'Fecha / ID:', 18, 72);
   doc.setFont('helvetica', 'normal');
   doc.text(`${format(new Date(audit.date), 'yyyy-MM-dd HH:mm')} | ${audit.id}`, 56, 72);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Calificación / Brecha:', 18, 79);
+  doc.text(isEn ? 'Score / Gap:' : 'Calificación / Brecha:', 18, 79);
   doc.setFont('helvetica', 'normal');
   const criticalCount = actionItems.filter(i => i.priorityWeight === 1).length;
-  doc.text(`${audit.overallScore.toFixed(1)}% Cumplimiento (Nivel ${levelLabel}) | ${actionItems.length} Hallazgos (${criticalCount} Críticos/Altos)`, 56, 79);
+  doc.text(
+    isEn
+      ? `${audit.overallScore.toFixed(1)}% Compliance (Level ${levelLabel}) | ${actionItems.length} Findings (${criticalCount} Critical/High)`
+      : `${audit.overallScore.toFixed(1)}% Cumplimiento (Nivel ${levelLabel}) | ${actionItems.length} Hallazgos (${criticalCount} Críticos/Altos)`,
+    56,
+    79
+  );
 
   let currentY = 90;
 
@@ -247,32 +371,43 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('1. Matriz Priorizada de Remediación', 14, currentY);
+  doc.text(isEn ? '1. Prioritized Remediation Matrix' : '1. Matriz Priorizada de Remediación', 14, currentY);
   currentY += 4;
 
   const tableBody = actionItems.map((item, idx) => {
     const p = item.punto;
-    const prio = item.priorityWeight === 1 ? 'ALTA/CRÍTICA' : item.priorityWeight === 2 ? 'MEDIA' : 'BAJA';
-    const effort = p.remediationDetails?.effortLevel || '1-3 días';
-    const scopeTag = p.isMandatoryForTargetLevel ? `[Mandatorio L${p.level || levelLabel}]` : `[Recom. L${p.level}]`;
+    const prio = isEn
+      ? (item.priorityWeight === 1 ? 'HIGH/CRITICAL' : item.priorityWeight === 2 ? 'MEDIUM' : 'LOW')
+      : (item.priorityWeight === 1 ? 'ALTA/CRÍTICA' : item.priorityWeight === 2 ? 'MEDIA' : 'BAJA');
+    const effort = p.remediationDetails?.effortLevel || (isEn ? '1-3 days' : '1-3 días');
+    const scopeTag = p.isMandatoryForTargetLevel
+      ? (isEn ? `[Mandatory L${p.level || levelLabel}]` : `[Mandatorio L${p.level || levelLabel}]`)
+      : `[Recom. L${p.level}]`;
+    const riskDisp = isEn
+      ? (p.riskImpact === 'Alto' ? 'High' : p.riskImpact === 'Medio' ? 'Medium' : p.riskImpact === 'Bajo' ? 'Low' : p.riskImpact)
+      : p.riskImpact;
     return [
       `${idx + 1}`,
       prio,
       p.id,
       `${p.name}\n${scopeTag}`,
-      p.riskImpact,
+      riskDisp,
       effort,
-      '[ ] Pendiente'
+      isEn ? '[ ] Pending' : '[ ] Pendiente'
     ];
   });
 
   if (tableBody.length === 0) {
-    tableBody.push(['-', 'CONFORME', 'N/A', 'Todos los controles auditados están aprobados', 'Bajo', '0 días', '[x] Aprobado']);
+    tableBody.push(
+      isEn
+        ? ['-', 'COMPLIANT', 'N/A', 'All audited controls are passed', 'Low', '0 days', '[x] Passed']
+        : ['-', 'CONFORME', 'N/A', 'Todos los controles auditados están aprobados', 'Bajo', '0 días', '[x] Aprobado']
+    );
   }
 
   autoTable(doc, {
     startY: currentY,
-    head: [['#', 'Prioridad', 'ID', 'Control & Nivel', 'Riesgo', 'Esfuerzo', 'Estado']],
+    head: [isEn ? ['#', 'Priority', 'ID', 'Control & Level', 'Risk', 'Effort', 'Status'] : ['#', 'Prioridad', 'ID', 'Control & Nivel', 'Riesgo', 'Esfuerzo', 'Estado']],
     body: tableBody,
     theme: 'grid',
     styles: { fontSize: 8, cellPadding: 2 },
@@ -293,7 +428,7 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
   // Section 2: Detailed Remediation Cards
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('2. Fichas de Remediación e Ingeniería de Mitigación', 14, currentY);
+  doc.text(isEn ? '2. Remediation Cards & Mitigation Engineering' : '2. Fichas de Remediación e Ingeniería de Mitigación', 14, currentY);
   currentY += 6;
 
   actionItems.forEach((item, idx) => {
@@ -304,45 +439,47 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
 
     const p = item.punto;
     const details = p.remediationDetails;
-    const prio = item.priorityWeight === 1 ? 'ALTA / CRÍTICA' : item.priorityWeight === 2 ? 'MEDIA' : 'BAJA';
+    const prio = isEn
+      ? (item.priorityWeight === 1 ? 'HIGH / CRITICAL' : item.priorityWeight === 2 ? 'MEDIUM' : 'LOW')
+      : (item.priorityWeight === 1 ? 'ALTA / CRÍTICA' : item.priorityWeight === 2 ? 'MEDIA' : 'BAJA');
 
     const cardRows: any[] = [];
 
     // Diagnostic
     cardRows.push([
-      'Diagnóstico / Causa Raíz:',
-      `${p.comoFallo || p.remediation || 'Falta evidencia técnica o configuración deficiente.'}\nEvidencia detectada (${p.fuenteEvidencia || 'Código/Doc'}): "${p.textoEvidencia || 'N/A'}"`
+      isEn ? 'Diagnosis / Root Cause:' : 'Diagnóstico / Causa Raíz:',
+      `${p.comoFallo || p.remediation || (isEn ? 'Missing technical evidence or insufficient configuration.' : 'Falta evidencia técnica o configuración deficiente.')}\n${isEn ? 'Detected evidence' : 'Evidencia detectada'} (${p.fuenteEvidencia || (isEn ? 'Code/Doc' : 'Código/Doc')}): "${p.textoEvidencia || 'N/A'}"`
     ]);
 
     // Strategy
     if (details?.strategy) {
-      cardRows.push(['Estrategia de Defensa:', details.strategy]);
+      cardRows.push([isEn ? 'Defense Strategy:' : 'Estrategia de Defensa:', details.strategy]);
     }
 
     // Actionable Steps
     if (details?.actionableSteps && details.actionableSteps.length > 0) {
       const stepsText = details.actionableSteps.map((s, sIdx) => `${sIdx + 1}. [ ] ${s}`).join('\n');
-      cardRows.push(['Pasos de Implementación:', stepsText]);
+      cardRows.push([isEn ? 'Implementation Steps:' : 'Pasos de Implementación:', stepsText]);
     } else {
-      cardRows.push(['Pasos de Implementación:', `1. [ ] ${p.remediation}\n2. [ ] Validar en entorno de pruebas.`]);
+      cardRows.push([isEn ? 'Implementation Steps:' : 'Pasos de Implementación:', `1. [ ] ${p.remediation}\n2. [ ] ${isEn ? 'Validate in test environment.' : 'Validar en entorno de pruebas.'}`]);
     }
 
     // Tools & Verification
     if (details?.recommendedTools && details.recommendedTools.length > 0) {
-      cardRows.push(['Herramientas Recomendadas:', details.recommendedTools.join(', ')]);
+      cardRows.push([isEn ? 'Recommended Tools:' : 'Herramientas Recomendadas:', details.recommendedTools.join(', ')]);
     }
     if (details?.verificationRecipe) {
-      cardRows.push(['Prueba de Verificación QA:', details.verificationRecipe]);
+      cardRows.push([isEn ? 'QA Verification Test:' : 'Prueba de Verificación QA:', details.verificationRecipe]);
     }
 
     // Code snippet
     if (details?.codeOrConfigExample) {
-      cardRows.push(['Código / Configuración Sugerida:', details.codeOrConfigExample]);
+      cardRows.push([isEn ? 'Suggested Code / Config:' : 'Código / Configuración Sugerida:', details.codeOrConfigExample]);
     }
 
     autoTable(doc, {
       startY: currentY,
-      head: [[`#${idx + 1} - [${prio}] ${p.id}: ${p.name} (Nivel ${p.level || 'L1'} | Esfuerzo: ${details?.effortLevel || 'Medio'})`, '']],
+      head: [[`#${idx + 1} - [${prio}] ${p.id}: ${p.name} (${isEn ? 'Level' : 'Nivel'} ${p.level || 'L1'} | ${isEn ? 'Effort' : 'Esfuerzo'}: ${details?.effortLevel || (isEn ? 'Medium' : 'Medio')})`, '']],
       body: cardRows,
       theme: 'plain',
       styles: { fontSize: 7.5, cellPadding: 2, textColor: [30, 41, 59] },
@@ -368,22 +505,28 @@ export async function generateActionPlanPDF(audit: AuditReport): Promise<void> {
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('3. Registro de Aprobación y Cierre de Vulnerabilidades', 14, currentY);
+  doc.text(isEn ? '3. Vulnerability Approval & Closure Log' : '3. Registro de Aprobación y Cierre de Vulnerabilidades', 14, currentY);
   currentY += 4;
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Rol / Fase', 'Nombre y Cargo', 'Firma de Conformidad', 'Fecha']],
-    body: [
-      ['1. Remediación Implementada', 'Ingeniero Responsable / DevSecOps', '_________________________', '____/____/________'],
-      ['2. Pruebas QA Verificadas', 'Ingeniero de Calidad / QA Tester', '_________________________', '____/____/________'],
-      ['3. Aprobación y Cierre Final', `${audit.technicalLead} (Líder Técnico / CISO)`, '_________________________', '____/____/________']
-    ],
+    head: [isEn ? ['Role / Phase', 'Name & Title', 'Compliance Signature', 'Date'] : ['Rol / Fase', 'Nombre y Cargo', 'Firma de Conformidad', 'Fecha']],
+    body: isEn
+      ? [
+          ['1. Remediation Implemented', 'Responsible Engineer / DevSecOps', '_________________________', '____/____/________'],
+          ['2. QA Tests Verified', 'Quality Engineer / QA Tester', '_________________________', '____/____/________'],
+          ['3. Final Approval & Closure', `${audit.technicalLead} (Technical Lead / CISO)`, '_________________________', '____/____/________']
+        ]
+      : [
+          ['1. Remediación Implementada', 'Ingeniero Responsable / DevSecOps', '_________________________', '____/____/________'],
+          ['2. Pruebas QA Verificadas', 'Ingeniero de Calidad / QA Tester', '_________________________', '____/____/________'],
+          ['3. Aprobación y Cierre Final', `${audit.technicalLead} (Líder Técnico / CISO)`, '_________________________', '____/____/________']
+        ],
     theme: 'grid',
     styles: { fontSize: 8, cellPadding: 3.5 },
     headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] }
   });
 
   const cleanName = audit.systemName.replace(/[^a-zA-Z0-9_-]/g, '_');
-  doc.save(`Plan_Accion_Remediacion_${cleanName}_${audit.id}.pdf`);
+  doc.save(`${isEn ? 'Action_Remediation_Plan' : 'Plan_Accion_Remediacion'}_${cleanName}_${audit.id}.pdf`);
 }

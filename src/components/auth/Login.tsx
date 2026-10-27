@@ -3,12 +3,14 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
 import { GoogleCloudIcon, AegisCloudLogo } from '../layout/BrandAssets';
+import { LanguageSelector, useLanguage } from '../../lib/i18n';
 
 interface LoginProps {
   onDemoLogin?: () => void;
 }
 
 export function Login({ onDemoLogin }: LoginProps) {
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -63,6 +65,11 @@ export function Login({ onDemoLogin }: LoginProps) {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center font-sans p-6 relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+      {/* Selector de Idioma superior derecho */}
+      <div className="absolute top-6 right-6 z-20">
+        <LanguageSelector variant="dark" />
+      </div>
+
       {/* Background ambient glow */}
       <div className="absolute w-[500px] h-[500px] bg-[#1A73E8]/10 blur-[120px] rounded-full pointer-events-none -top-20 -left-20" />
       <div className="absolute w-[400px] h-[400px] bg-[#1E8E3E]/10 blur-[100px] rounded-full pointer-events-none -bottom-20 -right-20" />
@@ -82,10 +89,10 @@ export function Login({ onDemoLogin }: LoginProps) {
         </div>
 
         <h2 className="text-lg font-bold text-white mb-2">
-          Control de Acceso y Gobernanza
+          {t('Control de Acceso y Gobernanza')}
         </h2>
         <p className="text-xs text-slate-400 mb-5 leading-relaxed font-sans">
-          Plataforma de auditoría técnica y aseguramiento continuo para modelos fundacionales, agentes y pipelines RAG.
+          {t('Plataforma de auditoría técnica y aseguramiento continuo para modelos fundacionales, agentes y pipelines RAG.')}
         </p>
 
         {/* Badge de Dominio Autorizado */}

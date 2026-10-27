@@ -169,12 +169,13 @@ export interface AsyncAuditJob {
   error?: string;
 }
 
-export type LLMProviderType = 'gemini' | 'openrouter' | 'openai' | 'custom_openai_compatible';
+export type LLMProviderType = 'gemini' | 'anthropic' | 'openrouter' | 'openai' | 'custom_openai_compatible';
 
 export interface AdminSettingsData {
   provider: LLMProviderType;
   isConfigured: boolean;
-  // Gemini settings
+  // Gemini / Vertex AI settings
+  geminiBackend?: 'vertex_ai' | 'api_key';
   maskedKey: string;
   preferredModel: string;
   // Universal / OpenAI-compatible / OpenRouter settings

@@ -338,7 +338,7 @@ echo "=========================================================="
 ```
 
 **Paso Obligatorio para OAuth de Google:**
-1. Copie el dominio de Cloud Run sin `https://` (ej. `aegis-ai-123456789012.us-central1.run.app`).
+1. Copie el dominio de Cloud Run sin `https://` (ej. `aegis-ai-607603788049.us-central1.run.app`).
 2. Abra: **[Firebase Console > Authentication > Settings > Authorized domains](https://console.firebase.google.com/project/_/authentication/settings)**.
 3. Haga clic en **"Add domain"** (Agregar dominio).
 4. Pegue el dominio y presione **Guardar**.

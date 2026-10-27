@@ -89,6 +89,8 @@ export function CloudIconLogo({ className = "h-4 w-auto" }: { className?: string
   return <GoogleCloudIcon className={className} />;
 }
 
+import { LanguageSelector, useLanguage } from '../../lib/i18n';
+
 /**
  * Encabezado de Vista Moderno Enterprise
  * Acabado metálico, micro-insignia Google Cloud y tipografía Google Sans
@@ -108,6 +110,7 @@ export function DivisionHeader({
   actions, 
   className = "mb-6",
 }: DivisionHeaderProps) {
+  const { t } = useLanguage();
   return (
     <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 transition-all duration-300 ${className}`}>
       <div className="flex items-center gap-3.5">
@@ -117,19 +120,20 @@ export function DivisionHeader({
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight m-0 font-sans">
-              {title}
+              {t(title)}
             </h1>
             {badge}
           </div>
           {subtitle && (
             <p className="text-xs text-slate-500 font-normal mt-1 m-0 leading-normal font-sans">
-              {subtitle}
+              {t(subtitle)}
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+        <LanguageSelector variant="header" />
         <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-full shadow-xs transition-all duration-200 hover:border-slate-300 hover:shadow-sm">
           <GoogleCloudIcon className="h-3.5 w-auto" />
           <span className="text-[11px] font-semibold text-slate-700 tracking-tight font-sans">Google Cloud</span>

@@ -22,6 +22,7 @@ import {
 import { format } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { DivisionHeader } from '../layout/BrandAssets';
+import { useLanguage, CHAPTER_INFO_I18N } from '../../lib/i18n';
 
 interface DashboardProps {
   audits: AuditReport[];
@@ -32,45 +33,13 @@ interface DashboardProps {
   isSeeding?: boolean;
 }
 
-// Chapter metadata mapping for human-friendly tooltips
-const CHAPTER_INFO: Record<string, { title: string; desc: string }> = {
-  // OWASP AI-SVS Chapters
-  'C1': { title: 'Inyección de Prompts y Validaciones', desc: 'Validación de entradas, sanitización y prevención de jailbreaks directos e indirectos.' },
-  'C2': { title: 'Manejo y Sanitización de Salidas', desc: 'Tratamiento de respuestas del LLM como no confiables para prevenir XSS y ejecuciones maliciosas.' },
-  'C3': { title: 'Protección de Datos y Privacidad', desc: 'Enmascaramiento de PII, retención de datos confidenciales y cumplimiento de normativas de privacidad.' },
-  'C4': { title: 'Seguridad en Cadena de Suministro', desc: 'Verificación de procedencia de pesos de modelos, dependencias y librerías de terceros.' },
-  'C5': { title: 'Control de Acceso y Autenticación', desc: 'Políticas de menor privilegio, API keys seguras y control RBAC en endpoints de IA.' },
-  'C6': { title: 'Infraestructura y Aislamiento', desc: 'Sandboxing de ejecución de código, segmentación de redes y contención de contenedores.' },
-  'C7': { title: 'Seguridad en Datos y RAG', desc: 'Prevención de envenenamiento en bases vectoriales, sanitización de corpus y embeddings.' },
-  'C8': { title: 'Prevención de Denegación de Servicio', desc: 'Rate limiting, timeouts en inferencia y límites de tamaño en ventanas de contexto.' },
-  'C9': { title: 'Auditoría, Logging y Monitoreo', desc: 'Trazabilidad de prompts y respuestas, detección de anomalías y retención de logs de seguridad.' },
-  'C10': { title: 'Mitigación de Alucinaciones', desc: 'Grounding estricto, verificación de fuentes y umbrales de confianza del modelo.' },
-  'C11': { title: 'Gobernanza y Gestión de Riesgos', desc: 'Evaluaciones de impacto algorítmico, comités de ética y documentación de riesgos.' },
-  'C12': { title: 'Red Teaming y Resiliencia', desc: 'Pruebas de estrés adversario, simulación de ataques y validación continua.' },
-
-  // ISO/IEC 42001 Chapters / Clauses
-  'A.2': { title: 'Políticas relacionadas a IA', desc: 'Establecimiento de directrices organizacionales para el ciclo de vida y uso ético de la IA.' },
-  'A.3': { title: 'Organización Interna y Roles', desc: 'Asignación formal de responsabilidades, roles de gobernanza y rendición de cuentas (RACI).' },
-  'A.4': { title: 'Recursos para Sistemas de IA', desc: 'Disponibilidad de infraestructura, herramientas de validación y talento técnico capacitado.' },
-  'A.5': { title: 'Evaluación de Impacto de IA', desc: 'Análisis de impacto ético, legal, social y de seguridad en individuos y procesos de negocio.' },
-  'A.6': { title: 'Ciclo de Vida del Sistema de IA', desc: 'Control de diseño, desarrollo, pruebas, despliegue, operación y retiro de sistemas de IA.' },
-  'A.7': { title: 'Datos para Sistemas de IA', desc: 'Calidad, procedencia, etiquetado y gobernanza de datos de entrenamiento y evaluación.' },
-  'A.8': { title: 'Información y Transparencia', desc: 'Explicabilidad, divulgación a usuarios y documentación técnica para partes interesadas.' },
-  'A.9': { title: 'Uso y Supervisión Humana', desc: 'Mecanismos de Human-in-the-loop, monitoreo operacional y control de decisiones automatizadas.' },
-  'A.10': { title: 'Relaciones con Terceros y Proveedores', desc: 'Gestión de riesgos en proveedores de modelos base, APIs y servicios externos de IA.' },
-  'Clause 4': { title: 'Contexto de la Organización', desc: 'Comprensión de necesidades de partes interesadas y alcance del sistema de gestión de IA.' },
-  'Clause 5': { title: 'Liderazgo y Compromiso', desc: 'Compromiso de la alta dirección con la gobernanza de IA y asignación de autoridad.' },
-  'Clause 6': { title: 'Planificación y Riesgos de IA', desc: 'Objetivos de IA y acciones planificadas para abordar riesgos y oportunidades.' },
-  'Clause 7': { title: 'Soporte y Competencias', desc: 'Recursos, toma de conciencia, comunicación e información documentada del SGIA.' },
-  'Clause 8': { title: 'Operación del SGIA', desc: 'Planificación, control operacional y ejecución de evaluaciones de impacto de IA.' },
-  'Clause 9': { title: 'Evaluación del Desempeño', desc: 'Seguimiento, medición, auditoría interna y revisión por la dirección del SGIA.' },
-  'Clause 10': { title: 'Mejora Continua', desc: 'Acciones correctivas ante no conformidades y optimización continua de la gobernanza de IA.' },
-};
-
 export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSeedAudits, isSeeding }: DashboardProps) {
+  const { lang, t } = useLanguage();
   const [filter, setFilter] = useState<'All' | 'High' | 'Low'>('All');
   const [standardView, setStandardView] = useState<'ALL' | 'AISVS' | 'ISO42001' | 'DUAL' | 'CUSTOM'>('ALL');
   const [search, setSearch] = useState('');
+
+  const activeChapterInfo = CHAPTER_INFO_I18N[lang] || CHAPTER_INFO_I18N.es;
 
   // Filter audits for the system list
   const filteredAudits = useMemo(() => {
@@ -138,7 +107,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
     });
 
     const inconformities = Object.keys(failuresMap).map(k => {
-      const info = CHAPTER_INFO[k] || { title: k, desc: '' };
+      const info = activeChapterInfo[k] || { title: k, desc: '' };
       return {
         chapter: k,
         title: info.title,
@@ -149,7 +118,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
     }).sort((a, b) => b.count - a.count).slice(0, 8);
 
     const conformities = Object.keys(passesMap).map(k => {
-      const info = CHAPTER_INFO[k] || { title: k, desc: '' };
+      const info = activeChapterInfo[k] || { title: k, desc: '' };
       return {
         chapter: k,
         title: info.title,
@@ -164,14 +133,16 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
 
     const overallStatus = [
       { 
-        name: 'Cumple (≥80%)', 
+        name: t('Cumple (≥80%)'), 
+        isApproved: true,
         value: approvedSystems.length, 
         color: '#1E8E3E', 
         systems: approvedSystems,
         percent: total > 0 ? ((approvedSystems.length / total) * 100).toFixed(1) : '0'
       },
       { 
-        name: 'Revisión Req. (<80%)', 
+        name: t('Revisión Req. (<80%)'), 
+        isApproved: false,
         value: reviewSystems.length, 
         color: '#F9AB00', 
         systems: reviewSystems,
@@ -190,10 +161,10 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
     };
   };
 
-  const aisvsMetrics = useMemo(() => computeMetrics('AISVS'), [audits]);
-  const isoMetrics = useMemo(() => computeMetrics('ISO42001'), [audits]);
-  const customMetrics = useMemo(() => computeMetrics('CUSTOM'), [audits]);
-  const globalMetrics = useMemo(() => computeMetrics('ALL'), [audits]);
+  const aisvsMetrics = useMemo(() => computeMetrics('AISVS'), [audits, lang]);
+  const isoMetrics = useMemo(() => computeMetrics('ISO42001'), [audits, lang]);
+  const customMetrics = useMemo(() => computeMetrics('CUSTOM'), [audits, lang]);
+  const globalMetrics = useMemo(() => computeMetrics('ALL'), [audits, lang]);
 
   // Counts for tabs
   const aisvsCount = audits.filter(a => a.standard === 'AI-SVS' || a.standard === 'FULL' || a.standards?.includes('AI-SVS') || a.standards?.includes('OWASP-AISVS') || !a.standard).length;
@@ -204,7 +175,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
   const ApprovalRatePieTooltip = ({ active, payload }: any) => {
     if (!active || !payload || !payload.length) return null;
     const data = payload[0].payload;
-    const isApproved = data.name.includes('Cumple');
+    const isApproved = data.isApproved !== undefined ? data.isApproved : data.name.includes('Cumple');
 
     return (
       <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-200/90 text-xs max-w-sm z-50 pointer-events-none font-sans">
@@ -214,7 +185,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
             <span>{data.name}</span>
           </div>
           <span className={`font-bold px-2.5 py-0.5 rounded-full text-xs border ${isApproved ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80'}`}>
-            {data.value} {data.value === 1 ? 'sistema' : 'sistemas'} ({data.percent}%)
+            {`${data.value} ${data.value === 1 ? 'sistema' : 'sistemas'} (${data.percent}%)`}
           </span>
         </div>
 
@@ -262,7 +233,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
             </span>
           </div>
           <span className={`font-bold px-2.5 py-0.5 rounded-full text-xs border ${isConformity ? 'bg-blue-50 text-[#1A73E8] border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-            {data.count} {isConformity ? 'aprobados' : 'fallos'}
+            {`${data.count} ${isConformity ? 'aprobados' : 'fallos'}`}
           </span>
         </div>
 
@@ -317,12 +288,12 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 font-sans">{title}</h2>
+                <h2 className="text-base font-bold text-slate-900 font-sans">{t(title)}</h2>
                 <Badge variant={badgeVariant} className="text-xs font-semibold rounded-full">
-                  {badgeText}
+                  {t(badgeText)}
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 font-normal font-sans">{subtitle} • {metrics.totalAudits} sistemas evaluados</p>
+              <p className="text-xs text-slate-500 font-normal font-sans">{`${t(subtitle)} • ${t(`${metrics.totalAudits} sistemas evaluados`)}`}</p>
             </div>
           </div>
 
@@ -340,7 +311,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
             <CardHeader className="border-b border-slate-100 pb-3 bg-slate-50/70 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs flex items-center gap-2 text-slate-800 font-bold">
-                  <PieChartIcon size={15} className="text-[#1A73E8]" /> Tasa de Aprobación ({badgeText})
+                  <PieChartIcon size={15} className="text-[#1A73E8]" /> {`Tasa de Aprobación (${t(badgeText)})`}
                 </CardTitle>
                 <div className="group relative cursor-pointer" title="Coloca el cursor sobre la gráfica para ver los sistemas aprobados y no aprobados">
                   <Info size={14} className="text-slate-400 hover:text-slate-700" />
@@ -404,7 +375,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
             <CardHeader className="border-b border-slate-100 pb-3 bg-amber-50/50 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs flex items-center gap-2 text-amber-900 font-bold">
-                  <AlertTriangle size={15} className="text-amber-600" /> Inconformidades (Fallos {badgeText})
+                  <AlertTriangle size={15} className="text-amber-600" /> {`Inconformidades (Fallos ${t(badgeText)})`}
                 </CardTitle>
                 <div className="group relative cursor-pointer" title="Coloca el cursor sobre cada barra para ver los detalles del capítulo y los sistemas afectados">
                   <Info size={14} className="text-amber-700/70 hover:text-amber-900" />
@@ -442,7 +413,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
             <CardHeader className="border-b border-slate-100 pb-3 bg-blue-50/50 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs flex items-center gap-2 text-blue-900 font-bold">
-                  <CheckCircle size={15} className="text-[#1A73E8]" /> Conformidades (Aprobados {badgeText})
+                  <CheckCircle size={15} className="text-[#1A73E8]" /> {`Conformidades (Aprobados ${t(badgeText)})`}
                 </CardTitle>
                 <div className="group relative cursor-pointer" title="Coloca el cursor sobre cada barra para ver los controles aprobados y sistemas conformes">
                   <Info size={14} className="text-[#1A73E8]/70 hover:text-blue-900" />
@@ -679,7 +650,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
       <div className="mt-10 pt-6 border-t border-slate-200/90">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Sistemas Evaluados ({filteredAudits.length})</h3>
+            <h3 className="text-lg font-bold text-slate-900">{`Sistemas Evaluados (${filteredAudits.length})`}</h3>
             <p className="text-xs text-slate-500 font-normal">Haz clic en cualquier sistema para ver el reporte técnico detallado, matriz RACI y plan de remediación</p>
           </div>
 
@@ -739,7 +710,7 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
                     {audit.standard === 'MULTI' || (audit.standards && audit.standards.length > 1) ? (
                       <span className="text-[10.5px] bg-blue-50 text-[#1A73E8] border border-blue-200/80 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5">
                         <Layers size={11} className="text-[#1A73E8]" />
-                        Multi-Normativa ({audit.standards?.length || audit.standardsBreakdown?.length || 2} Normas)
+                        {`Multi-Normativa (${audit.standards?.length || audit.standardsBreakdown?.length || 2} Normas)`}
                       </span>
                     ) : audit.standard === 'CUSTOM' ? (
                       <span className="text-[10.5px] bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
@@ -753,11 +724,11 @@ export function Dashboard({ audits, onNewAudit, onViewAudit, onDeleteAudit, onSe
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500 font-normal">
-                    <span className="font-mono text-[11px] text-slate-600 font-medium">ID: {audit.id}</span>
+                    <span className="font-mono text-[11px] text-slate-600 font-medium">{`ID: ${audit.id}`}</span>
                     <span>·</span>
                     <span>{format(new Date(audit.date), 'yyyy-MM-dd HH:mm')}</span>
                     <span>·</span>
-                    <span>Líder: {audit.technicalLead}</span>
+                    <span>{`Líder: ${audit.technicalLead}`}</span>
                     {audit.techPlatformName && (
                       <>
                         <span>·</span>

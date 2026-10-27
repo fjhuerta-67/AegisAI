@@ -229,11 +229,11 @@ flowchart LR
         Browser["Secure Browser\n(Chrome / Safari / Firefox)"]
     end
 
-    subgraph GCP_Project ["Google Cloud Project (Enterprise Tenant: your-project-id)"]
+    subgraph GCP_Project ["Google Cloud Project (Enterprise Tenant: computeengine-506321)"]
         subgraph IngressLayer ["Zero-Trust Ingress Layer (C04.3)"]
             CloudIAP["Cloud Identity-Aware Proxy (IAP)\n(--no-allow-unauthenticated / OAuth 2.0)"]
             CloudRunFront["Google Cloud Run Ingress\n(HTTPS TLS 1.3 / Port 8080)"]
-            FirebaseAuth["Firebase Auth / Identity Platform\n(Domain Filter: google.com, example.com)"]
+            FirebaseAuth["Firebase Auth / Identity Platform\n(Domain Filter: google.com, altostrat.com)"]
         end
 
         subgraph ComputeLayer ["Immutable Serverless Compute Layer (C04.1, C05.2)"]
@@ -265,7 +265,7 @@ flowchart LR
 ### 7.1 Infrastructure Components and Service Mapping
 | GCP Component | Technical Service | Role and Responsibility |
 | :--- | :--- | :--- |
-| **Zero-Trust Perimeter** | Cloud Identity-Aware Proxy (IAP) & Cloud Run | Enforces `--no-allow-unauthenticated` at the edge (`C04.3`), allowing only verified principals from authorized corporate domains (`google.com`, `example.com`). |
+| **Zero-Trust Perimeter** | Cloud Identity-Aware Proxy (IAP) & Cloud Run | Enforces `--no-allow-unauthenticated` at the edge (`C04.3`), allowing only verified principals from authorized corporate domains (`google.com`, `altostrat.com`). |
 | **Serverless Compute** | Google Cloud Run (`aegis-ai`) | Hosts the immutable container (`chmod -R a-w /app`, non-root `aegisuser`, `C04.1`) with `--vpc-egress private-ranges-only` and outbound SSRF guard (`C04.3`). |
 | **Execution Identity** | Cloud IAM (`aegis-runner-sa`) | Dedicated least-privilege Service Account granted **exclusively** `roles/aiplatform.user` and `roles/datastore.user` (`C05.2`). Project-wide `roles/viewer` is strictly prohibited. |
 | **Secret Management** | Google Cloud Secret Manager | Custodies `aegis-admin-token` injected at runtime and verified in constant time via `crypto.timingSafeEqual` (`C05.3`). |
@@ -303,7 +303,7 @@ This section provides the explicit architectural specification and code-level ve
 - **Verification Mechanism:** Verified by automated unit and security tests (`npm run test:security`), confirming zero timing leakage and full propagation of `{ uid, email, tenantDomain }` into the evaluation and persistence pipeline.
 
 ### 8.7 `C05.4` — Tenant & Owner-Scoped Cloud Firestore Security Rules
-- **Control Implementation:** `firestore.rules` enforces multi-tenant domain authorization (`isAllowedDomain()` restricted to `google.com`, `example.com`, `yourcompany.com`), mandatory owner binding on document creation (`hasValidOwnershipOnCreate()` checking `ownerUid == request.auth.uid` and `ownerEmail == request.auth.token.email`), owner immutability on updates (`ownershipUnchanged()`), owner/admin restriction on `apiKeys` deletion, and total client lockdown on `/system_config/{configId}` (`allow read, write: if false;`).
+- **Control Implementation:** `firestore.rules` enforces multi-tenant domain authorization (`isAllowedDomain()` restricted to `google.com`, `altostrat.com`, `coppel.com`), mandatory owner binding on document creation (`hasValidOwnershipOnCreate()` checking `ownerUid == request.auth.uid` and `ownerEmail == request.auth.token.email`), owner immutability on updates (`ownershipUnchanged()`), owner/admin restriction on `apiKeys` deletion, and total client lockdown on `/system_config/{configId}` (`allow read, write: if false;`).
 - **Verification Mechanism:** Validated against the official Google Cloud Firebase Rules API (`projects:test`) via `firestore.rules.test.ts` with **308 passing unit test assertions (0 failures)**.
 
 ### 8.8 `C08.1` — Pre-Retrieval Tenant Domain ACL Filtering in Normative RAG

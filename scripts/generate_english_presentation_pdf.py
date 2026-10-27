@@ -306,7 +306,7 @@ html_content = """<!DOCTYPE html>
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Enterprise Edition v2.5 (Hardened)</span>
       </div>
-      <span class="slide-num">01 / 10</span>
+      <span class="slide-num">01 / 11</span>
     </div>
 
     <div class="cover-container">
@@ -323,16 +323,16 @@ html_content = """<!DOCTYPE html>
       <div class="tech-badges-row">
         <span class="pill pill-blue">OWASP AI-SVS v1.0 (12 Chapters)</span>
         <span class="pill pill-blue">ISO/IEC 42001:2023 AIMS</span>
-        <span class="pill pill-green">Cloud IAP Zero-Trust Edge (C04.3)</span>
+        <span class="pill pill-green">Model Garden & Model Armor (Phase 3)</span>
         <span class="pill pill-amber">Vertex AI Gemini 3.8 Flash (Keyless ADC)</span>
-        <span class="pill pill-green">SHA-256 Normative Integrity (C01.4)</span>
-        <span class="pill pill-blue">Crescendo Guardrails (C02.10) & Anti-DoW (C11.1)</span>
+        <span class="pill pill-purple">Vertex Evaluation AutoSxS (Phase 4)</span>
+        <span class="pill pill-green">Model Monitoring & SCC AI (Phase 5)</span>
       </div>
     </div>
 
     <div class="slide-footer">
       <span>AegisAI Enterprise Assurance Platform</span>
-      <span>Apache License 2.0 • Open Source • Cloud Run + Vertex AI + Firestore</span>
+      <span>Apache License 2.0 • Open Source • Cloud Run + Vertex AI + Model Armor + AutoSxS + SCC AI</span>
       <span>October 2026</span>
     </div>
   </div>
@@ -344,7 +344,7 @@ html_content = """<!DOCTYPE html>
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Risk Landscape</span>
       </div>
-      <span class="slide-num">02 / 10</span>
+      <span class="slide-num">02 / 11</span>
     </div>
 
     <div class="title-block">
@@ -356,8 +356,8 @@ html_content = """<!DOCTYPE html>
     <div class="slide-body">
       <div class="grid-3">
         <div class="card card-danger">
-          <div class="card-title"><span style="color:#ef4444;">⚠</span> Accelerated Ungoverned Deployment</div>
-          <p class="card-text"><strong>13% of organizations</strong> already reported breaches of AI models or applications, and <strong>97%</strong> of those lacked proper AI access controls (IBM, 2025).</p>
+          <div class="card-title"><span style="color:#ef4444;">⚠</span> Ungoverned AI Access & Breaches</div>
+          <p class="card-text">Per <strong>IBM Cost of a Data Breach 2025</strong>, <strong>13% of organizations</strong> reported breaches of AI models or applications, and <strong>97% of those</strong> lacked proper AI access controls or formal impact assessments (<code>ISO 42001 A.5.1</code>).</p>
         </div>
 
         <div class="card card-danger">
@@ -397,7 +397,7 @@ html_content = """<!DOCTYPE html>
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Consequence Analysis</span>
       </div>
-      <span class="slide-num">03 / 10</span>
+      <span class="slide-num">03 / 11</span>
     </div>
 
     <div class="title-block">
@@ -410,22 +410,22 @@ html_content = """<!DOCTYPE html>
       <div class="grid-4" style="margin-bottom: 12px;">
         <div class="card stat-box">
           <div class="stat-number" style="color: #ef4444;">€35M</div>
-          <div class="stat-label">or 7% of global annual turnover in statutory <strong>EU AI Act</strong> penalties</div>
+          <div class="stat-label">or 7% of global annual turnover in statutory <strong>EU AI Act Art. 99</strong> penalties</div>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #f59e0b;">$4.88M</div>
-          <div class="stat-label">Average global cost of an enterprise data breach (IBM Security 2024)</div>
+          <div class="stat-number" style="color: #f59e0b;">97%</div>
+          <div class="stat-label">of breached AI apps lacked proper AI access controls (<strong>IBM 2025</strong>; 13% reported AI breaches)</div>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #38bdf8;">13%</div>
-          <div class="stat-label">of organizations reported breaches of AI models or apps (IBM 2025)</div>
+          <div class="stat-number" style="color: #38bdf8;">10 / 10</div>
+          <div class="stat-label">Automated <strong>OWASP LLM Top-10</strong> risk checks enforced per audit</div>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #10b981;">97%</div>
-          <div class="stat-label">of those lacked proper AI access controls (IBM 2025)</div>
+          <div class="stat-number" style="color: #10b981;">148</div>
+          <div class="stat-label">Built-in controls (AISVS 56, ISO 42001 54, EU AI Act 10, LFPDPPP 14, LFPC 14)</div>
         </div>
       </div>
 
@@ -460,7 +460,7 @@ html_content = """<!DOCTYPE html>
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Value Proposition</span>
       </div>
-      <span class="slide-num">04 / 10</span>
+      <span class="slide-num">04 / 11</span>
     </div>
 
     <div class="title-block">
@@ -479,14 +479,14 @@ html_content = """<!DOCTYPE html>
           <ul style="font-size: 7.8pt; color: #cbd5e1; margin: 0; padding-left: 16px; line-height: 1.45;">
             <li>Deterministic Map-Reduce evaluation with strict chapter enum schemas (<code>buildBatchChaptersSchema</code>).</li>
             <li>Mandatory verbatim citation grounding (<code>textoEvidencia</code> & <code>fuenteEvidencia</code>).</li>
-            <li>Pre-inference DLP masking and C02.10 multi-turn crescendo prompt injection blocking.</li>
+            <li>Pre-inference DLP masking, Google Cloud Model Armor & C02.10 multi-turn crescendo prompt injection blocking.</li>
           </ul>
         </div>
 
         <div class="card card-highlight">
           <div class="card-title" style="color: #34d399;"><span>⚡</span> 100% Remediated Architecture & Full Cookbook</div>
           <p class="card-text" style="font-size: 8.5pt; margin-bottom: 6px;">
-            Beyond diagnostics, AegisAI synthesizes a complete <strong>Drop-in Replacement Architecture Specification</strong> (Section 3) plus a full, untruncated <strong>Patch Cookbook</strong> (Section 4) for every finding.
+            Beyond diagnostics, AegisAI synthesizes a complete <strong>Drop-in Replacement Architecture Specification</strong> (Section 3, including the 3-Phase GCP Protection Stack) plus a full, untruncated <strong>Patch Cookbook</strong> (Section 4).
           </p>
           <ul style="font-size: 7.8pt; color: #cbd5e1; margin: 0; padding-left: 16px; line-height: 1.45;">
             <li>Renders all <code>1..N</code> non-passing controls without truncation, even on 35+ finding multi-standard audits.</li>
@@ -499,15 +499,15 @@ html_content = """<!DOCTYPE html>
       <div class="grid-3" style="margin-top: 12px;">
         <div class="card">
           <div class="card-title">1. Cryptographic Integrity (C01.4)</div>
-          <p class="card-text">Normative snapshots verified at startup against a SHA-256 manifest (<code>integrity-manifest.json</code>).</p>
+          <p class="card-text">Normative snapshots verified at startup against a SHA-256 manifest + signed Model Garden / Registry provenance.</p>
         </div>
         <div class="card">
           <div class="card-title">2. Keyless GCP Live Scanner (C05.2)</div>
-          <p class="card-text">Read-only inspection of Vertex AI, Cloud Run, IAM & Secret Manager using ephemeral caller credentials.</p>
+          <p class="card-text">Read-only inspection of Vertex AI, Model Armor, AutoSxS, Model Monitoring, SCC AI, Cloud Run & IAM.</p>
         </div>
         <div class="card">
           <div class="card-title">3. Continuous AIMS Telemetry (C08.4)</div>
-          <p class="card-text">Real-time KPI tracking of citation grounding coverage, JSON schema fidelity, and control posture.</p>
+          <p class="card-text">Real-time KPI tracking of citation grounding coverage, JSON schema fidelity, AutoSxS & control posture.</p>
         </div>
       </div>
     </div>
@@ -525,7 +525,7 @@ html_content = """<!DOCTYPE html>
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Governance & Standards</span>
       </div>
-      <span class="slide-num">05 / 10</span>
+      <span class="slide-num">05 / 11</span>
     </div>
 
     <div class="title-block">
@@ -548,14 +548,14 @@ html_content = """<!DOCTYPE html>
           <tr>
             <td><strong style="color: #60a5fa;">OWASP AI-SVS v1.0</strong></td>
             <td>AI Security Verification Standard (12 Chapters)</td>
-            <td><code>C01.4</code> SHA-256 Manifest, <code>C02.10</code> Crescendo Guard, <code>C04.1</code> Read-Only Container, <code>C04.3</code> Cloud IAP & SSRF Block, <code>C05.2–C05.4</code> Constant-Time Auth & IAM, <code>C08.1/C08.4</code> RAG ACLs, <code>C09.4</code> Sagas, <code>C10.1–C10.5</code> MCP Security, <code>C11.1/C11.4</code> Anti-DoW & Logprobs Off, <code>C12.2</code> SIEM Alerts.</td>
+            <td><code>C01.4</code> SHA-256 & Model Garden, <code>C02.10</code> Model Armor & Crescendo Guard, <code>C04.1</code> Read-Only Container, <code>C04.3</code> Cloud IAP & SSRF Block, <code>C05.2–C05.4</code> Constant-Time Auth & IAM, <code>C08.1/C08.4</code> RAG ACLs & AutoSxS, <code>C09.4</code> Sagas, <code>C10.1–C10.5</code> MCP Security, <code>C11.1/C11.4</code> Anti-DoW & Logprobs Off, <code>C12.2</code> SCC AI Alerts.</td>
             <td><span class="pill pill-green">L1 / L2 / L3 Ready</span></td>
           </tr>
           <tr>
             <td><strong style="color: #a78bfa;">ISO/IEC 42001:2023</strong></td>
             <td>AI Management System (AIMS Clauses 4–10 & Annex A)</td>
-            <td><code>Clause 4.1/4.2</code> Context & Stakeholders, <code>Clause 5/A.2.1/A.2.3</code> Corporate AI Policy, <code>Clause 7/A.3.3</code> Competency & Whistleblowing, <code>A.4.1</code> AI Asset Inventory, <code>A.5.1–A.5.3</code> Impact Assessment & Human Appeal, <code>Clause 9</code> KPIs & Internal Audit, <code>A.9.1/A.9.2</code> Acceptable Use.</td>
-            <td><span class="pill pill-green">54 controls</span></td>
+            <td><code>Clause 4.1/4.2</code> Context & Stakeholders, <code>Clause 5/A.2.1/A.2.3</code> Corporate AI Policy, <code>A.6.1.2/A.7.3</code> Model Garden/Registry, <code>A.6.2.6</code> Model Armor & Model Monitoring, <code>Clause 9.1/A.6.2.4</code> Vertex Evaluation (AutoSxS), <code>A.6.2.8</code> SCC AI Protection.</td>
+            <td><span class="pill pill-green">Certification Ready</span></td>
           </tr>
           <tr>
             <td><strong style="color: #34d399;">Mexican Regulatory (2026)</strong></td>
@@ -592,13 +592,13 @@ html_content = """<!DOCTYPE html>
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">System Engineering</span>
       </div>
-      <span class="slide-num">06 / 10</span>
+      <span class="slide-num">06 / 11</span>
     </div>
 
     <div class="title-block">
       <span class="slide-category">Software Architecture</span>
       <h2 class="slide-title">4-Layer Zero-Trust & Defense-in-Depth Architecture</h2>
-      <p class="slide-subtitle">Hardened serverless architecture deployed on Google Cloud Run behind Identity-Aware Proxy (IAP) with keyless Vertex AI inference.</p>
+      <p class="slide-subtitle">Hardened serverless architecture deployed on Google Cloud Run behind Identity-Aware Proxy (IAP) with keyless Vertex AI ADC inference.</p>
     </div>
 
     <div class="slide-body">
@@ -608,67 +608,127 @@ html_content = """<!DOCTYPE html>
           <p class="card-text">
             • <strong>Cloud IAP</strong> (<code>--no-allow-unauthenticated</code>)<br>
             • <strong>React 19 + TS + Vite</strong><br>
-            • Firebase Auth OAuth 2.0 domain allowlist (<code>google.com</code>, <code>example.com</code>)<br>
+            • Firebase Auth OAuth 2.0 domain allowlist (<code>google.com</code>, <code>altostrat.com</code>)<br>
             • Embedded ISO 42001 Policy, Appeal (<code>A.5.2</code>) & Whistleblowing (<code>A.3.3</code>) UI
           </p>
         </div>
 
         <div class="card">
-          <div class="card-title" style="color: #60a5fa;">2. Hardened API Layer</div>
+          <div class="card-title" style="color: #60a5fa;">2. Hardened API & Model Armor</div>
           <p class="card-text">
             • <strong>Read-Only Container</strong> (<code>chmod -R a-w /app</code>, <code>C04.1</code>)<br>
+            • <strong>Google Cloud Model Armor</strong> inline prompt/response sanitizer<br>
             • Constant-time token check (<code>crypto.timingSafeEqual</code>, <code>C05.3</code>)<br>
-            • Firebase Admin <code>verifyIdToken()</code><br>
             • DNS Rebinding Guard (<code>C10.5</code>) & MCP Signature Verifier (<code>C10.1</code>)<br>
             • Anti-DoW Quotas (<code>C11.1</code>)
           </p>
         </div>
 
         <div class="card">
-          <div class="card-title" style="color: #34d399;">3. AI Engine & Guardrails</div>
+          <div class="card-title" style="color: #34d399;">3. Keyless Vertex AI & Multi-LLM</div>
           <p class="card-text">
-            • <strong>Vertex AI</strong> (<code>gemini-3.8-flash</code>) via keyless ADC<br>
-            • Least-privilege SA (<code>aegis-runner-sa</code>: zero <code>roles/viewer</code>, <code>C05.2</code>)<br>
-            • Multi-Turn Crescendo Detector (<code>C02.10</code>)<br>
-            • <code>responseLogprobs: false</code> (<code>C11.4</code>)<br>
+            • <strong>Vertex AI</strong> (<code>gemini-3.8-flash</code>) via keyless IAM ADC (no Gemini API key needed)<br>
+            • <strong>Model Garden / Registry</strong> signed provenance (<code>C01.4</code>)<br>
+            • Multi-Provider Engine (Claude, OpenRouter, OpenAI, Local Proxy)<br>
+            • Multi-Turn Crescendo Detector (<code>C02.10</code>) & Logprobs Off (<code>C11.4</code>)<br>
             • Outbound SSRF/IMDS Block (<code>C04.3</code>)
           </p>
         </div>
 
         <div class="card">
-          <div class="card-title" style="color: #a78bfa;">4. Data, Integrity & Sagas</div>
+          <div class="card-title" style="color: #a78bfa;">4. Data, AutoSxS & SCC AI</div>
           <p class="card-text">
-            • <strong>Cloud Firestore</strong> (<code>aegis-ai-db</code>) via Admin SDK<br>
-            • 308/308 tested <code>firestore.rules</code><br>
-            • Immutable audits (<code>allow delete: if false</code>) & <code>ownerUid</code> ACLs (<code>C05.4</code>)<br>
-            • SHA-256 Manifest (<code>C01.4</code>)<br>
-            • Compensating Sagas (<code>C09.4</code>)
+            • <strong>Cloud Firestore</strong> (<code>aegis-ai-db</code>) via Admin SDK (308/308 tests)<br>
+            • <strong>Vertex Evaluation (AutoSxS)</strong> & <strong>Model Monitoring</strong> (skew/drift)<br>
+            • <strong>Security Command Center (SCC) AI Protection</strong> real-time SOC alerts<br>
+            • SHA-256 Manifest (<code>C01.4</code>) & Compensating Sagas (<code>C09.4</code>)
           </p>
         </div>
       </div>
 
       <div class="card card-highlight" style="margin-top: 12px;">
-        <div class="card-title" style="font-size: 9.5pt; color: #93c5fd;">Zero-Trust Isolation & Structured Security Alerting (C12.2):</div>
+        <div class="card-title" style="font-size: 9.5pt; color: #93c5fd;">Zero-Trust Isolation & SCC AI Protection Alerting (C12.2):</div>
         <p class="card-text" style="font-size: 8pt;">
-          Runtime state writes exclusively to Firestore (<code>system_config/admin_settings</code>) and ephemeral <code>/tmp/aegis-runtime-cache</code>. Every security event (prompt injection escalation, SSRF block, token mismatch, DoW quota breach, saga rollback) emits a structured JSON alert (<code>aegis-security-alerting-c12-2</code>) to Google Cloud Logging.
+          Runtime state writes exclusively to Firestore (<code>system_config/admin_settings</code>) and ephemeral <code>/tmp/aegis-runtime-cache</code>. Every security event (prompt injection escalation, SSRF block, token mismatch, DoW quota breach, saga rollback) emits a structured JSON alert to Google Cloud Logging and <strong>Security Command Center (SCC) with AI Protection</strong> for real-time SOC response.
         </p>
       </div>
     </div>
 
     <div class="slide-footer">
       <span>AegisAI Enterprise • C4 Container & Security Architecture</span>
-      <span>Deployed on Google Cloud Run (Revision aegis-ai-00009-gk6)</span>
+      <span>Deployed on Google Cloud Run (Revision aegis-ai-00013)</span>
     </div>
   </div>
 
-  <!-- SLIDE 7: PRACTICAL WORKFLOW -->
+  <!-- SLIDE 7: GOOGLE CLOUD AI PROTECTION LIFECYCLE (ISO/IEC 42001 PHASES 3, 4 & 5) -->
+  <div class="slide">
+    <div class="slide-header">
+      <div class="brand-logo">
+        <span class="brand-logo-text">AEGIS<span>AI</span></span>
+        <span class="brand-tag">Google Cloud AI Protection</span>
+      </div>
+      <span class="slide-num">07 / 11</span>
+    </div>
+
+    <div class="title-block">
+      <span class="slide-category">Google Cloud AI Protection Lifecycle (ISO/IEC 42001)</span>
+      <h2 class="slide-title">5 Native Google Cloud Security & Governance Products Across Phases 3, 4 & 5</h2>
+      <p class="slide-subtitle">How AegisAI operationalizes ISO/IEC 42001:2023 and OWASP AI-SVS v1.0 across Development, Evaluation, and Controlled Production Deployment.</p>
+    </div>
+
+    <div class="slide-body">
+      <div class="grid-3">
+        <div class="card card-highlight">
+          <div class="pill pill-blue" style="margin-bottom: 6px;">PHASE 3 • DEVELOPMENT & PROTECTIONS</div>
+          <div class="card-title" style="color: #38bdf8;">Design, Supply Chain & Inline Guardrails</div>
+          <p class="card-text" style="font-size: 7.7pt; line-height: 1.42;">
+            • <strong>Visual & Evidence-Based Gap Map:</strong> Maps current vs. desired state (<code>L1/L2/L3</code>) with verbatim citations.<br>
+            • <strong>Model Garden / Model Registry:</strong> Reviewed library (Garden) & private library (Registry). Models are signed & verified by Google and partners—preventing untrusted internet models with backdoors (<code>ISO A.6.1.2 / A.7.3</code>, <code>C01.4</code>).<br>
+            • <strong>Model Armor:</strong> Inline in front of LLMs. Sanitizes inputs & outputs in real time, blocks prompt injections & jailbreaks, and filters toxic content from user and model responses alike (<code>ISO A.6.2.6</code>, <code>C02.10</code>).
+          </p>
+        </div>
+
+        <div class="card card-highlight">
+          <div class="pill pill-purple" style="margin-bottom: 6px;">PHASE 4 • EVALUATION OF CONTROLS</div>
+          <div class="card-title" style="color: #a78bfa;">Automated Review & ISO 42001 Audit Trail</div>
+          <p class="card-text" style="font-size: 7.7pt; line-height: 1.42;">
+            • <strong>Vertex Evaluation Service (AutoSxS):</strong> Integrated Vertex AI evaluation framework using <strong>AutoSxS</strong>—which automatically categorizes and grades model responses like a teacher grading a student's homework.<br>
+            • <strong>Safety Metrics:</strong> Evaluates hate speech, harassment, sexually explicit content, and dangerous content.<br>
+            • <strong>Cost-Effective Audit Trail:</strong> Faster and more economical than manual review by human specialists, generating the audit trail required by <code>ISO/IEC 42001 Clause 9.1 & A.6.2.4</code> (<code>OWASP C08.4</code>).
+          </p>
+        </div>
+
+        <div class="card card-highlight">
+          <div class="pill pill-green" style="margin-bottom: 6px;">PHASE 5 • CONTROLLED DEPLOYMENT</div>
+          <div class="card-title" style="color: #34d399;">Drift Detection & Real-Time SOC Alerting</div>
+          <p class="card-text" style="font-size: 7.7pt; line-height: 1.42;">
+            • <strong>Vertex AI Model Monitoring:</strong> Evaluates production performance by detecting <strong>training-serving skew</strong> (when live data differs from training data) and <strong>drift</strong> (when the world changes and the model becomes obsolete), alerting immediately if safety degrades (<code>ISO Clause 9.1 / A.6.2.6</code>).<br>
+            • <strong>Security Command Center (SCC) with AI Protection:</strong> Threat & vulnerability detection integrated with Vertex AI. Prompt injection attempts surface as real-time security alerts so the SOC can respond in time (<code>ISO A.6.2.8 / C12.2</code>).
+          </p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 10px; background: rgba(30, 41, 59, 0.55); border-color: rgba(59, 130, 246, 0.4);">
+        <p class="card-text" style="font-size: 7.9pt;">
+          <strong>Live GCP Scanner & Remediated Blueprint Integration:</strong> AegisAI's Live GCP Scanner inspects all 5 services via ephemeral read-only OAuth tokens, and Section 3.4 of every generated Remediated Architecture Blueprint outputs drop-in Terraform/TypeScript enforcement recipes for all 3 phases.
+        </p>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>AegisAI Enterprise • ISO/IEC 42001 Phases 3, 4 & 5 Protection Stack</span>
+      <span>Model Garden/Registry • Model Armor • Vertex Evaluation (AutoSxS) • Model Monitoring • SCC AI Protection</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: PRACTICAL WORKFLOW -->
   <div class="slide">
     <div class="slide-header">
       <div class="brand-logo">
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Operational Flow</span>
       </div>
-      <span class="slide-num">07 / 10</span>
+      <span class="slide-num">08 / 11</span>
     </div>
 
     <div class="title-block">
@@ -683,24 +743,24 @@ html_content = """<!DOCTYPE html>
           <div class="step-box">
             <div class="step-number">1</div>
             <div>
-              <strong style="color:#ffffff; font-size: 8.8pt;">Authenticated Ingestion & Pre-Flight Guardrails</strong>
-              <p class="card-text">Corporate user (verified via Cloud IAP + Firebase ID Token) uploads PDFs/ZIPs/specs; <code>inspectPromptAndTrackSession</code> (<code>C02.10</code>) and DLP masking sanitize input.</p>
+              <strong style="color:#ffffff; font-size: 8.8pt;">Authenticated Ingestion & Model Armor Guardrails</strong>
+              <p class="card-text">Corporate user (verified via Cloud IAP + Firebase ID Token) uploads PDFs/ZIPs/specs; Model Armor, <code>inspectPromptAndTrackSession</code> (<code>C02.10</code>) and DLP masking sanitize input.</p>
             </div>
           </div>
 
           <div class="step-box">
             <div class="step-number">2</div>
             <div>
-              <strong style="color:#ffffff; font-size: 8.8pt;">SHA-256 Verified & Tenant-Filtered Context</strong>
-              <p class="card-text">Normative snapshots verified against <code>integrity-manifest.json</code> (<code>C01.4</code>) and custom frameworks filtered by <code>tenantDomain</code> (<code>C08.1</code>) are loaded.</p>
+              <strong style="color:#ffffff; font-size: 8.8pt;">SHA-256 Verified & Model Garden Provenance</strong>
+              <p class="card-text">Normative snapshots verified against <code>integrity-manifest.json</code> (<code>C01.4</code>), signed Model Garden/Registry check & custom frameworks filtered by <code>tenantDomain</code> (<code>C08.1</code>).</p>
             </div>
           </div>
 
           <div class="step-box">
             <div class="step-number">3</div>
             <div>
-              <strong style="color:#ffffff; font-size: 8.8pt;">Deterministic Vertex AI Map-Reduce Evaluation</strong>
-              <p class="card-text"><code>gemini-3.8-flash</code> (<code>temperature: 0.0</code>, <code>responseLogprobs: false</code>, 180s timeout) evaluates each batch under strict chapter enum schemas.</p>
+              <strong style="color:#ffffff; font-size: 8.8pt;">Deterministic Vertex AI Map-Reduce & AutoSxS</strong>
+              <p class="card-text"><code>gemini-3.8-flash</code> (keyless ADC, <code>temperature: 0.0</code>, <code>responseLogprobs: false</code>) evaluates each batch with Vertex Evaluation Service (AutoSxS) audit trail.</p>
             </div>
           </div>
         </div>
@@ -709,8 +769,8 @@ html_content = """<!DOCTYPE html>
           <div class="step-box">
             <div class="step-number" style="background: #10b981;">4</div>
             <div>
-              <strong style="color:#ffffff; font-size: 8.8pt;">Executive Dashboard & Human Appeal (ISO A.5.2)</strong>
-              <p class="card-text">Interactive radar charts, L1/L2/L3 maturity breakdown, and direct Verdict Appeal / Human Review workflow (<code>ai-appeals@aegisai.enterprise</code>).</p>
+              <strong style="color:#ffffff; font-size: 8.8pt;">Visual Gap Map & Human Appeal (ISO A.5.2)</strong>
+              <p class="card-text">Interactive radar charts, evidence-based L1/L2/L3 gap map, and direct Verdict Appeal / Human Review workflow (<code>ai-appeals@aegisai.enterprise</code>).</p>
             </div>
           </div>
 
@@ -718,15 +778,15 @@ html_content = """<!DOCTYPE html>
             <div class="step-number" style="background: #10b981;">5</div>
             <div>
               <strong style="color:#ffffff; font-size: 8.8pt;">100% Remediated Architecture & Full Cookbook</strong>
-              <p class="card-text">Synthesizes Section 3 drop-in architecture + Section 4 Cookbook for all <code>1..N</code> findings with accurate syntax tags (<code>typescript</code>, <code>hcl</code>, <code>yaml</code>, <code>python</code>, <code>bash</code>).</p>
+              <p class="card-text">Synthesizes Section 3 drop-in architecture (incl. 3-Phase GCP Protection Stack) + Section 4 Cookbook for all <code>1..N</code> findings with accurate syntax tags.</p>
             </div>
           </div>
 
           <div class="step-box">
             <div class="step-number" style="background: #10b981;">6</div>
             <div>
-              <strong style="color:#ffffff; font-size: 8.8pt;">Immutable Persistence & Compensating Saga</strong>
-              <p class="card-text">Saved to Firestore with <code>ownerUid</code>/<code>tenantDomain</code> attribution (<code>C05.4</code>), <code>runCompensatingSaga</code> rollback safety (<code>C09.4</code>), and AIMS KPI recording (<code>C08.4</code>).</p>
+              <strong style="color:#ffffff; font-size: 8.8pt;">Model Monitoring, SCC AI & Compensating Saga</strong>
+              <p class="card-text">Saved to Firestore with <code>ownerUid</code> attribution (<code>C05.4</code>), <code>runCompensatingSaga</code> rollback (<code>C09.4</code>), Model Monitoring skew/drift & SCC AI alerts.</p>
             </div>
           </div>
         </div>
@@ -739,14 +799,14 @@ html_content = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- SLIDE 8: TECH SPECS & BENCHMARKS -->
+  <!-- SLIDE 9: TECH SPECS & BENCHMARKS -->
   <div class="slide">
     <div class="slide-header">
       <div class="brand-logo">
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Technical Specs</span>
       </div>
-      <span class="slide-num">08 / 10</span>
+      <span class="slide-num">09 / 11</span>
     </div>
 
     <div class="title-block">
@@ -763,8 +823,8 @@ html_content = """<!DOCTYPE html>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #10b981;">6 / 6</div>
-          <div class="stat-label">Normative snapshots verified via <strong>SHA-256</strong> manifest at startup (<code>C01.4</code>)</div>
+          <div class="stat-number" style="color: #10b981;">5 GCP AI</div>
+          <div class="stat-label">Native ISO 42001 Security Services across Phases 3, 4 & 5</div>
         </div>
 
         <div class="card stat-box">
@@ -773,29 +833,29 @@ html_content = """<!DOCTYPE html>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #34d399;">100%</div>
-          <div class="stat-label">Untruncated patch cookbook generation across all 35+ multi-standard controls</div>
+          <div class="stat-number" style="color: #34d399;">97.8%</div>
+          <div class="stat-label">Self-Audit Score (100% ISO 42001 • 94.7% OWASP AI-SVS)</div>
         </div>
       </div>
 
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">Hardened Cloud Run & Container Posture</div>
+          <div class="card-title">Hardened Cloud Run & 3-Phase GCP Protection</div>
           <p class="card-text" style="font-size: 8.2pt;">
             • <strong>Immutable Container (C04.1):</strong> Non-root <code>aegisuser</code> with <code>chmod -R a-w /app</code>.<br>
             • <strong>Zero-Trust Perimeter (C04.3):</strong> Cloud IAP + <code>--no-allow-unauthenticated</code> + VPC private egress + SSRF/IMDS blocker.<br>
-            • <strong>Secret Manager & Constant-Time Auth (C05.3):</strong> Mounted <code>ADMIN_API_TOKEN</code> verified via SHA-256 + <code>crypto.timingSafeEqual</code>.<br>
-            • <strong>Anti-DoW FinOps Protection (C11.1):</strong> Per-user sliding-window rate limits, concurrency caps (3), and 500k 24h token budgets.
+            • <strong>3-Phase GCP Stack:</strong> Model Garden/Registry, Model Armor, Vertex Evaluation (AutoSxS), Model Monitoring & SCC AI Protection.<br>
+            • <strong>Anti-DoW FinOps Protection (C11.1):</strong> Per-user sliding-window rate limits, concurrency caps, and 24h token budgets.
           </p>
         </div>
 
         <div class="card">
-          <div class="card-title">Observability, Privacy & AIMS Governance</div>
+          <div class="card-title">Keyless Vertex AI ADC, Multi-Provider & AIMS</div>
           <p class="card-text" style="font-size: 8.2pt;">
-            • <strong>Structured Cloud Logging (C12.2):</strong> Real-time <code>WARNING</code>/<code>CRITICAL</code> alerts (<code>aegis-security-alerting-c12-2</code>).<br>
-            • <strong>Continuous AIMS Telemetry (C08.4 / Clause 9.1):</strong> Live citation grounding & schema fidelity metrics at <code>/api/admin/aims-telemetry</code>.<br>
-            • <strong>Zero Data Retention (ZDR):</strong> Vertex AI enterprise privacy guarantees.<br>
-            • <strong>Bilingual Documentation Suite:</strong> 8 English & 8 Spanish Manuals + ISO 42001 AIMS Manual compiled to PDF.
+            • <strong>Keyless Vertex AI (Default):</strong> Connected to <code>gemini-3.8-flash</code> via IAM ADC without requiring a Gemini API key.<br>
+            • <strong>Multi-Provider Engine:</strong> Supports Anthropic Claude, OpenRouter, OpenAI Direct & Local/Corporate Proxy.<br>
+            • <strong>SCC AI & Cloud Logging (C12.2):</strong> Real-time alerts (<code>aegis-security-alerting-c12-2</code>) for SOC response.<br>
+            • <strong>Bilingual Documentation Suite:</strong> 8 English & 9 Spanish Manuals + 3 Executive/FinOps/Master Decks.
           </p>
         </div>
       </div>
@@ -807,14 +867,14 @@ html_content = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- SLIDE 9: OWASP AI-SVS & ISO 42001 DEFENSE-IN-DEPTH MATRIX -->
+  <!-- SLIDE 10: OWASP AI-SVS & ISO 42001 DEFENSE-IN-DEPTH MATRIX -->
   <div class="slide">
     <div class="slide-header">
       <div class="brand-logo">
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Defense-in-Depth Matrix</span>
       </div>
-      <span class="slide-num">09 / 10</span>
+      <span class="slide-num">10 / 11</span>
     </div>
 
     <div class="title-block">
@@ -828,13 +888,13 @@ html_content = """<!DOCTYPE html>
         <div class="card card-highlight">
           <div class="card-title" style="color: #60a5fa;">OWASP AI-SVS v1.0 Technical Controls (17 Hardened Domains)</div>
           <p class="card-text" style="font-size: 7.8pt; line-height: 1.45;">
-            • <strong>C01.4 Normative Integrity:</strong> <code>verifyNormativeSnapshotsIntegrity()</code> SHA-256 manifest check at startup.<br>
-            • <strong>C02.10 Crescendo Defense:</strong> <code>inspectPromptAndTrackSession()</code> multi-turn escalation blocker (HTTP 422).<br>
+            • <strong>C01.4 & C13.1 Supply Chain:</strong> <code>verifyNormativeSnapshotsIntegrity()</code> SHA-256 manifest + signed Model Garden / Registry provenance.<br>
+            • <strong>C02.10 & C07.1 Prompt/Output Guard:</strong> Google Cloud Model Armor inline sanitization + <code>inspectPromptAndTrackSession()</code> multi-turn blocker (HTTP 422).<br>
             • <strong>C04.1 & C04.3 Infrastructure:</strong> Read-only <code>/app</code> (<code>chmod -R a-w</code>), Cloud IAP, VPC egress & <code>validateOutboundEndpoint()</code> SSRF/IMDS block.<br>
             • <strong>C05.2, C05.3 & C05.4 Auth/IAM:</strong> Pruned <code>roles/viewer</code> on <code>aegis-runner-sa</code>, <code>crypto.timingSafeEqual</code>, Firebase ID token verification & Firestore <code>ownerUid</code> ACLs.<br>
-            • <strong>C08.1 & C08.4 RAG/Grounding:</strong> Tenant domain ACL pre-filtering & continuous grounding telemetry.<br>
+            • <strong>C08.1 & C08.4 RAG & Evaluation:</strong> Tenant domain ACL pre-filtering, Vertex Evaluation Service (AutoSxS) & Model Monitoring skew/drift.<br>
             • <strong>C09.4 & C10.1–C10.5 Agents/MCP:</strong> <code>runCompensatingSaga()</code> rollback, MCP Ed25519/HMAC manifest verification, OAuth 2.1 PKCE & <code>dnsRebindingGuard</code>.<br>
-            • <strong>C11.1, C11.4 & C12.2 FinOps/SIEM:</strong> <code>acquireAntiDoWQuota()</code>, <code>responseLogprobs: false</code> & <code>emitSecurityAlert()</code>.
+            • <strong>C11.1, C11.4 & C12.2 FinOps/SIEM:</strong> <code>acquireAntiDoWQuota()</code>, <code>responseLogprobs: false</code> & SCC AI Protection real-time SOC alerts.
           </p>
         </div>
 
@@ -844,9 +904,9 @@ html_content = """<!DOCTYPE html>
             • <strong>Clause 4.1 & 4.2 Context & Stakeholders:</strong> Formal internal/external issue matrix, societal role as AI assurance provider & stakeholder mapping.<br>
             • <strong>Clause 5.1, 5.2, A.2.1 & A.2.3 Leadership & AI Policy:</strong> Executive-approved Corporate AI Policy with annual revision cycle.<br>
             • <strong>Clause 7.2, 7.3 & A.3.3 Competency & Whistleblowing:</strong> Mandatory role training & confidential ethics reporting (<code>ai-ethics-whistleblower@aegisai.enterprise</code>).<br>
-            • <strong>A.4.1 Resource & Tooling Inventory:</strong> Cataloged models, normative corpora, runtime SAs & KMS secrets.<br>
-            • <strong>A.5.1, A.5.2 & A.5.3 Impact Assessment & Appeals:</strong> Formal AIIA methodology, quantitative risk thresholds & human appeal channel (<code>ai-appeals@aegisai.enterprise</code>).<br>
-            • <strong>Clause 9.1–9.3 & A.9.1/A.9.2 Assurance & Use:</strong> Continuous KPIs, semi-annual internal audits, management review & acceptable use notices.
+            • <strong>A.4.1, A.6.1.2 & A.7.3 AI Asset & Model Supply Chain:</strong> Cataloged models verified via Vertex AI Model Garden & private Model Registry.<br>
+            • <strong>A.5.1–A.5.3 & A.6.2.6 Impact, Appeals & Runtime Safety:</strong> Formal AIIA methodology, human appeal channel, Model Armor & Vertex AI Model Monitoring.<br>
+            • <strong>Clause 9.1–9.3, A.6.2.4 & A.6.2.8 Assurance & SOC:</strong> Vertex Evaluation (AutoSxS) audit trail, semi-annual internal audits & SCC AI Protection alerts.
           </p>
         </div>
       </div>
@@ -858,14 +918,14 @@ html_content = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- SLIDE 10: ROADMAP -->
+  <!-- SLIDE 11: ROADMAP -->
   <div class="slide">
     <div class="slide-header">
       <div class="brand-logo">
         <span class="brand-logo-text">AEGIS<span>AI</span></span>
         <span class="brand-tag">Strategic Vision</span>
       </div>
-      <span class="slide-num">10 / 10</span>
+      <span class="slide-num">11 / 11</span>
     </div>
 
     <div class="title-block">
@@ -896,7 +956,7 @@ html_content = """<!DOCTYPE html>
           <div class="pill pill-amber" style="margin-bottom: 8px;">Q2 2027 • Long Term</div>
           <div class="card-title" style="color: #fcd34d;">Autonomous IaC Remediation</div>
           <p class="card-text">
-            One-click automated synthesis of <strong>Terraform Modules</strong> and <strong>Helm Charts</strong> that directly apply Cloud IAP, VPC Service Controls, and Cloud Armor remediation recipes to cloud clusters.
+            One-click automated synthesis of <strong>Terraform Modules</strong> and <strong>Helm Charts</strong> that directly apply Cloud IAP, VPC Service Controls, and Model Armor remediation recipes to cloud clusters.
           </p>
         </div>
       </div>
@@ -906,7 +966,7 @@ html_content = """<!DOCTYPE html>
           <span>🎯</span> Conclusion: Security & Governance that Accelerate Innovation
         </div>
         <p class="card-text" style="font-size: 8.5pt;">
-          AegisAI provides the <strong>architectural certainty, cryptographic integrity, and ISO/IEC 42001 governance</strong> needed for enterprises to deploy frontier AI systems on Google Cloud with complete confidence.
+          AegisAI provides the <strong>architectural certainty, cryptographic integrity, and 3-Phase ISO/IEC 42001 Google Cloud AI Protection Stack</strong> needed for enterprises to deploy frontier AI systems on Google Cloud with complete confidence.
         </p>
       </div>
     </div>
@@ -926,12 +986,16 @@ with open(temp_html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
 os.makedirs("docs/Manuals_english/pdf", exist_ok=True)
+os.makedirs("docs/manuales_pdf/english", exist_ok=True)
 
 output_pdf_eng = "docs/Manuals_english/pdf/AegisAI_Executive_Presentation.pdf"
+output_pdf_eng_mirror = "docs/manuales_pdf/english/AegisAI_Executive_Presentation.pdf"
 
-cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{output_pdf_eng}" --no-pdf-header-footer "{temp_html_path}"'
+cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{output_pdf_eng}" --print-to-pdf-no-header "{temp_html_path}"'
 subprocess.run(cmd, shell=True, check=True)
+shutil.copy(output_pdf_eng, output_pdf_eng_mirror)
 
 size_kb = os.path.getsize(output_pdf_eng) / 1024
 print("English Presentation PDF successfully created at:")
 print(f" -> {output_pdf_eng} ({size_kb:.1f} KB)")
+print(f" -> {output_pdf_eng_mirror} ({size_kb:.1f} KB)")

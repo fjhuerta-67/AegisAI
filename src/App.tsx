@@ -6,6 +6,7 @@ import { db, auth, handleFirestoreError, OperationType } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, query, limit } from 'firebase/firestore';
 import { SAMPLE_AUDITS } from './lib/sampleAudits';
+import { LanguageProvider, useLanguage, useTranslatedAudits } from './lib/i18n';
 
 // Lazy-loaded route views for optimal bundle splitting
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -18,6 +19,15 @@ const AdminSettingsView = lazy(() => import('./components/admin/AdminSettingsVie
 const GcpLiveScannerView = lazy(() => import('./components/gcp/GcpLiveScannerView').then(m => ({ default: m.GcpLiveScannerView })));
 
 export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}
+
+function AppContent() {
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -26,6 +36,7 @@ export default function App() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [auditCustomFrameworkId, setAuditCustomFrameworkId] = useState<string | undefined>(undefined);
   const [remediatedPrefill, setRemediatedPrefill] = useState<{ description: string; systemName: string } | null>(null);
+  const localizedAudits = useTranslatedAudits(audits);
 
   // Auth listener strictly using Firebase Authentication
   useEffect(() => {
@@ -205,7 +216,7 @@ export default function App() {
   };
 
   const handleDeleteAudit = async (id: string) => {
-    alert('Por directiva de seguridad y cumplimiento normativo (OWASP AISVS Invariante 4), los registros de auditoría son inmutables y no pueden eliminarse.');
+    alert(t('Por directiva de seguridad y cumplimiento normativo (OWASP AISVS Invariante 4), los registros de auditoría son inmutables y no pueden eliminarse.'));
   };
 
   const handleBackToDashboard = () => {
@@ -214,14 +225,14 @@ export default function App() {
   };
 
   if (authLoading) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-white text-[#4D4D4D] font-sans font-medium">Cargando...</div>;
+    return <div className="h-screen w-screen flex items-center justify-center bg-white text-[#4D4D4D] font-sans font-medium">{t('Cargando...')}</div>;
   }
 
   if (!user) {
     return <Login onDemoLogin={() => setUser({ email: 'auditor@aegisai.enterprise', displayName: 'Auditor Open Source' } as any)} />;
   }
 
-  const selectedAudit = audits.find(a => a.id === selectedAuditId);
+  const selectedAudit = localizedAudits.find(a => a.id === selectedAuditId);
 
   return (
     <div className="flex h-screen overflow-hidden bg-white font-sans text-[#1A1A1A]">
@@ -231,12 +242,12 @@ export default function App() {
         <Suspense fallback={
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-[#767676]">
             <div className="w-8 h-8 border-[3px] border-[#ECECEC] border-t-[#1B5FA6] rounded-full animate-spin mb-3"></div>
-            <p className="text-xs font-semibold text-[#4D4D4D] font-sans">Cargando módulo...</p>
+            <p className="text-xs font-semibold text-[#4D4D4D] font-sans">{t('Cargando módulo...')}</p>
           </div>
         }>
           {currentView === 'dashboard' && (
             <Dashboard 
-              audits={audits} 
+              audits={localizedAudits} 
               onNewAudit={handleNewAudit} 
               onViewAudit={handleViewAudit}
               onDeleteAudit={handleDeleteAudit}

@@ -252,7 +252,7 @@ echo "URL asignada: $SERVICE_URL"
 ```
 1. Vaya a [Firebase Console > Authentication > Settings > Authorized domains](https://console.firebase.google.com/project/_/authentication/settings).
 2. Haga clic en **Add domain** (Agregar dominio).
-3. Pegue el dominio de su servicio Cloud Run (ejemplo: `aegis-ai-123456789012.us-central1.run.app` o su dominio corporativo personalizado `aegisai.yourdomain.com`).
+3. Pegue el dominio de su servicio Cloud Run (ejemplo: `aegis-ai-607603788049.us-central1.run.app` o su dominio corporativo personalizado `aegisai.yourdomain.com`).
 
 ---
 
@@ -260,7 +260,7 @@ echo "URL asignada: $SERVICE_URL"
 
 AegisAI aplica control de acceso en profundidad en tres capas (Cloud IAP, OAuth Frontend y Reglas Criptográficas de Firestore):
 
-- **Dominios Permitidos Configurables**: Puede definir los dominios corporativos autorizados mediante `VITE_ALLOWED_DOMAINS` (por ejemplo `google.com,example.com`).
+- **Dominios Permitidos Configurables**: Puede definir los dominios corporativos autorizados mediante `VITE_ALLOWED_DOMAINS` (por ejemplo `google.com,altostrat.com`).
 - **Validación Criptográfica de Tenant y Propietario (`C05.4`)**:
   - En frontend, `Login.tsx` valida el dominio contra `VITE_ALLOWED_DOMAINS`, y `App.tsx` / `ApiConnectionView.tsx` vinculan `ownerUid`, `ownerEmail` y `tenantDomain` a cada reporte y clave de API creada.
   - En base de datos, `firestore.rules` valida pertenencia a los dominios corporativos autorizados (`isAllowedDomain()`), propiedad en la creación (`hasValidOwnershipOnCreate()`) e inmutabilidad de propietario (`ownershipUnchanged()`):
@@ -271,8 +271,8 @@ AegisAI aplica control de acceso en profundidad en tres capas (Cloud IAP, OAuth 
         && request.auth.token.email_verified == true
         && (
           request.auth.token.email.matches('.*@google\\.com$') ||
-          request.auth.token.email.matches('.*@example\\.com$') ||
-          request.auth.token.email.matches('.*@yourcompany\\.com$')
+          request.auth.token.email.matches('.*@altostrat\\.com$') ||
+          request.auth.token.email.matches('.*@coppel\\.com$')
         );
     }
     ```
@@ -363,7 +363,7 @@ Esta sección documenta los incidentes más frecuentes encontrados en despliegue
   ```
 * **Causa:** El dominio generado por Cloud Run (`*.run.app`) no ha sido agregado a la lista blanca de OAuth en Firebase Authentication.
 * **Solución:**
-  1. Copie el dominio de Cloud Run sin protocolo (ejemplo: `aegis-ai-123456789012.us-central1.run.app`).
+  1. Copie el dominio de Cloud Run sin protocolo (ejemplo: `aegis-ai-607603788049.us-central1.run.app`).
   2. Ingrese a **Firebase Console > Authentication > Settings > Authorized domains**.
   3. Haga clic en **Add domain**, pegue el valor y guarde.
 

@@ -468,7 +468,7 @@ export function CatalogView({ onAuditWithFramework }: CatalogViewProps = {}) {
                       {chapter.controls && chapter.controls.length > 0 && (
                         <div className="mt-4 border-[1.5px] border-[#1A1A1A] rounded-none overflow-hidden bg-white">
                           <div className="px-4 py-2 border-b-[1.5px] border-[#1A1A1A] bg-[#ECECEC] font-bold text-xs text-[#1A1A1A] uppercase tracking-wider flex justify-between">
-                            <span>Controles Operacionalizados ({chapter.controls.length})</span>
+                            <span>{`Controles Operacionalizados (${chapter.controls.length})`}</span>
                             <span>Criterios de Verificación y Remediación Técnica</span>
                           </div>
                           <div className="divide-y divide-[#1A1A1A]/10">
@@ -482,7 +482,7 @@ export function CatalogView({ onAuditWithFramework }: CatalogViewProps = {}) {
                                       control.level === 'L2' ? 'bg-[#FBF3C9] text-[#1A1A1A]' :
                                       'bg-[#ECECEC] text-[#1A1A1A]'
                                     }`}>
-                                      Nivel {control.level}
+                                      {`Nivel ${control.level}`}
                                     </span>
                                   </div>
                                   <h4 className="font-bold text-xs text-[#1A1A1A] mb-1">{control.title}</h4>
@@ -559,7 +559,7 @@ export function CatalogView({ onAuditWithFramework }: CatalogViewProps = {}) {
                                 control.level === 'L2' ? 'bg-[#FBF3C9] text-[#1A1A1A]' :
                                 'bg-[#ECECEC] text-[#1A1A1A]'
                               }`}>
-                                Nivel {control.level}
+                                {`Nivel ${control.level}`}
                               </span>
                             </div>
                             <h4 className="font-bold text-xs text-[#1A1A1A] mb-1">{control.title}</h4>

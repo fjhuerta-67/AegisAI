@@ -35,6 +35,7 @@ import {
 import { StandardType, StandardBreakdown } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
 import { auth } from '../../lib/firebase';
+import { useLanguage } from '../../lib/i18n';
 
 interface AuditFormProps {
   onSubmit: (report: AuditReport) => void;
@@ -53,6 +54,7 @@ interface ProgressInfo {
 }
 
 export function AuditForm({ onSubmit, onCancel, standardType: initialStandardType = 'AI-SVS', initialCustomFrameworkId, initialDescription, initialSystemName }: AuditFormProps) {
+  const { lang } = useLanguage();
   const [selectedStandards, setSelectedStandards] = useState<string[]>(() => {
     if (initialStandardType === 'FULL') return ['AI-SVS', 'ISO-42001'];
     if (initialStandardType === 'ISO-42001') return ['ISO-42001'];
@@ -241,6 +243,7 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
       }
       data.append('targetLevel', targetLevel);
       data.append('techPlatform', techPlatform);
+      data.append('language', lang);
 
       // Append all uploaded files
       files.forEach(f => {
@@ -1165,7 +1168,7 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
                     className="text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    Limpiar todos ({files.length})
+                    {`Limpiar todos (${files.length})`}
                   </button>
                 )}
               </div>
@@ -1213,8 +1216,8 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
               {files.length > 0 && (
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-between text-xs text-gray-500 font-medium px-1">
-                    <span>Archivos seleccionados ({files.length}):</span>
-                    <span>Peso total: {formatFileSize(totalFilesSize)}</span>
+                    <span>{`Archivos seleccionados (${files.length}):`}</span>
+                    <span>{`Peso total: ${formatFileSize(totalFilesSize)}`}</span>
                   </div>
                   <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
                     {files.map((file, idx) => (

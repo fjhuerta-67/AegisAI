@@ -56,7 +56,7 @@ chmod +x deploy_cloud_run.sh
 El script habilitará las 8 APIs requeridas, configurará permisos IAM, aprovisionará Cloud Firestore en modo Nativo, compilará el contenedor Docker seguro (`--no-cache`) y desplegará el servicio en Cloud Run entregando la URL pública segura.
 
 > [!IMPORTANT]
-> - **Organizaciones con políticas restrictivas (p. ej. Argolis / `*.example.com`)**: siga el **[Runbook de despliegue en Argolis](docs/ARGOLIS_DEPLOYMENT.md)** (`scripts/argolis/preflight.sh` → `scripts/argolis/bootstrap.sh` → `./deploy_cloud_run.sh`): acceso restringido por IAP, Vertex AI sin API keys y Firestore con reglas por dominio.
+> - **Organizaciones con políticas restrictivas (p. ej. Argolis / `*.altostrat.com`)**: siga el **[Runbook de despliegue en Argolis](docs/ARGOLIS_DEPLOYMENT.md)** (`scripts/argolis/preflight.sh` → `scripts/argolis/bootstrap.sh` → `./deploy_cloud_run.sh`): acceso restringido por IAP, Vertex AI sin API keys y Firestore con reglas por dominio.
 > - Para seguir el tutorial paso a paso con comandos manuales explicados, consulte la **[Guía de Instalación en Google Cloud Paso a Paso](docs/GUIA_DE_INSTALACION_GOOGLE_CLOUD_PASO_A_PASO.md)**.
 > - Para detalles de arquitectura de infraestructura y resolución forense de problemas (Troubleshooting), consulte el **[Manual de Instalación y Despliegue](docs/MANUAL_DE_INSTALACION_Y_DESPLIEGUE.md)**.
 

@@ -52,7 +52,7 @@ Executive Management (CISO and CAIO) demonstrates formal leadership and accounta
 The Corporate AI Policy (`Clause 5.2`, `A.2.1`) establishes six binding mandates across the organization:
 1. **Evidence-Only Adjudication:** No AI agent or evaluator may mark a security or governance control as passed (`Aprobado`) without extracting a verifiable, verbatim quote from the inspected architecture or live cloud manifest.
 2. **Mandatory Human-in-the-Loop (HITL):** AegisAI operates strictly as an advisory assurance system. Automated verdicts cannot autonomously terminate employees, revoke production customer contracts, or execute destructive cloud mutations.
-3. **Zero Unauthenticated Exposure:** Production AI workloads must be deployed behind **Cloud Identity-Aware Proxy (IAP)** and **Firebase Authentication** restricted to authorized corporate domains (`google.com`, `example.com`, `yourcompany.com`).
+3. **Zero Unauthenticated Exposure:** Production AI workloads must be deployed behind **Cloud Identity-Aware Proxy (IAP)** and **Firebase Authentication** restricted to authorized corporate domains (`google.com`, `altostrat.com`, `coppel.com`).
 4. **Strict Least Privilege:** Runtime service accounts (`aegis-runner-sa`) are restricted to `roles/aiplatform.user` and `roles/datastore.user`. Broad project-wide inspection roles (`roles/viewer`, `roles/editor`, `roles/owner`) are strictly prohibited on runtime identities.
 5. **Cryptographic Supply Chain Integrity:** All normative snapshots (`owasp-aisvs-context.md`, `iso-42001-context.md`) and custom frameworks are verified at startup against SHA-256 digests in `config/frameworks/integrity-manifest.json`.
 6. **Continuous Improvement Commitment:** The organization commits to continually improving the effectiveness of the AIMS through quantitative KPIs (`Clause 9.1`), semi-annual internal audits (`Clause 9.2`), and quarterly executive reviews (`Clause 9.3`).
@@ -109,7 +109,7 @@ In compliance with `Annex A.4.1` (*Documentation of resources*), the organizatio
 | `DAT-003` | Custom Legal Frameworks | `config/frameworks/*.json` & Firestore `custom_frameworks` | `/app/config/frameworks` & Firestore `nam5` | LFPDPPP, LFPC, EU AI Act & BYOF catalogs (`High`). | SHA-256 manifest check (`C01.4`) + Tenant domain pre-retrieval ACL filter (`C08.1`). |
 | `INF-001` | Serverless Compute | Cloud Run Service `aegis-ai` | Google Cloud Run (`us-central1`) | Hosts Express API + React 19 SPA (`Critical`). | Non-root user `aegisuser`, Cloud IAP (`--no-allow-unauthenticated`), VPC private egress. |
 | `INF-002` | Audit & State Store | Cloud Firestore `aegis-ai-db` | Google Cloud Firestore Native (`nam5`) | Stores immutable `audits`, `apiKeys`, `auditJobs`, `system_config` (`Critical`). | Cryptographic `firestore.rules` (308 unit tests), `allow delete: if false;`. |
-| `INF-003` | Secrets Vault | Google Cloud Secret Manager | Google Cloud (`your-project-id`) | Stores `aegis-admin-token` (`Critical`). | Constant-time `crypto.timingSafeEqual` verification (`C05.3`). |
+| `INF-003` | Secrets Vault | Google Cloud Secret Manager | Google Cloud (`computeengine-506321`) | Stores `aegis-admin-token` (`Critical`). | Constant-time `crypto.timingSafeEqual` verification (`C05.3`). |
 
 ### 4.2 Algorithmic Impact Assessment Process (`Annex A.5.1`)
 Under `Annex A.5.1` (*Impact assessment process*), AegisAI mandates a structured **Algorithmic Impact Assessment (AIIA)** prior to the initial deployment of the platform and whenever a new foundation model, normative standard, or autonomous scanner capability is introduced:
@@ -151,7 +151,7 @@ In compliance with `Clause 9.1` and OWASP AI-SVS `C08.4`, AegisAI continuously m
 In accordance with `Clause 9.2`, the organization executes a formal **Semi-Annual Internal AIMS Audit Program** (every April and October):
 1. **Auditor Independence & Objectivity:** Internal audits are conducted by certified ISO/IEC 42001 Lead Auditors from the Corporate Risk & Compliance Assurance division who have **no operational or reporting responsibility** for AegisAI engineering.
 2. **Audit Scope & Methodology:**
-   - **Self-Assurance Meta-Audit:** Running AegisAI's own technical documentation bundle (`Originaldocs.zip`) and live GCP project (`your-project-id`) through the multi-standard OWASP AI-SVS + ISO/IEC 42001 evaluator.
+   - **Self-Assurance Meta-Audit:** Running AegisAI's own technical documentation bundle (`Originaldocs.zip`) and live GCP project (`computeengine-506321`) through the multi-standard OWASP AI-SVS + ISO/IEC 42001 evaluator.
    - **Automated Security Verification:** Executing `npm run test:security`, `firestore.rules.test.ts` (308 assertions), and `GET /api/security/posture` integrity checks.
    - **Governance Records Inspection:** Sampling training records (`Clause 7.2`), AIIA registers (`A.5.3`), whistleblowing logs (`A.3.3`), and appeal resolutions (`A.5.2`).
 3. **Non-Conformity Tracking (CAPA):** Any identified non-conformity (`Fallido` or `Falta Evidencia`) is logged as a Corrective and Preventive Action (CAPA) with a mandatory root-cause analysis and remediation deadline (**15 days for High risk, 30 days for Medium risk**).

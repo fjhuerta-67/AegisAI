@@ -345,6 +345,7 @@ manuals_to_compile = [
 ]
 
 os.makedirs("docs/Manuals_english/pdf", exist_ok=True)
+os.makedirs("docs/manuales_pdf/english", exist_ok=True)
 
 print("=== Compiling High-Fidelity English PDFs for all 8 Manuals ===")
 
@@ -411,10 +412,13 @@ for item in manuals_to_compile:
         f.write(full_html)
 
     out_path_1 = os.path.join("docs/Manuals_english/pdf", pdf_name)
+    out_path_2 = os.path.join("docs/manuales_pdf/english", pdf_name)
 
-    cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{out_path_1}" --no-pdf-header-footer "{temp_html}"'
+    cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{out_path_1}" --print-to-pdf-no-header "{temp_html}"'
     subprocess.run(cmd, shell=True, check=True)
 
+    import shutil
+    shutil.copy(out_path_1, out_path_2)
 
     kb = os.path.getsize(out_path_1) / 1024
     print(f" -> Generated {out_path_1} ({kb:.1f} KB)")
@@ -541,7 +545,7 @@ for item in spanish_manuals_to_compile:
         f.write(full_html)
 
     out_path_es = os.path.join("docs/manuales_pdf", pdf_name)
-    cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{out_path_es}" --no-pdf-header-footer "{temp_html}"'
+    cmd = f'google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="{out_path_es}" --print-to-pdf-no-header "{temp_html}"'
     subprocess.run(cmd, shell=True, check=True)
 
     kb = os.path.getsize(out_path_es) / 1024

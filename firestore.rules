@@ -72,7 +72,7 @@ rules_version = '2';
 //   - createdAt: string (required, ISO-8601 UTC, e.g. 2026-01-31T12:00:00.000Z)
 //   - status: string (required, must be 'active' on create)
 //   - ownerUid: string (optional, <= 128; if present on create, must == request.auth.uid;
-//     if present on existing doc, only ownerUid or admin@sandbox.example.com can delete)
+//     if present on existing doc, only ownerUid or admin@fjhuerta.altostrat.com can delete)
 //   - ownerEmail: string (optional, <= 200)
 //   - tenantDomain: string (optional, <= 100)
 //   - Client updates are denied (revocation == delete). Server-managed
@@ -99,7 +99,7 @@ service cloud.firestore {
 
     // Allowed corporate email domains (plain form):
     //   - google.com
-    //   - sandbox.example.com
+    //   - fjhuerta.altostrat.com
     // ALLOWED_DOMAINS in the deploy script MUST list exactly these domains:
     // the deploy script greps this file for the escaped regex form of each
     // domain (every dot written as [.]) to verify consistency.
@@ -110,7 +110,7 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.get('email_verified', false) == true
         && request.auth.token.get('email', null) is string
-        && request.auth.token.email.lower().matches('.*@(google[.]com|sandbox[.]example[.]com)$');
+        && request.auth.token.email.lower().matches('.*@(google[.]com|fjhuerta[.]altostrat[.]com)$');
     }
 
     // =================================================================
@@ -256,7 +256,7 @@ service cloud.firestore {
       allow delete: if isAllowedUser()
         && (resource.data.get('ownerUid', null) == null
             || resource.data.ownerUid == request.auth.uid
-            || request.auth.token.email.lower() == 'admin@sandbox.example.com');
+            || request.auth.token.email.lower() == 'admin@fjhuerta.altostrat.com');
     }
 
     // Async API audit jobs: written and read by the server (Admin SDK) only.

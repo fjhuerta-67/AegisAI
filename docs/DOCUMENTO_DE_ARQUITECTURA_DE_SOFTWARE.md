@@ -227,11 +227,11 @@ flowchart LR
         Browser["Navegador Seguro\n(Chrome / Safari / Firefox)"]
     end
 
-    subgraph GCP_Project ["Proyecto Google Cloud (Tenant Enterprise: your-project-id)"]
+    subgraph GCP_Project ["Proyecto Google Cloud (Tenant Enterprise: computeengine-506321)"]
         subgraph IngressLayer ["Capa de Entrada Zero-Trust (C04.3)"]
             CloudIAP["Cloud Identity-Aware Proxy (IAP)\n(--no-allow-unauthenticated / OAuth 2.0)"]
             CloudRunFront["Google Cloud Run Ingress\n(HTTPS TLS 1.3 / Port 8080)"]
-            FirebaseAuth["Firebase Auth / Identity Platform\n(Filtro OAuth: google.com, example.com)"]
+            FirebaseAuth["Firebase Auth / Identity Platform\n(Filtro OAuth: google.com, altostrat.com)"]
         end
 
         subgraph ComputeLayer ["Capa de Cómputo Serverless Inmutable (C04.1, C05.2)"]
@@ -259,7 +259,7 @@ flowchart LR
 ### 7.1 Componentes de Infraestructura y Mapeo de Servicios
 | Componente GCP | Servicio Técnico | Rol y Responsabilidad |
 | :--- | :--- | :--- |
-| **Perímetro Zero-Trust** | Cloud Identity-Aware Proxy (IAP) & Cloud Run | Aplica `--no-allow-unauthenticated` en el borde (`C04.3`), permitiendo solo cuentas corporativas autorizadas (`google.com`, `example.com`). |
+| **Perímetro Zero-Trust** | Cloud Identity-Aware Proxy (IAP) & Cloud Run | Aplica `--no-allow-unauthenticated` en el borde (`C04.3`), permitiendo solo cuentas corporativas autorizadas (`google.com`, `altostrat.com`). |
 | **Cómputo Serverless** | Google Cloud Run (`aegis-ai`) | Aloja el contenedor inmutable (`chmod -R a-w /app`, `C04.1`) con `--vpc-egress private-ranges-only` y protección SSRF (`C04.3`). |
 | **Identidad de Ejecución** | Cloud IAM (`aegis-runner-sa`) | Cuenta de servicio con mínimo privilegio estricto: exclusivamente `roles/aiplatform.user` y `roles/datastore.user` (`C05.2`). |
 | **Base de Datos NoSQL** | Cloud Firestore Nativo (`aegis-ai-db`) | Almacena reportes inmutables y catálogos protegidos por `firestore.rules` con vinculación de propietario y tenant (`C05.4`). |

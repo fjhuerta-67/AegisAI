@@ -19,12 +19,14 @@ import {
 } from 'lucide-react';
 import { GCPAuthMode, GCPScanComponents, GCPScanTelemetry, AuditReport, VerificationLevel } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
+import { useLanguage } from '../../lib/i18n';
 
 interface GcpLiveScannerViewProps {
   onAuditComplete: (report: AuditReport) => void;
 }
 
 export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps) {
+  const { lang } = useLanguage();
   // Configuración de Conexión
   const [projectId, setProjectId] = useState('aegis-fintech-ai-prod');
   const [authMode, setAuthMode] = useState<GCPAuthMode>('demo');
@@ -165,7 +167,8 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
           systemName: systemName.trim() || `Proyecto GCP: ${projectId}`,
           technicalLead: technicalLead.trim(),
           email: email.trim(),
-          targetLevel
+          targetLevel,
+          language: lang
         })
       });
 
@@ -411,7 +414,7 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
                     <span className="font-bold">{connectionStatus.message}</span>
                     {connectionStatus.projectNumber && (
                       <span className="block text-[11px] font-mono mt-0.5">
-                        Project Number: {connectionStatus.projectNumber}
+                        {`Project Number: ${connectionStatus.projectNumber}`}
                       </span>
                     )}
                   </div>
@@ -474,9 +477,24 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
                 />
                 <div>
                   <span className="text-xs font-bold text-[#1A1A1A] flex items-center gap-1.5">
-                    <Cpu size={14} className="text-[#1B5FA6]" /> Vertex AI (Modelos y Endpoints)
+                    <Cpu size={14} className="text-[#1B5FA6]" /> Vertex AI (Model Garden, AutoSxS & Monitoring)
                   </span>
-                  <p className="text-[11px] text-[#4D4D4D] mt-0.5">Aislamiento VPC, IP pública, CMEK y monitoreo de drift.</p>
+                  <p className="text-[11px] text-[#4D4D4D] mt-0.5">Model Garden/Registry firmado, Vertex Evaluation Service (AutoSxS) y Model Monitoring (Skew/Drift).</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3 rounded-none border border-[#1A1A1A] hover:bg-[#FAFAFA] cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={components.logging}
+                  onChange={e => setComponents({ ...components, logging: e.target.checked })}
+                  className="mt-1 h-4 w-4 rounded-none accent-[#1B5FA6]"
+                />
+                <div>
+                  <span className="text-xs font-bold text-[#1A1A1A] flex items-center gap-1.5">
+                    <Shield size={14} className="text-[#1B5FA6]" /> Model Armor & Security Command Center (AI)
+                  </span>
+                  <p className="text-[11px] text-[#4D4D4D] mt-0.5">Sanitización inline contra Prompt Injection/Jailbreaks, filtro tóxico y alertas SOC con Protección AI.</p>
                 </div>
               </label>
 
@@ -525,7 +543,7 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
                 </div>
               </label>
 
-              <label className="flex items-start gap-3 p-3 rounded-none border border-[#1A1A1A] hover:bg-[#FAFAFA] cursor-pointer transition-colors sm:col-span-2">
+              <label className="flex items-start gap-3 p-3 rounded-none border border-[#1A1A1A] hover:bg-[#FAFAFA] cursor-pointer transition-colors">
                 <input
                   type="checkbox"
                   checked={components.kmsAndSecrets}
@@ -657,7 +675,7 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
               ) : (
                 <>
                   <Zap size={18} className="text-[#1A1A1A]" />
-                  <span>Escanear y Auditar ({selectedStandards.length} Normas)</span>
+                  <span>{`Escanear y Auditar (${selectedStandards.length} Normas)`}</span>
                   <ArrowRight size={16} />
                 </>
               )}

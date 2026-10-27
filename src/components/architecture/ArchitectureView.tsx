@@ -41,41 +41,136 @@ export function ArchitectureView() {
 
   const gcpServices: GCPService[] = [
     {
-      id: 'cloud-run',
-      name: 'Google Cloud Run',
-      category: 'Compute',
-      icon: Server,
-      color: 'text-blue-600 bg-blue-50 border-blue-200',
-      role: 'Hospeda el backend Express + Vite en contenedores serverless con auto-escalado de 0 a N instancias según demanda.',
+      id: 'model-garden-registry',
+      name: 'Vertex AI Model Garden & Model Registry',
+      category: 'AI & ML',
+      icon: Layers,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      role: 'Fase 3 (Desarrollo y Protecciones): Asegura la cadena de suministro de modelos de IA. Model Garden provee una librería de modelos revisados, firmados y verificados por Google y socios estratégicos, mientras que Model Registry gobierna el versionado y linaje de modelos propios, evitando pesos de internet con posibles puertas traseras.',
       specs: [
-        'Concurrencia HTTP: hasta 80 peticiones concurrentes por contenedor',
-        'Auto-escalado elástico con arranque rápido (< 1.5s)',
-        'Reverse Proxy Nginx integrado con terminación TLS/HTTPS',
-        'Contenedor empaquetado en CommonJS optimizado (`dist/server.cjs`)'
+        'Model Garden: Catálogo curado de modelos fundacionales firmados y verificados por Google y socios',
+        'Model Registry: Repositorio centralizado de modelos privados con control de versiones, linaje y artefactos verificados',
+        'Eliminación del riesgo de aprovisionamiento desde repositorios públicos no confiables con backdoors o pesos envenenados',
+        'Integración directa con pipelines de validación previos al despliegue en endpoints productivos'
       ],
       securityControls: [
-        'Aislamiento de contenedores gVisor a nivel de kernel',
-        'Sin puertos expuestos excepto el ingress seguro por puerto 3000',
-        'Variables de entorno secretas inyectadas en tiempo de ejecución'
+        'OWASP AI-SVS C01.4 & C13.1: Integridad criptográfica y aseguramiento de cadena de suministro de modelos',
+        'ISO/IEC 42001 Anexo A.6.1.2 & A.7.3: Proveniencia verificada y gobernanza del inventario de modelos',
+        'Verificación de firmas y hashes SHA-256 antes de autorizar cualquier consumo en producción'
+      ]
+    },
+    {
+      id: 'model-armor',
+      name: 'Google Cloud Model Armor',
+      category: 'Security & Identity',
+      icon: ShieldCheck,
+      color: 'text-blue-700 bg-blue-50 border-blue-200',
+      role: 'Fase 3 (Desarrollo y Protecciones): Proxy de seguridad inline posicionado delante de los LLMs. Sanitiza entradas y salidas en tiempo real, detecta y bloquea ataques de inyección de prompts y jailbreaks, y filtra contenido tóxico tanto del usuario como de las respuestas del modelo.',
+      specs: [
+        'Inspección bidireccional en tiempo real (`sanitizeUserPrompt` y `sanitizeModelResponse`)',
+        'Detección avanzada de Prompt Injection directo, indirecto (RAG/PDF) y escalamiento multi-turno (Jailbreaks)',
+        'Filtrado simétrico de contenido tóxico, dañino o inseguro en prompts de usuario y respuestas generadas',
+        'Integración nativa con Sensitive Data Protection (Cloud DLP) para redacción de PII y secretos'
+      ],
+      securityControls: [
+        'OWASP AI-SVS C02.10 & C07.1: Defensa activa contra inyección de instrucciones y sanitización de salida',
+        'ISO/IEC 42001 Anexo A.6.2.6: Salvaguardas operacionales en tiempo de inferencia',
+        'Bloqueo determinista previo al consumo de tokens del LLM ante intentos de evasión de guardarraíles'
+      ]
+    },
+    {
+      id: 'vertex-evaluation',
+      name: 'Vertex AI Evaluation Service (AutoSxS)',
+      category: 'AI & ML',
+      icon: CheckCircle2,
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+      role: 'Fase 4 (Evaluación y Revisión de Controles): Framework integrado en Vertex AI que utiliza AutoSxS y métricas cuantitativas para evaluar la seguridad del modelo (lenguaje de odio, acoso, contenido sexualmente explícito y contenido peligroso), proveyendo el rastro de auditoría exigido por ISO/IEC 42001.',
+      specs: [
+        'AutoSxS (Automated Side-by-Side): Modelo evaluador que auto-categoriza y califica las respuestas como un profesor calificando la tarea de un alumno',
+        'Métricas nativas de seguridad: Lenguaje de odio, acoso, contenido sexualmente explícito y contenido peligroso',
+        'Revisión automatizada más rápida, consistente y económica que una evaluación manual por equipos especializados',
+        'Generación automática del rastro de auditoría (Audit Trail) reproducible para certificación ISO/IEC 42001'
+      ],
+      securityControls: [
+        'ISO/IEC 42001 Cláusula 9.1 & Anexo A.6.2.4: Verificación, validación y registro de evidencia de evaluación',
+        'OWASP AI-SVS C08.4: Evaluación continua de fidelidad, anclaje (groundedness) y seguridad antes de producción',
+        'Compuerta de calidad (Quality Gate) obligatoria antes de promover cualquier versión de modelo'
+      ]
+    },
+    {
+      id: 'vertex-model-monitoring',
+      name: 'Vertex AI Model Monitoring',
+      category: 'DevOps & Observability',
+      icon: Activity,
+      color: 'text-amber-600 bg-amber-50 border-amber-200',
+      role: 'Fase 5 (Despliegue Controlado en Producción): Servicio que evalúa continuamente en producción el desempeño del modelo, detectando desviaciones entre entrenamiento y producción (Training-serving skew) y deriva conceptual (Drift) cuando el entorno cambia y el modelo queda obsoleto.',
+      specs: [
+        'Detección de Training-Serving Skew: Alerta cuando la distribución de datos en producción diverge de los datos de entrenamiento',
+        'Detección de Prediction & Feature Drift: Identifica cuando el mundo cambia y el comportamiento del modelo se degrada o vuelve inseguro',
+        'Monitoreo continuo de entropía, logprobs y tasas de citación de evidencia normativa',
+        'Alertamiento inmediato a los equipos de MLOps y Gobernanza cuando un modelo deja de operar de forma segura'
+      ],
+      securityControls: [
+        'ISO/IEC 42001 Cláusula 9.1 & Anexo A.6.2.6: Monitoreo continuo del desempeño y seguridad post-despliegue',
+        'OWASP AI-SVS C08.4 & C09.4: Detección temprana de degradación cognitiva y activación de reversión segura',
+        'Umbrales automáticos de alerta por desviación estadística (Jensen-Shannon / L-infinity)'
+      ]
+    },
+    {
+      id: 'scc-ai-protection',
+      name: 'Security Command Center (Protección AI)',
+      category: 'Security & Identity',
+      icon: Key,
+      color: 'text-rose-600 bg-rose-50 border-rose-200',
+      role: 'Fase 5 (Despliegue Controlado en Producción): Plataforma centralizada de detección de amenazas y vulnerabilidades en Google Cloud, integrada con Vertex AI y Model Armor para descubrir riesgos de postura y alertar al SOC en tiempo real ante ataques de inyección de prompt.',
+      specs: [
+        'Detección de amenazas en tiempo real integrada con Vertex AI, Model Armor y Cloud Audit Logs',
+        'Visibilidad inmediata para el SOC: cualquier intento de ataque de inyección de prompt se eleva como alerta de seguridad accionable',
+        'Escaneo continuo de vulnerabilidades de configuración en endpoints, buckets RAG y cuentas de servicio IAM',
+        'Correlación de eventos de seguridad con severidad estandarizada e indicadores forenses'
+      ],
+      securityControls: [
+        'OWASP AI-SVS C12.2: Alertamiento en tiempo real a operaciones de seguridad (SOC / SIEM)',
+        'ISO/IEC 42001 Anexo A.6.2.8 & Cláusula 10.1: Gestión de incidentes de IA y respuesta oportuna ante amenazas',
+        'Trazabilidad forense inmutable sin exposición de PII en los payloads de alerta'
       ]
     },
     {
       id: 'gemini-enterprise',
-      name: 'Gemini Enterprise Platform',
+      name: 'Google Cloud Vertex AI (Gemini 3.8 Flash / 3.1 Pro)',
       category: 'AI & ML',
       icon: Cpu,
       color: 'text-purple-600 bg-purple-50 border-purple-200',
-      role: 'Motor cognitivo empresarial basado en Gemini 3.7 Flash que evalúa y audita especificaciones de arquitectura y documentos PDF contra OWASP AI-SVS v1.0 e ISO 42001.',
+      role: 'Motor cognitivo empresarial en Vertex AI autenticado sin llaves vía IAM / ADC que evalúa arquitecturas y documentos contra OWASP AI-SVS v1.0 e ISO/IEC 42001:2023 y genera mapas visuales de brechas basados en evidencia.',
       specs: [
-        'Modelo primario de inferencia: Gemini 3.7 Flash',
-        'Fallback dinámico resiliente: Gemini 3.5 Flash / Gemini 3.1 Pro',
-        'Procesamiento multimodal directo de documentos PDF (hasta 10MB)',
-        'Salida estructurada garantizada mediante `responseSchema` JSON estricto'
+        'Modelo primario en producción: Gemini 3.8 Flash (vía Vertex AI IAM / ADC sin API Keys)',
+        'Soporte multi-modelo: Gemini 3.1 Pro, Gemini 4.0 Argon y conectores para Claude Opus 5.5 / OpenRouter',
+        'Generación de mapa visual y basado en evidencia de las brechas entre el estado actual y el deseado (L1/L2/L3)',
+        'Salida estructurada garantizada mediante `responseSchema` JSON estricto con telemetría `logprobs`'
       ],
       securityControls: [
-        'Directiva anti-alucinación: regla de estado estricto ("Falta Evidencia" por defecto)',
-        'Citas de evidencia textual obligatorias con número de página o sección',
-        'Claves de API resguardadas 100% en backend (cero exposición en cliente)'
+        'Autenticación Keyless mediante Application Default Credentials (ADC) y cuenta de servicio de mínimo privilegio',
+        'Directiva anti-alucinación: regla de estado estricto ("Falta Evidencia" por defecto) y citas textuales obligatorias',
+        'Zero Data Retention (ZDR) empresarial garantizado en el perímetro de Google Cloud Vertex AI'
+      ]
+    },
+    {
+      id: 'cloud-run',
+      name: 'Google Cloud Run & Cloud IAP',
+      category: 'Compute',
+      icon: Server,
+      color: 'text-blue-600 bg-blue-50 border-blue-200',
+      role: 'Hospeda el backend Express + React 19 SPA en contenedores serverless protegidos por Identity-Aware Proxy (IAP) y sistema de archivos de solo lectura.',
+      specs: [
+        'Protección perimetral Zero-Trust con Cloud Identity-Aware Proxy (IAP) restringido a dominios autorizados',
+        'Contenedor endurecido con usuario no-root (`aegis`) y `/app` en modo estricto de solo lectura (`chmod a-w`)',
+        'Validación de endpoints salientes contra SSRF y bloqueo de servidor de metadatos (`169.254.169.254`)',
+        'Cuotas Anti-DoW (Denial of Wallet) por usuario, concurrencia y presupuesto horario de tokens'
+      ],
+      securityControls: [
+        'OWASP AI-SVS C04.1 & C04.3: Inmutabilidad en tiempo de ejecución y prevención de exfiltración SSRF',
+        'OWASP AI-SVS C05.3 & C11.1: Verificación de tokens en tiempo constante (`crypto.timingSafeEqual`) y protección DoW',
+        'Aislamiento de contenedores gVisor a nivel de kernel'
       ]
     },
     {
@@ -84,34 +179,17 @@ export function ArchitectureView() {
       category: 'Databases',
       icon: Database,
       color: 'text-amber-600 bg-amber-50 border-amber-200',
-      role: 'Base de datos documental NoSQL serverless para persistencia en tiempo real de auditorías, estados asíncronos y API Keys.',
+      role: 'Base de datos documental NoSQL serverless(`aegis-ai-db`) para persistencia inmutable de auditorías, configuración en caliente y aislamiento multitenant.',
       specs: [
-        'Colección `/audits`: Reportes completos y matrices de remediación',
-        'Colección `/asyncAudits`: Estado y colas de procesamiento asíncrono',
-        'Colección `/apiKeys`: Llaves de acceso programático para pipelines CI/CD',
-        'Replicación multi-región con disponibilidad del 99.999%'
+        'Colección `/audits`: Reportes completos, matrices de brechas y documentos de arquitectura remediada',
+        'Colección `/system_config`: Configuración dinámica del motor IA persistida desde el servidor',
+        'Colecciones `/asyncAudits` y `/apiKeys`: Trabajos CI/CD asíncronos y llaves programáticas',
+        'Sagas de compensación transaccional (`C09.4`) para revertir estados parciales ante fallos'
       ],
       securityControls: [
-        'Reglas de seguridad granulares (`firestore.rules`) con validación de esquemas',
-        'Inmutabilidad de identificadores y acceso restringido por roles',
+        'OWASP AI-SVS C05.4: Aislamiento por propietario (`ownerUid`) y dominio (`tenantDomain`) en `firestore.rules`',
+        'Inmutabilidad de la pista de auditoría (`allow delete: if false` en `/audits`)',
         'Cifrado en reposo (AES-256) y en tránsito automático'
-      ]
-    },
-    {
-      id: 'firebase-auth',
-      name: 'Firebase Auth & Secret Manager',
-      category: 'Security & Identity',
-      icon: Key,
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-      role: 'Control de acceso basado en identidad para usuarios interactivos y autenticación por Bearer Token para clientes API.',
-      specs: [
-        'Autenticación basada en JWT con renovación segura de tokens',
-        'Gestión de API Keys con identificadores únicos (`aisvs_...`)',
-        'Validación de API Key en backend antes del encolamiento de trabajos'
-      ],
-      securityControls: [
-        'Tokens criptográficamente firmados por Google Identity Services',
-        'Revocación inmediata de API Keys en tiempo real desde la consola'
       ]
     },
     {
@@ -120,32 +198,15 @@ export function ArchitectureView() {
       category: 'DevOps & Observability',
       icon: GitBranch,
       color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-      role: 'Integración continua automatizada que ejecuta verificaciones de seguridad de IA previas a despliegues productivos.',
+      role: 'Integración continua automatizada con cuenta de servicio dedicada (`aegis-build-sa`) y compuertas de calidad previas al despliegue.',
       specs: [
-        'Endpoint asíncrono no bloqueante: `POST /api/v1/audits` (HTTP 202 Accepted)',
-        'Polling automatizado en CI/CD con `GET /api/v1/audits/:jobId`',
-        'Compatibilidad nativa con GitHub Actions, GitLab CI y Cloud Build'
+        'Compilación aislada mediante `cloudbuild.yaml` con cuenta de servicio de construcción de mínimo privilegio',
+        'Endpoint asíncrono no bloqueante: `POST /api/v1/audits` (HTTP 202 Accepted) con Keep-Alive SSE',
+        'Verificación criptográfica SHA-256 al arranque de los 6 snapshots normativos (`C01.4`)'
       ],
       securityControls: [
-        'Quality Gates automáticos que detienen el pipeline si el Score es < 80%',
-        'Trazabilidad completa con enlace directo al reporte en PDF generado'
-      ]
-    },
-    {
-      id: 'cloud-logging',
-      name: 'Cloud Logging & Cloud Monitoring',
-      category: 'DevOps & Observability',
-      icon: Activity,
-      color: 'text-rose-600 bg-rose-50 border-rose-200',
-      role: 'Monitoreo de telemetría distribuida, métricas de latencia de inferencia y registro de auditoría.',
-      specs: [
-        'Métricas de tiempo de respuesta: P95 < 8s (texto), P95 < 25s (PDFs)',
-        'Trazabilidad distribuida de llamadas al motor Gemini',
-        'Alertas automáticas ante errores HTTP 5xx o agotamiento de cuotas'
-      ],
-      securityControls: [
-        'Logs inmutables para cumplimiento normativo e investigaciones forenses',
-        'Enmascaramiento de datos sensibles en payloads de log'
+        'Quality Gates automáticos que detienen el pipeline si el cumplimiento es inferior al umbral objetivo',
+        'Trazabilidad completa desde el commit hasta la revisión desplegada en Cloud Run'
       ]
     }
   ];
@@ -477,6 +538,99 @@ export function ArchitectureView() {
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* ISO/IEC 42001 3-Phase Google Cloud AI Protection Lifecycle */}
+      <div className="mb-8">
+        <h2 className="text-lg font-bold text-[#1A1A1A] mb-4 flex items-center gap-2">
+          <ShieldCheck size={18} className="text-[#1B5FA6]" />
+          Ciclo de Vida de Protección IA en Google Cloud (ISO/IEC 42001 & OWASP AI-SVS)
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Phase 3: Development & Protection */}
+          <div className="p-4 bg-white border-[1.5px] border-[#1A1A1A] rounded-none shadow-none flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="px-2 py-0.5 bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A] text-[11px] font-bold uppercase">
+                  Fase 3: Desarrollo y Protecciones
+                </span>
+                <span className="text-[11px] font-mono font-bold text-gray-600">Diseño de Sistemas IA</span>
+              </div>
+              <p className="text-xs text-gray-700 leading-relaxed mb-3">
+                Genera un mapa visual y basado en evidencia de las brechas entre el estado actual y el deseado, asegurando la cadena de suministro y sanitizando el tráfico hacia los LLMs.
+              </p>
+              <ul className="space-y-2 text-xs text-gray-800 mb-3">
+                <li className="p-2 bg-[#ECECEC]/40 border border-[#1A1A1A]">
+                  <strong className="text-[#1B5FA6] block">Model Garden / Model Registry:</strong>
+                  Librería de modelos revisados, firmados y verificados por Google y socios (Model Garden) y repositorio de modelos propios (Registry). Asegura la cadena de suministro evitando modelos de internet con posibles puertas traseras.
+                </li>
+                <li className="p-2 bg-[#ECECEC]/40 border border-[#1A1A1A]">
+                  <strong className="text-[#1B5FA6] block">Google Cloud Model Armor:</strong>
+                  Se posiciona delante de los LLMs. Sanitiza entradas y salidas en tiempo real, detecta y bloquea ataques de inyección de prompts y jailbreaks, y filtra contenido tóxico del usuario y de las respuestas por igual.
+                </li>
+              </ul>
+            </div>
+            <div className="text-[11px] font-mono font-bold bg-[#D9EBF7]/60 p-2 rounded-none text-[#1A1A1A] border border-[#1A1A1A]">
+              ISO 42001 A.6.1.2 / A.6.2.6 • OWASP C01.4 / C02.10
+            </div>
+          </div>
+
+          {/* Phase 4: Evaluation */}
+          <div className="p-4 bg-white border-[1.5px] border-[#1A1A1A] rounded-none shadow-none flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="px-2 py-0.5 bg-[#FBF3C9] text-[#1A1A1A] border border-[#1A1A1A] text-[11px] font-bold uppercase">
+                  Fase 4: Evaluación
+                </span>
+                <span className="text-[11px] font-mono font-bold text-gray-600">Revisión de Controles</span>
+              </div>
+              <p className="text-xs text-gray-700 leading-relaxed mb-3">
+                Revisión sistemática y cuantitativa de los controles aplicados antes del paso a producción con trazabilidad de auditoría certificable.
+              </p>
+              <ul className="space-y-2 text-xs text-gray-800 mb-3">
+                <li className="p-2 bg-[#ECECEC]/40 border border-[#1A1A1A]">
+                  <strong className="text-[#1B5FA6] block">Vertex Evaluation Service (AutoSxS):</strong>
+                  Framework integrado en Vertex AI que utiliza <strong>AutoSxS</strong> (un modelo que auto-categoriza las respuestas como un profesor calificando la tarea de un alumno) y métricas de seguridad: lenguaje de odio, acoso, contenido sexualmente explícito y contenido peligroso.
+                </li>
+                <li className="p-2 bg-[#ECECEC]/40 border border-[#1A1A1A]">
+                  <strong className="text-[#1B5FA6] block">Rastro de Auditoría ISO 42001:</strong>
+                  Revisión más rápida y económica que un equipo especializado manual, generando evidencia inmutable para cumplimiento normativo.
+                </li>
+              </ul>
+            </div>
+            <div className="text-[11px] font-mono font-bold bg-[#FBF3C9]/70 p-2 rounded-none text-[#1A1A1A] border border-[#1A1A1A]">
+              ISO 42001 Cláusula 9.1 / A.6.2.4 • OWASP C08.4
+            </div>
+          </div>
+
+          {/* Phase 5: Deployment */}
+          <div className="p-4 bg-white border-[1.5px] border-[#1A1A1A] rounded-none shadow-none flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="px-2 py-0.5 bg-[#ECECEC] text-[#1A1A1A] border border-[#1A1A1A] text-[11px] font-bold uppercase">
+                  Fase 5: Despliegue
+                </span>
+                <span className="text-[11px] font-mono font-bold text-gray-600">Producción Controlada</span>
+              </div>
+              <p className="text-xs text-gray-700 leading-relaxed mb-3">
+                Despliegue controlado de aplicaciones en producción con vigilancia continua de deriva estadística y respuesta a incidentes para el SOC.
+              </p>
+              <ul className="space-y-2 text-xs text-gray-800 mb-3">
+                <li className="p-2 bg-[#ECECEC]/40 border border-[#1A1A1A]">
+                  <strong className="text-[#1B5FA6] block">Vertex AI Model Monitoring:</strong>
+                  Evalúa en producción el desempeño del modelo. Detecta desviaciones (<em>Training-serving skew</em>: cuando la data en producción difiere del entrenamiento) y <em>drift</em> (cuando el mundo cambia y el modelo queda obsoleto), alertando de inmediato si deja de operar de forma segura.
+                </li>
+                <li className="p-2 bg-[#ECECEC]/40 border border-[#1A1A1A]">
+                  <strong className="text-[#1B5FA6] block">Security Command Center con Protección AI:</strong>
+                  Detección de amenazas y vulnerabilidades integrada con Vertex AI. Si alguien envía un ataque de inyección de prompt, se muestra como alerta de seguridad permitiendo al SOC responder a tiempo.
+                </li>
+              </ul>
+            </div>
+            <div className="text-[11px] font-mono font-bold bg-[#ECECEC] p-2 rounded-none text-[#1A1A1A] border border-[#1A1A1A]">
+              ISO 42001 A.6.2.8 / Cláusula 10.1 • OWASP C12.2
+            </div>
+          </div>
         </div>
       </div>
 

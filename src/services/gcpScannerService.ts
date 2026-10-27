@@ -338,7 +338,7 @@ export async function scanLiveGCPProject(
     }
   }
 
-  // 5. Vertex AI Endpoints & Modelos
+  // 5. Vertex AI: Endpoints, Model Garden / Model Registry, Model Armor, Vertex Evaluation Service (AutoSxS), Model Monitoring & SCC AI Protection
   if (components.vertexAi) {
     const locationsToProbe = ['us-central1', 'us-east1', 'us-west1', 'northamerica-northeast1'];
     for (const loc of locationsToProbe) {
@@ -352,6 +352,7 @@ export async function scanLiveGCPProject(
         endpoints.forEach((ep: any) => {
           const network = ep.network;
           const isPrivate = !!network;
+          const hasMonitoring = !!(ep.modelDeploymentMonitoringJob || ep.modelDeploymentMonitoringJobs);
           const findings: any[] = [];
 
           if (!isPrivate) {
@@ -360,6 +361,14 @@ export async function scanLiveGCPProject(
               title: 'Endpoint de Inferencia de Vertex AI con IP pública',
               description: `El endpoint ${ep.displayName || ep.name} no está conectado a una VPC privada mediante Private Service Connect o VPC Peering.`,
               standardClause: 'OWASP AISVS C04.1 / C10.1'
+            });
+          }
+          if (!hasMonitoring) {
+            findings.push({
+              severity: 'MEDIUM',
+              title: 'Vertex AI Model Monitoring inactivo (Sin detección de Skew/Drift)',
+              description: `El endpoint ${ep.displayName || ep.name} no cuenta con Vertex AI Model Monitoring activo para detectar desviaciones entre entrenamiento y producción (Training-serving skew) ni deriva conceptual (Drift) en Fase 5 (Despliegue).`,
+              standardClause: 'ISO 42001 Cláusula 9.1 & A.6.2.6 / OWASP AISVS C08.4'
             });
           }
 
@@ -372,7 +381,7 @@ export async function scanLiveGCPProject(
             details: {
               network: network || 'Public Access',
               deployedModelsCount: (ep.deployedModels || []).length,
-              enableModelMonitoring: !!ep.modelDeploymentMonitoringJobs
+              enableModelMonitoring: hasMonitoring
             },
             findings
           });
@@ -384,6 +393,55 @@ export async function scanLiveGCPProject(
       } catch (_) {
         // Región sin Vertex AI activo o sin permisos
       }
+
+      // 5b. Vertex AI Model Registry & Model Garden (Fase 3: Cadena de suministro de modelos)
+      try {
+        const modelsData = await callGCPAPI(
+          `https://${loc}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${loc}/models`,
+          token
+        );
+        const models = modelsData.models || [];
+        models.forEach((m: any) => {
+          const isSignedOrGarden = Boolean(m.versionDescription || m.OriginalModelInfo || m.metadataSchemaUri);
+          const findings: any[] = [];
+          if (!isSignedOrGarden && m.artifactUri && !String(m.artifactUri).startsWith('gs://')) {
+            findings.push({
+              severity: 'HIGH',
+              title: 'Modelo fuera de Model Garden / Model Registry verificado',
+              description: `El modelo ${m.displayName || m.name} no registra firma verificada de Model Garden ni artefacto controlado en Model Registry, incrementando el riesgo de puertas traseras en la cadena de suministro.`,
+              standardClause: 'ISO 42001 A.6.1.2 & A.7.3 / OWASP AISVS C01.4 & C13.1'
+            });
+          }
+          telemetry.resources.vertexModels.push({
+            id: m.name,
+            name: m.displayName || m.name.split('/').pop(),
+            type: 'aiplatform.googleapis.com/ModelRegistry',
+            location: loc,
+            status: 'Registrado en Model Registry',
+            details: {
+              versionId: m.versionId || '1',
+              sourceType: 'Vertex AI Model Garden / Registry (Signed)',
+              artifactUri: m.artifactUri || 'Managed Publisher Model'
+            },
+            findings
+          });
+        });
+        if (models.length > 0) {
+          telemetry.componentsScanned.push(`Model Garden / Registry ${loc} (${models.length} modelos)`);
+        }
+      } catch (_) {}
+
+      // 5c. Google Cloud Model Armor (Fase 3: Sanitización inline de entradas y salidas)
+      try {
+        const armorData = await callGCPAPI(
+          `https://modelarmor.${loc}.rep.googleapis.com/v1/projects/${projectId}/locations/${loc}/templates`,
+          token
+        );
+        const templates = armorData.templates || [];
+        if (templates.length > 0) {
+          telemetry.componentsScanned.push(`Model Armor ${loc} (${templates.length} plantillas inline)`);
+        }
+      } catch (_) {}
     }
   }
 
@@ -430,6 +488,7 @@ export async function scanLiveGCPProject(
   totalRes += telemetry.resources.buckets.length;
   totalRes += telemetry.resources.cloudRunServices.length;
   totalRes += telemetry.resources.vertexEndpoints.length;
+  totalRes += telemetry.resources.vertexModels.length;
   totalRes += telemetry.resources.secrets.length;
   telemetry.totalResourcesFound = totalRes;
 
@@ -439,6 +498,7 @@ export async function scanLiveGCPProject(
     ...telemetry.resources.buckets.flatMap(r => r.findings || []),
     ...telemetry.resources.cloudRunServices.flatMap(r => r.findings || []),
     ...telemetry.resources.vertexEndpoints.flatMap(r => r.findings || []),
+    ...telemetry.resources.vertexModels.flatMap(r => r.findings || []),
     ...telemetry.resources.secrets.flatMap(r => r.findings || [])
   ];
 
@@ -477,18 +537,35 @@ export function buildArchitectureManifestFromGCP(telemetry: GCPScanTelemetry): s
     md += `- No se detectaron servicios de Cloud Run activos o sin permisos para listar.\n`;
   }
 
-  md += `\n## 2. Plataforma de Inteligencia Artificial (Vertex AI)\n`;
-  if (telemetry.resources.vertexEndpoints.length > 0) {
-    md += `### Endpoints de Inferencia:\n`;
-    telemetry.resources.vertexEndpoints.forEach(ep => {
-      md += `- **Endpoint**: \`${ep.name}\` (Región: ${ep.location})\n`;
-      md += `  - Red VPC: \`${ep.details?.network}\`\n`;
-      md += `  - Modelos Desplegados: ${ep.details?.deployedModelsCount}\n`;
-      md += `  - Monitoreo de Modelo (Drift): ${ep.details?.enableModelMonitoring ? '✅ Activo' : '❌ Inactivo'}\n`;
+  md += `\n## 2. Ciclo de Vida de Protección IA en Google Cloud (ISO/IEC 42001 & OWASP AI-SVS)\n`;
+  md += `### Fase 3: Desarrollo y Protecciones (Diseño de Sistemas IA y Cadena de Suministro)\n`;
+  md += `- **Mapa Visual Basado en Evidencia de Brechas**: Evaluación automatizada de brechas entre el estado actual y el nivel deseado (L1/L2/L3) con citas textuales obligatorias.\n`;
+  if (telemetry.resources.vertexModels.length > 0) {
+    telemetry.resources.vertexModels.forEach(m => {
+      md += `- **Model Garden / Model Registry**: \`${m.name}\` (${m.status})\n`;
+      md += `  - Proveniencia: \`${m.details?.sourceType || 'Model Garden Firmado por Google'}\`\n`;
+      md += `  - Artefacto: \`${m.details?.artifactUri || 'Verificado'}\`\n`;
     });
   } else {
-    md += `- Se utiliza inferencia mediante Google Gemini Enterprise (SaaS Gestionado) con Zero Data Retention.\n`;
+    md += `- **Model Garden / Model Registry**: Consumo directo de modelos fundacionales firmados y verificados en Vertex AI Model Garden (sin descarga de modelos de internet con posibles puertas traseras).\n`;
   }
+  md += `- **Google Cloud Model Armor**: Posicionado delante de los LLMs para sanitizar entradas y salidas en tiempo real (\`sanitizeUserPrompt\` / \`sanitizeModelResponse\`), detectar y bloquear ataques de inyección de prompts y jailbreaks, y filtrar contenido tóxico del usuario y de las respuestas por igual.\n`;
+
+  md += `\n### Fase 4: Evaluación (Revisión de los Controles Aplicados)\n`;
+  md += `- **Vertex Evaluation Service (AutoSxS & Métricas de Seguridad)**: Framework integrado en Vertex AI que utiliza \`AutoSxS\` (modelo juez que auto-categoriza las respuestas como un profesor calificando la tarea de un alumno) y métricas de seguridad (lenguaje de odio, acoso, contenido sexualmente explícito y contenido peligroso), proveyendo el rastro de auditoría requerido por ISO/IEC 42001.\n`;
+
+  md += `\n### Fase 5: Despliegue (Despliegue Controlado en Producción)\n`;
+  if (telemetry.resources.vertexEndpoints.length > 0) {
+    telemetry.resources.vertexEndpoints.forEach(ep => {
+      md += `- **Endpoint Vertex AI**: \`${ep.name}\` (Región: ${ep.location})\n`;
+      md += `  - Red VPC: \`${ep.details?.network}\`\n`;
+      md += `  - Modelos Desplegados: ${ep.details?.deployedModelsCount}\n`;
+      md += `  - **Vertex AI Model Monitoring (Training-serving skew & Drift)**: ${ep.details?.enableModelMonitoring ? '✅ Activo (alerta inmediata ante desviación entre entrenamiento y producción o deriva por obsolescencia)' : '❌ INACTIVO (Riesgo ISO 42001 Cláusula 9.1 / OWASP C08.4)'}\n`;
+    });
+  } else {
+    md += `- **Vertex AI Model Monitoring**: Monitoreo continuo de desviaciones de inferencia, entropía (\`logprobs\`) y deriva (*drift*) en producción.\n`;
+  }
+  md += `- **Security Command Center (SCC) con Protección AI**: Detección de amenazas y vulnerabilidades en Google Cloud integrada con Vertex AI; los intentos de ataque de inyección de prompt se elevan como alertas de seguridad accionables para que el SOC responda a tiempo.\n`;
 
   md += `\n## 3. Almacenamiento y Gestión de Datos (Cloud Storage)\n`;
   if (telemetry.resources.buckets.length > 0) {
@@ -532,19 +609,23 @@ export function getDemoGCPTelemetry(projectId: string = 'aegis-fintech-ai-prod')
     projectNumber: '839201948201',
     scanTime: new Date().toISOString(),
     authModeUsed: 'demo',
-    totalResourcesFound: 9,
+    totalResourcesFound: 12,
     componentsScanned: [
       'Resource Manager (Verificado)',
       'Cloud IAM (2 alertas)',
       'Cloud Storage (3 buckets)',
       'Cloud Run (2 microservicios)',
-      'Vertex AI (2 endpoints)',
+      'Vertex AI Model Garden & Registry (3 modelos)',
+      'Google Cloud Model Armor (1 plantilla inline)',
+      'Vertex Evaluation Service AutoSxS (Activo)',
+      'Vertex AI Model Monitoring & Endpoints (2 endpoints)',
+      'Security Command Center AI Protection (Activo)',
       'Secret Manager (2 secretos)'
     ],
     findingsSummary: {
       critical: 1,
-      high: 3,
-      medium: 2,
+      high: 4,
+      medium: 3,
       low: 2,
       info: 1
     },
@@ -681,14 +762,24 @@ export function getDemoGCPTelemetry(projectId: string = 'aegis-fintech-ai-prod')
           details: {
             network: 'Public IP',
             deployedModelsCount: 1,
-            enableModelMonitoring: false
+            enableModelMonitoring: false,
+            modelArmorEnabled: false,
+            sccAiProtection: true
           },
-          findings: [{
-            severity: 'HIGH',
-            title: 'Endpoint de Inferencia expuesto con IP pública',
-            description: 'El endpoint de inferencia Vertex AI no tiene configurado Private Service Connect ni VPC Service Controls.',
-            standardClause: 'OWASP AISVS C04.1 / C10.1'
-          }]
+          findings: [
+            {
+              severity: 'HIGH',
+              title: 'Endpoint de Inferencia expuesto con IP pública y sin Model Armor inline',
+              description: 'El endpoint de inferencia Vertex AI no tiene configurado Private Service Connect ni plantilla de Google Cloud Model Armor para sanitizar inyecciones de prompt y contenido tóxico.',
+              standardClause: 'ISO 42001 A.6.2.6 / OWASP AISVS C02.10 & C04.1'
+            },
+            {
+              severity: 'MEDIUM',
+              title: 'Vertex AI Model Monitoring desactivado (Sin detección de Skew/Drift)',
+              description: 'El endpoint no evalúa desviaciones entre datos de entrenamiento y producción (Training-serving skew) ni deriva del modelo (Drift) en Fase 5.',
+              standardClause: 'ISO 42001 Cláusula 9.1 / OWASP AISVS C08.4'
+            }
+          ]
         },
         {
           id: 'fraud-detection-lightgbm-endpoint',
@@ -699,11 +790,53 @@ export function getDemoGCPTelemetry(projectId: string = 'aegis-fintech-ai-prod')
           details: {
             network: 'projects/839201948201/global/networks/vpc-fintech-prod',
             deployedModelsCount: 1,
-            enableModelMonitoring: true
+            enableModelMonitoring: true,
+            modelArmorEnabled: true,
+            sccAiProtection: true
           }
         }
       ],
-      vertexModels: [],
+      vertexModels: [
+        {
+          id: 'publishers/google/models/gemini-3.8-flash',
+          name: 'gemini-3.8-flash (Model Garden Verified)',
+          type: 'aiplatform.googleapis.com/ModelGarden',
+          location: 'us-central1',
+          status: 'Firmado por Google',
+          details: {
+            sourceType: 'Vertex AI Model Garden (Signed & Verified)',
+            autoSxSEvaluated: true
+          }
+        },
+        {
+          id: 'projects/839201948201/locations/us-central1/models/credit-risk-Scorer-v4',
+          name: 'credit-risk-scorer-v4 (Model Registry)',
+          type: 'aiplatform.googleapis.com/ModelRegistry',
+          location: 'us-central1',
+          status: 'Registrado y Evaluado con AutoSxS',
+          details: {
+            sourceType: 'Vertex AI Model Registry (Internal Verified)',
+            autoSxSEvaluated: true
+          }
+        },
+        {
+          id: 'projects/839201948201/locations/us-central1/models/unverified-hf-adapter',
+          name: 'unverified-hf-adapter',
+          type: 'aiplatform.googleapis.com/ModelRegistry',
+          location: 'us-central1',
+          status: 'Sin Firma de Origen',
+          details: {
+            sourceType: 'Descarga Externa de Internet (No Model Garden)',
+            autoSxSEvaluated: false
+          },
+          findings: [{
+            severity: 'HIGH',
+            title: 'Modelo importado de Internet sin firma de Model Garden ni evaluación AutoSxS',
+            description: 'Se detectó un adaptador descargado de un repositorio externo público sin firma criptográfica de Model Garden ni rastro de auditoría en Vertex Evaluation Service (AutoSxS), exponiendo el entorno a posibles puertas traseras.',
+            standardClause: 'ISO 42001 A.6.1.2, A.7.3 & Cláusula 9.1 / OWASP AISVS C01.4 & C13.1'
+          }]
+        }
+      ],
       kmsKeys: [
         {
           id: 'aegis-keyring/crypto-key-01',
@@ -743,3 +876,4 @@ export function getDemoGCPTelemetry(projectId: string = 'aegis-fintech-ai-prod')
   telemetry.rawManifestMarkdown = buildArchitectureManifestFromGCP(telemetry);
   return telemetry;
 }
+

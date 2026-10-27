@@ -66,7 +66,7 @@ In production on Google Cloud Run, secrets are injected from **Google Cloud Secr
 # Production Environment Variables (Cloud Run)
 NODE_ENV="production"
 PORT=8080
-PROJECT_ID="your-project-id"
+PROJECT_ID="computeengine-506321"
 GOOGLE_CLOUD_LOCATION="us-central1"
 GOOGLE_GENAI_USE_VERTEXAI="true"
 FIRESTORE_DATABASE_ID="aegis-ai-db"

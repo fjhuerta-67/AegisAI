@@ -322,7 +322,7 @@ gcloud beta run deploy "$SERVICE_NAME" \
 ```
 
 > [!NOTE]
-> Enforcing `--no-allow-unauthenticated` and `--iap` satisfies organizational Domain Restricted Sharing policies (`constraints/iam.allowedPolicyMemberDomains`) and OWASP AI-SVS `C04.3` perimeter isolation. Grant `roles/iap.httpsResourceAccessor` and `roles/run.invoker` only to your authorized corporate domains (`domain:google.com`, `domain:example.com`).
+> Enforcing `--no-allow-unauthenticated` and `--iap` satisfies organizational Domain Restricted Sharing policies (`constraints/iam.allowedPolicyMemberDomains`) and OWASP AI-SVS `C04.3` perimeter isolation. Grant `roles/iap.httpsResourceAccessor` and `roles/run.invoker` only to your authorized corporate domains (`domain:google.com`, `domain:altostrat.com`).
 
 ### Step 10: Retrieve the Assigned URL and Authorize the Domain in Firebase
 
@@ -336,7 +336,7 @@ echo "=========================================================="
 ```
 
 **Mandatory Step for Google OAuth:**
-1. Copy the Cloud Run domain without `https://` (e.g., `aegis-ai-123456789012.us-central1.run.app`).
+1. Copy the Cloud Run domain without `https://` (e.g., `aegis-ai-607603788049.us-central1.run.app`).
 2. Open: **[Firebase Console > Authentication > Settings > Authorized domains](https://console.firebase.google.com/project/_/authentication/settings)**.
 3. Click on **"Add domain"**.
 4. Paste the domain and click **Save**.

@@ -1503,7 +1503,7 @@ gcloud builds submit --tag "$IMAGE_URL" --project="$PROJECT_ID" .</code></pre>
   <pre><code># Obtener la URL del servicio
 SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --project "$PROJECT_ID" --region "$REGION" --format="value(status.url)")
 echo "URL asignada: \${SERVICE_URL}"</code></pre>
-  <p>Copie el dominio sin protocolo (ej. <code>aegis-ai-123456789012.us-central1.run.app</code>) y agréguelo en <b>Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains</b>.</p>
+  <p>Copie el dominio sin protocolo (ej. <code>aegis-ai-607603788049.us-central1.run.app</code>) y agréguelo en <b>Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains</b>.</p>
 
   <h3>Paso 4.11: Pruebas de Humo (Smoke Tests)</h3>
   <pre><code># 1. Endpoint de salud
@@ -1615,7 +1615,7 @@ for (const m of manuals) {
   console.log(`[HTML Generado] ${m.title} -> ${htmlPath}`);
 
   try {
-    const cmd = `google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="${pdfPath}" --no-pdf-header-footer "${htmlPath}"`;
+    const cmd = `google-chrome-stable --headless=new --disable-gpu --no-sandbox --print-to-pdf="${pdfPath}" --print-to-pdf-no-header "${htmlPath}"`;
     execSync(cmd, { stdio: 'pipe' });
     const stats = fs.statSync(pdfPath);
     console.log(`[PDF Creado] ${m.title} -> ${pdfPath} (${(stats.size / 1024).toFixed(1)} KB)`);

@@ -32,6 +32,7 @@ import {
 import { generateActionPlanMarkdown, generateActionPlanPDF, extractActionItems } from '@/src/lib/actionPlanGenerator';
 import { downloadRemediatedArchitecture, generateRemediatedArchitectureMarkdown } from '@/src/lib/remediatedArchitectureGenerator';
 import { DivisionLoopLogo } from '@/src/components/layout/BrandAssets';
+import { useLanguage, useTranslatedAudit, LanguageSelector } from '@/src/lib/i18n';
 
 interface AuditReportViewProps {
   audit: AuditReport;
@@ -41,7 +42,9 @@ interface AuditReportViewProps {
 }
 
 export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReauditWithRemediation }: AuditReportViewProps) {
-  const [audit, setAudit] = React.useState<AuditReport>(initialAudit);
+  const { lang, t, tStatus, tRisk } = useLanguage();
+  const localizedInitialAudit = useTranslatedAudit(initialAudit);
+  const [audit, setAudit] = React.useState<AuditReport>(localizedInitialAudit);
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [exportingActionPdf, setExportingActionPdf] = React.useState(false);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
@@ -56,10 +59,10 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   const mediumCount = React.useMemo(() => actionItems.filter(i => i.priorityWeight === 2).length, [actionItems]);
   const lowCount = React.useMemo(() => actionItems.filter(i => i.priorityWeight === 3).length, [actionItems]);
   
-  // Keep local state in sync if parent changes the audit
+  // Keep local state in sync if parent changes the audit or language changes
   React.useEffect(() => {
-    setAudit(initialAudit);
-  }, [initialAudit]);
+    setAudit(localizedInitialAudit);
+  }, [localizedInitialAudit]);
   
   const [selectedStandardFilter, setSelectedStandardFilter] = React.useState<string>('ALL');
   const [activeChapterId, setActiveChapterId] = React.useState<string>(audit.chapters[0]?.chapterId || '');
@@ -161,13 +164,13 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   };
 
   const handleDownloadActionPlanMarkdown = () => {
-    const md = generateActionPlanMarkdown(audit);
+    const md = generateActionPlanMarkdown(audit, lang);
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     const cleanName = audit.systemName.replace(/[^a-zA-Z0-9_-]/g, '_');
-    link.download = `Plan_Accion_Remediacion_${cleanName}_${audit.id}.md`;
+    link.download = `${lang !== 'es' ? 'Action_Remediation_Plan' : 'Plan_Accion_Remediacion'}_${cleanName}_${audit.id}.md`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -175,22 +178,22 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   };
 
   const handleDownloadRemediatedMarkdown = () => {
-    downloadRemediatedArchitecture(audit, 'md');
+    downloadRemediatedArchitecture(audit, 'md', lang);
   };
 
   const handleDownloadRemediatedTxt = () => {
-    downloadRemediatedArchitecture(audit, 'txt');
+    downloadRemediatedArchitecture(audit, 'txt', lang);
   };
 
   const handleCopyRemediatedText = () => {
-    const text = generateRemediatedArchitectureMarkdown(audit);
+    const text = generateRemediatedArchitectureMarkdown(audit, lang);
     navigator.clipboard.writeText(text);
     setCopiedRemediation(true);
     setTimeout(() => setCopiedRemediation(false), 2500);
   };
 
   const handleReauditClick = () => {
-    const text = generateRemediatedArchitectureMarkdown(audit);
+    const text = generateRemediatedArchitectureMarkdown(audit, lang);
     if (onReauditWithRemediation) {
       onReauditWithRemediation(text, audit);
     }
@@ -199,10 +202,10 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   const handleExportActionPlanPDF = async () => {
     try {
       setExportingActionPdf(true);
-      await generateActionPlanPDF(audit);
+      await generateActionPlanPDF(audit, lang);
     } catch (err) {
       console.error("Error al exportar Plan de Acción PDF:", err);
-      alert("Ocurrió un error al generar el Plan de Acción PDF.");
+      alert(t("Ocurrió un error al generar el Plan de Acción PDF."));
     } finally {
       setExportingActionPdf(false);
     }
@@ -211,6 +214,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   const handleExportPDF = async () => {
     try {
       setExportingPdf(true);
+      const isEn = lang !== 'es';
       const { default: jsPDF } = await import('jspdf');
       const autoTableModule = await import('jspdf-autotable');
       const autoTable = (autoTableModule as any).default || autoTableModule;
@@ -220,31 +224,31 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
       const isFull = audit.standard === 'FULL';
       const isMulti = audit.standard === 'MULTI' || (audit.standards && audit.standards.length > 1) || standardsList.length > 1;
       const standardTitle = isMulti
-        ? `MULTI-NORMATIVA 360° (${standardsList.map(s => s.standardName).join(' + ') || `${audit.standards?.length || 2} Normas`})`
+        ? `${isEn ? 'MULTI-STANDARD 360°' : 'MULTI-NORMATIVA 360°'} (${standardsList.map(s => s.standardName).join(' + ') || `${audit.standards?.length || 2}`})`
         : isCustom
-        ? (audit.customFrameworkName || 'Marco Personalizado')
-        : (isFull ? 'COMPLETA (ISO 42001 & AISVS)' : (isISO ? 'ISO/IEC 42001' : 'OWASP AISVS 1.0'));
+        ? (audit.customFrameworkName || (isEn ? 'Custom Framework' : 'Marco Personalizado'))
+        : (isFull ? (isEn ? 'FULL (ISO 42001 & AISVS)' : 'COMPLETA (ISO 42001 & AISVS)') : (isISO ? 'ISO/IEC 42001' : 'OWASP AISVS 1.0'));
       
       // Header
       doc.setFontSize(18);
-      doc.text(`REPORTE DE AUDITORÍA AEGIS AI`, 14, 18);
+      doc.text(isEn ? `AEGIS AI AUDIT REPORT` : `REPORTE DE AUDITORÍA AEGIS AI`, 14, 18);
       doc.setFontSize(11);
-      doc.text(`Marco(s): ${standardTitle}`, 14, 25);
-      doc.text(`Sistema: ${audit.systemName}`, 14, 32);
-      doc.text(`ID Auditoría: ${audit.id}`, 14, 39);
-      doc.text(`Fecha: ${format(new Date(audit.date), 'yyyy-MM-dd HH:mm')}`, 14, 46);
+      doc.text(`${isEn ? 'Framework(s)' : 'Marco(s)'}: ${standardTitle}`, 14, 25);
+      doc.text(`${isEn ? 'System' : 'Sistema'}: ${audit.systemName}`, 14, 32);
+      doc.text(`${isEn ? 'Audit ID' : 'ID Auditoría'}: ${audit.id}`, 14, 39);
+      doc.text(`${isEn ? 'Date' : 'Fecha'}: ${format(new Date(audit.date), 'yyyy-MM-dd HH:mm')}`, 14, 46);
       const levelLabel = audit.assessedLevel || audit.targetLevel || 'L1';
       const platformLabel = audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || 'SaaS');
-      doc.text(`Plataforma Tecnológica: ${platformLabel} (${audit.deploymentType || 'SaaS'})`, 14, 53);
-      doc.text(`Nivel de Verificación: ${levelLabel} ${audit.targetLevel === 'AUTO' ? '(Auto-detectado por IA)' : '(Seleccionado por usuario)'}`, 14, 60);
-      doc.text(`Calificación Global de Cumplimiento: ${audit.overallScore.toFixed(1)}%`, 14, 67);
+      doc.text(`${isEn ? 'Technology Platform' : 'Plataforma Tecnológica'}: ${platformLabel} (${audit.deploymentType || 'SaaS'})`, 14, 53);
+      doc.text(`${isEn ? 'Verification Level' : 'Nivel de Verificación'}: ${levelLabel} ${audit.targetLevel === 'AUTO' ? (isEn ? '(Auto-detected by AI)' : '(Auto-detectado por IA)') : (isEn ? '(Selected by user)' : '(Seleccionado por usuario)')}`, 14, 60);
+      doc.text(`${isEn ? 'Overall Compliance Score' : 'Calificación Global de Cumplimiento'}: ${audit.overallScore.toFixed(1)}%`, 14, 67);
       
       let yPos = 76;
 
       // Multi-standard summary table
       if (standardsList.length > 1) {
         doc.setFontSize(12);
-        doc.text("Desglose de Cumplimiento por Marco Normativo (Compliance 360°):", 14, yPos);
+        doc.text(isEn ? "Compliance Breakdown by Regulatory Framework (Compliance 360°):" : "Desglose de Cumplimiento por Marco Normativo (Compliance 360°):", 14, yPos);
         yPos += 5;
 
         const breakdownData = standardsList.map(s => [
@@ -252,12 +256,12 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
           `${s.score.toFixed(1)}%`,
           `${s.passedControls} / ${s.totalControls}`,
           `${s.failedControls}`,
-          s.score >= 80 ? 'CUMPLE' : 'REVISIÓN REQUERIDA'
+          s.score >= 80 ? (isEn ? 'COMPLIANT' : 'CUMPLE') : (isEn ? 'REVIEW REQUIRED' : 'REVISIÓN REQUERIDA')
         ]);
 
         autoTable(doc, {
           startY: yPos,
-          head: [['Marco Normativo', 'Calificación', 'Aprobados / Total', 'Fallidos', 'Diagnóstico']],
+          head: [isEn ? ['Regulatory Framework', 'Score', 'Passed / Total', 'Failed', 'Diagnosis'] : ['Marco Normativo', 'Calificación', 'Aprobados / Total', 'Fallidos', 'Diagnóstico']],
           body: breakdownData,
           theme: 'grid',
           styles: { fontSize: 8, cellPadding: 2.5 },
@@ -281,28 +285,28 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
           let mitigationText = p.remediation || '';
           if (p.remediationDetails) {
             const { strategy, actionableSteps, verificationRecipe, effortLevel, recommendedTools } = p.remediationDetails;
-            mitigationText = `[${effortLevel || 'Plan de Mitigación'}]\nEstrategia: ${strategy}\n\nPasos de Implementación:\n${actionableSteps.map((s, idx) => `${idx + 1}. ${s}`).join('\n')}`;
+            mitigationText = `[${effortLevel || (isEn ? 'Mitigation Plan' : 'Plan de Mitigación')}]\n${isEn ? 'Strategy' : 'Estrategia'}: ${strategy}\n\n${isEn ? 'Implementation Steps' : 'Pasos de Implementación'}:\n${actionableSteps.map((s, idx) => `${idx + 1}. ${s}`).join('\n')}`;
             if (recommendedTools && recommendedTools.length > 0) {
-              mitigationText += `\n\nHerramientas: ${recommendedTools.join(', ')}`;
+              mitigationText += `\n\n${isEn ? 'Tools' : 'Herramientas'}: ${recommendedTools.join(', ')}`;
             }
             if (verificationRecipe) {
-              mitigationText += `\n\nPrueba QA / Verificación:\n${verificationRecipe}`;
+              mitigationText += `\n\n${isEn ? 'QA Verification Test' : 'Prueba QA / Verificación'}:\n${verificationRecipe}`;
             }
           }
-          const levelTag = p.level ? `[${p.level}${p.isMandatoryForTargetLevel ? ' • Mandatorio' : ' • Recomendación'}] ` : '';
+          const levelTag = p.level ? `[${p.level}${p.isMandatoryForTargetLevel ? (isEn ? ' • Mandatory' : ' • Mandatorio') : (isEn ? ' • Recommendation' : ' • Recomendación')}] ` : '';
           return [
             `${levelTag}${p.id}`,
             p.name,
-            p.status,
-            `Fuente: ${p.fuenteEvidencia}\n"${p.textoEvidencia}"\n\nAnálisis:\n${p.status === 'Aprobado' ? p.comoSeAprobo : p.comoFallo}`,
-            p.riskImpact,
+            tStatus(p.status),
+            `${isEn ? 'Source' : 'Fuente'}: ${p.fuenteEvidencia}\n"${p.textoEvidencia}"\n\n${isEn ? 'Analysis' : 'Análisis'}:\n${p.status === 'Aprobado' ? p.comoSeAprobo : p.comoFallo}`,
+            tRisk(p.riskImpact),
             mitigationText
           ];
         });
 
         autoTable(doc, {
           startY: yPos,
-          head: [['ID / Nivel', 'Control', 'Estado', 'Evidencia y Análisis', 'Riesgo', 'Ingeniería de Mitigación']],
+          head: [isEn ? ['ID / Level', 'Control', 'Status', 'Evidence & Analysis', 'Risk', 'Mitigation Engineering'] : ['ID / Nivel', 'Control', 'Estado', 'Evidencia y Análisis', 'Riesgo', 'Ingeniería de Mitigación']],
           body: bodyData,
           theme: 'grid',
           styles: { fontSize: 7, cellPadding: 2.5 },
@@ -323,7 +327,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
       doc.save(`${audit.id}_AegisAI_Report.pdf`);
     } catch (err) {
       console.error("Error al exportar PDF:", err);
-      alert("Ocurrió un error al generar el documento PDF.");
+      alert(t("Ocurrió un error al generar el documento PDF."));
     } finally {
       setExportingPdf(false);
     }
@@ -450,13 +454,14 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
           </div>
 
           <div className="border-r-[1.5px] border-[#1A1A1A] pr-4 flex flex-col">
-            <span className="text-[9px] uppercase font-bold tracking-wider text-[#1A1A1A]/60">Cumplimiento ({audit.assessedLevel || audit.targetLevel || 'L1'})</span>
+            <span className="text-[9px] uppercase font-bold tracking-wider text-[#1A1A1A]/60">{`Cumplimiento (${audit.assessedLevel || audit.targetLevel || 'L1'})`}</span>
             <span className={`text-xs font-extrabold px-1.5 py-0.5 border border-[#1A1A1A] ${audit.overallScore >= 80 ? 'bg-[#D9EBF7] text-[#1B5FA6]' : 'bg-[#FBF3C9] text-[#1A1A1A]'}`}>
               {audit.overallScore.toFixed(1)}%
             </span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            <LanguageSelector variant="header" />
             {actionItems.length > 0 && (
               <button 
                 onClick={handleDownloadRemediatedMarkdown}
@@ -527,7 +532,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                     : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
                 }`}
               >
-                Todas ({audit.chapters.length})
+                {`Todas (${audit.chapters.length})`}
               </button>
               {standardsList.map(st => {
                 const isSelected = selectedStandardFilter === st.standardId;
@@ -610,7 +615,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
             <div className="bg-white border-[1.5px] border-[#1A1A1A] rounded-none p-4 flex flex-col">
               <span className="text-[10px] uppercase font-bold tracking-wider mb-1 text-[#1A1A1A]/60">ID de Auditoría</span>
               <span className="text-xs font-mono font-bold text-[#1A1A1A]">{audit.id}</span>
-              <span className="text-xs text-[#1A1A1A]/70 mt-1">Fecha: {format(new Date(audit.date), 'yyyy-MM-dd HH:mm')}</span>
+              <span className="text-xs text-[#1A1A1A]/70 mt-1">{`Fecha: ${format(new Date(audit.date), 'yyyy-MM-dd HH:mm')}`}</span>
             </div>
           </div>
 
@@ -626,7 +631,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                     <h3 className="text-sm font-extrabold text-[#1A1A1A] flex items-center gap-2">
                       Evaluación Multi-Normativa: Compliance 360°
                       <span className="text-[10px] font-bold bg-[#ECECEC] text-[#1A1A1A] px-2 py-0.5 rounded-none border border-[#1A1A1A]">
-                        {standardsList.length} Marcos Evaluados
+                        {`${standardsList.length} Marcos Evaluados`}
                       </span>
                     </h3>
                     <p className="text-xs text-[#1A1A1A]/70">
@@ -669,7 +674,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                             {st.score.toFixed(1)}%
                           </span>
                           <span className="text-[11px] text-[#1A1A1A]/70 font-bold">
-                            {st.passedControls} de {st.totalControls} aprobados
+                            {`${st.passedControls} de ${st.totalControls} aprobados`}
                           </span>
                         </div>
                         <div className="w-full h-2.5 bg-white border border-[#1A1A1A] rounded-none overflow-hidden mb-3">
@@ -709,10 +714,10 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-extrabold text-[#1A1A1A]">
-                      Evaluación de Criticidad y Clasificación de Nivel {audit.targetLevel === 'AUTO' ? '(Auto-detectado por IA)' : '(Configurado por Usuario)'}
+                      {`Evaluación de Criticidad y Clasificación de Nivel ${audit.targetLevel === 'AUTO' ? '(Auto-detectado por IA)' : '(Configurado por Usuario)'}`}
                     </h3>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-white text-[#1B5FA6] border border-[#1A1A1A]">
-                      Nivel Efectivo: {audit.assessedLevel || audit.targetLevel || 'L1'}
+                      {`Nivel Efectivo: ${audit.assessedLevel || audit.targetLevel || 'L1'}`}
                     </span>
                     <span className="text-[10px] font-bold text-[#1A1A1A]/70">
                       Taxonomía OWASP AI-SVS / EU AI Act
@@ -722,7 +727,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                     {audit.levelAssessmentRationale}
                   </p>
                   <p className="text-[11px] text-[#1B5FA6] mt-1 font-bold">
-                    ℹ️ La calificación de cumplimiento ({audit.overallScore.toFixed(1)}%) se calcula exclusivamente sobre los controles mandatorios para el Nivel {audit.assessedLevel || audit.targetLevel || 'L1'}. Los requisitos de niveles superiores evaluados se presentan como recomendaciones técnicas avanzadas sin penalizar la calificación de este nivel.
+                    {`ℹ️ La calificación de cumplimiento (${audit.overallScore.toFixed(1)}%) se calcula exclusivamente sobre los controles mandatorios para el Nivel ${audit.assessedLevel || audit.targetLevel || 'L1'}. Los requisitos de niveles superiores evaluados se presentan como recomendaciones técnicas avanzadas sin penalizar la calificación de este nivel.`}
                   </p>
                 </div>
               </div>
@@ -738,14 +743,14 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-sm font-extrabold text-[#1A1A1A]">
-                    Modelo de Responsabilidad Compartida: {audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || 'SaaS Gestionado')}
+                    {`Modelo de Responsabilidad Compartida: ${audit.techPlatformName || (audit.techPlatform === 'gemini-enterprise' ? 'Google Gemini Enterprise' : audit.techPlatform || 'SaaS Gestionado')}`}
                   </h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-white text-[#1A1A1A] border border-[#1A1A1A]">
-                    Tipo: {audit.deploymentType || 'SaaS'}
+                    {`Tipo: ${audit.deploymentType || 'SaaS'}`}
                   </span>
                   {totalInheritedCount > 0 && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A]">
-                      {totalInheritedCount} Controles Acreditados por Herencia
+                      {`${totalInheritedCount} Controles Acreditados por Herencia`}
                     </span>
                   )}
                 </div>
@@ -772,7 +777,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                       Drop-in Replacement
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A]">
-                      {actionItems.length} Brechas Resueltas
+                      {`${actionItems.length} Brechas Resueltas`}
                     </span>
                   </div>
                   <p className="text-xs text-[#1A1A1A] mt-1 max-w-2xl leading-relaxed">
@@ -828,11 +833,11 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                       Plan Específico de Acción y Remediación
                     </h3>
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded-none bg-[#FBF3C9] text-[#1A1A1A] border border-[#1A1A1A]">
-                      {actionItems.length} {actionItems.length === 1 ? 'Control a Corregir' : 'Controles a Corregir'}
+                      {`${actionItems.length} ${actionItems.length === 1 ? 'Control a Corregir' : 'Controles a Corregir'}`}
                     </span>
                     {criticalCount > 0 && (
                       <span className="text-[11px] font-bold px-2 py-0.5 rounded-none bg-[#FBE017] text-[#1A1A1A] border border-[#1A1A1A]">
-                        {criticalCount} Alta/Crítica
+                        {`${criticalCount} Alta/Crítica`}
                       </span>
                     )}
                   </div>
@@ -916,7 +921,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                       : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
                   }`}
                 >
-                  Todos ({activeChapter?.puntosProbados.length || 0})
+                  {`Todos (${activeChapter?.puntosProbados.length || 0})`}
                 </button>
                 <button
                   type="button"
@@ -928,7 +933,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                   }`}
                 >
                   <ShieldCheck size={13} />
-                  Mandatorios Nivel {audit.assessedLevel || audit.targetLevel || 'L1'} ({chapterMandatoryCount})
+                  {`Mandatorios Nivel ${audit.assessedLevel || audit.targetLevel || 'L1'} (${chapterMandatoryCount})`}
                 </button>
                 {chapterRecommendedCount > 0 && (
                   <button
@@ -941,7 +946,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                     }`}
                   >
                     <Sparkles size={13} />
-                    Recomendaciones Superiores ({chapterRecommendedCount})
+                    {`Recomendaciones Superiores (${chapterRecommendedCount})`}
                   </button>
                 )}
                 {chapterInheritedCount > 0 && (
@@ -955,7 +960,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                     }`}
                   >
                     <Cloud size={13} />
-                    Heredados de Plataforma ({chapterInheritedCount})
+                    {`Heredados de Plataforma (${chapterInheritedCount})`}
                   </button>
                 )}
               </div>
@@ -985,7 +990,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                           {punto.isInheritedFromPlatform && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-none bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A]">
                               <Cloud size={11} />
-                              HEREDADO: {punto.inheritedPlatformName || audit.techPlatformName || 'SaaS'}
+                              {`HEREDADO: ${punto.inheritedPlatformName || audit.techPlatformName || 'SaaS'}`}
                             </span>
                           )}
                           <span className="text-sm font-extrabold text-[#1A1A1A]">{punto.name}</span>
@@ -997,10 +1002,10 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                             'bg-[#FBF3C9] text-[#1A1A1A]'
                           }`}>
                             {passed ? <CheckCircle2 className="w-3 h-3 text-[#1B5FA6]" /> : punto.status === 'Fallido' ? <XCircle className="w-3 h-3 text-[#1A1A1A]" /> : <AlertTriangle className="w-3 h-3 text-[#1A1A1A]" />}
-                            {punto.status.toUpperCase()}
+                            {tStatus(punto.status).toUpperCase()}
                           </span>
                           <span className="text-[10px] px-2 py-0.5 font-bold uppercase rounded-none border border-[#1A1A1A] bg-[#ECECEC] text-[#1A1A1A]">
-                            Riesgo: {punto.riskImpact}
+                            {`${t('Riesgo')}: ${tRisk(punto.riskImpact)}`}
                           </span>
                         </div>
                       </div>
@@ -1016,7 +1021,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                           </div>
                           <div className="p-3 rounded-none border border-[#1A1A1A] bg-[#D9EBF7]/40">
                             <span className="text-[10px] uppercase font-bold tracking-wider block mb-1 text-[#1B5FA6]">
-                              {punto.isInheritedFromPlatform ? 'Garantía de Plataforma' : 'Evidencia'} (Fuente: {punto.fuenteEvidencia})
+                              {`${punto.isInheritedFromPlatform ? 'Garantía de Plataforma' : 'Evidencia'} (Fuente: ${punto.fuenteEvidencia})`}
                             </span>
                             <p className="text-xs font-mono leading-relaxed break-words text-[#1A1A1A]">"{punto.textoEvidencia}"</p>
                           </div>
@@ -1031,7 +1036,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                           </div>
                           <div className="pt-2 border-t border-[#1A1A1A]/15">
                             <span className="text-[10px] uppercase font-bold tracking-wider text-[#1A1A1A]/70 block mb-0.5">
-                              Evidencia Inspeccionada (Fuente: {punto.fuenteEvidencia})
+                              {`Evidencia Inspeccionada (Fuente: ${punto.fuenteEvidencia})`}
                             </span>
                             <p className="text-xs font-mono text-[#1A1A1A]/80 italic break-words">"{punto.textoEvidencia}"</p>
                           </div>
@@ -1175,7 +1180,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] uppercase font-bold tracking-wider text-[#1A1A1A]">Guía de Remediación</span>
                             <span className="text-[10px] px-2 py-0.5 border border-[#1A1A1A] font-bold uppercase rounded-none bg-white text-[#1A1A1A]">
-                              Riesgo: {punto.riskImpact}
+                              {`${t('Riesgo')}: ${tRisk(punto.riskImpact)}`}
                             </span>
                           </div>
                           <p className="text-xs text-[#1A1A1A] font-mono leading-relaxed">{punto.remediation}</p>
@@ -1224,7 +1229,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
 
             {/* Modal Body: Markdown Content */}
             <div className="p-6 overflow-y-auto flex-1 bg-[#1A1A1A] font-mono text-xs text-white leading-relaxed whitespace-pre-wrap">
-              {generateRemediatedArchitectureMarkdown(audit)}
+              {generateRemediatedArchitectureMarkdown(audit, lang)}
             </div>
 
             {/* Modal Footer */}
