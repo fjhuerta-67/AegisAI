@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AegisAI — Executive Architecture Overview</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:2800px; height:1575px;
+  background:#F4F6F9;
+  font-family:'Google Sans','Roboto',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+</style>
+</head>
+<body>
+
+<div style="position:absolute;top:0;left:0;width:2800px;height:80px;
+  background:linear-gradient(135deg, #1A73E8 0%, #0D47A1 100%);
+  display:flex;align-items:center;padding:0 40px;gap:16px;z-index:100;box-shadow:0 4px 20px rgba(13,71,161,0.25);">
+  <div style="width:48px;height:48px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">🛡️</div>
+  <div>
+    <div style="color:white;font-size:21px;font-weight:800;letter-spacing:-0.2px;">AegisAI — Executive Architecture Overview</div>
+    <div style="color:rgba(255,255,255,0.8);font-size:12.5px;margin-top:2px;">
+      Enterprise AI Security, Governance &amp; Compliance Auditing Platform on Google Cloud
+    </div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:36px;align-items:center;">
+    
+    <div style="text-align:right;">
+      <div style="color:white;font-size:17px;font-weight:800;letter-spacing:0.5px;">100% Serverless</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cloud Run Infrastructure</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="color:white;font-size:17px;font-weight:800;letter-spacing:0.5px;">Zero Trust</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Perimeter & Identity</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="color:white;font-size:17px;font-weight:800;letter-spacing:0.5px;">Model Armor</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Real-Time AI Guardrails</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="color:white;font-size:17px;font-weight:800;letter-spacing:0.5px;">ISO/IEC 42001</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Continuous Governance</div>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;left:40px;top:95px;width:2720px;height:62px;
+  background:white;border:1.5px solid #DADCE0;border-radius:14px;
+  display:flex;align-items:center;padding:0 24px;box-shadow:0 2px 10px rgba(0,0,0,0.04);z-index:40;">
+  <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#202124;margin-right:20px;white-space:nowrap;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:16px;">⚡</span> END-TO-END AUDIT LIFECYCLE
+  </div>
+  <div style="height:30px;width:1.5px;background:#DADCE0;margin-right:20px;"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-grow:1;">
+    
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:#1A73E8;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">1</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#202124;">Request Submission</div>
+        <div style="font-size:10.5px;color:#5F6368;">User or CI/CD initiates audit</div>
+      </div>
+    </div>
+    <div style="color:#DADCE0;font-size:18px;font-weight:300;">→</div>
+    
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:#34A853;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">2</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#202124;">Zero-Trust Perimeter</div>
+        <div style="font-size:10.5px;color:#5F6368;">Identity & domain whitelist check</div>
+      </div>
+    </div>
+    <div style="color:#DADCE0;font-size:18px;font-weight:300;">→</div>
+    
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:#1A73E8;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">3</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#202124;">Evidence Extraction</div>
+        <div style="font-size:10.5px;color:#5F6368;">Engine parses blueprints & configs</div>
+      </div>
+    </div>
+    <div style="color:#DADCE0;font-size:18px;font-weight:300;">→</div>
+    
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:#EA4335;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">4</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#202124;">Model Armor Firewall</div>
+        <div style="font-size:10.5px;color:#5F6368;">Input screened for prompt attacks</div>
+      </div>
+    </div>
+    <div style="color:#DADCE0;font-size:18px;font-weight:300;">→</div>
+    
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:#FA7B17;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">5</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#202124;">Gemini Reasoning</div>
+        <div style="font-size:10.5px;color:#5F6368;">Verdicts mapped to ISO & AISVS</div>
+      </div>
+    </div>
+    <div style="color:#DADCE0;font-size:18px;font-weight:300;">→</div>
+    
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:#9334E6;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.15);">6</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#202124;">Evidence & SOC Alert</div>
+        <div style="font-size:10.5px;color:#5F6368;">Report saved, events sent to SIEM</div>
+      </div>
+    </div>
+    
+    
+  </div>
+</div>
+<div id="z1" style="position:absolute;left:40px;top:175px;width:330px;height:1095px;
+  background:#F0F6FF;border:2px solid #BBD6FB;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#1A73E8;opacity:0.85;">WHO ACCESSED</div>
+      <div style="font-size:12px;color:#1A73E8;opacity:0.65;margin-top:2px;font-weight:500;">Users, Pipelines &amp; Admins</div>
+    </div>
+    <div style="width:24px;height:24px;border-radius:6px;background:white;border:1.5px solid #BBD6FB;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#1A73E8;box-shadow:0 1px 4px rgba(0,0,0,0.05);">1</div>
+  </div>
+</div>
+<div id="z2" style="position:absolute;left:410px;top:175px;width:340px;height:1095px;
+  background:#F0FBF4;border:2px solid #B6E2C3;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#34A853;opacity:0.85;">PERIMETER &amp; AUTH</div>
+      <div style="font-size:12px;color:#34A853;opacity:0.65;margin-top:2px;font-weight:500;">Zero Trust Identity Gate</div>
+    </div>
+    <div style="width:24px;height:24px;border-radius:6px;background:white;border:1.5px solid #B6E2C3;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#34A853;box-shadow:0 1px 4px rgba(0,0,0,0.05);">2</div>
+  </div>
+</div>
+<div id="z3" style="position:absolute;left:790px;top:175px;width:540px;height:1095px;
+  background:#F0F6FF;border:2px solid #B0D0F8;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#1A73E8;opacity:0.85;">AEGISAI PLATFORM</div>
+      <div style="font-size:12px;color:#1A73E8;opacity:0.65;margin-top:2px;font-weight:500;">Cloud Run Serverless Compute</div>
+    </div>
+    <div style="width:24px;height:24px;border-radius:6px;background:white;border:1.5px solid #B0D0F8;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#1A73E8;box-shadow:0 1px 4px rgba(0,0,0,0.05);">3</div>
+  </div>
+</div>
+<div id="z4" style="position:absolute;left:1370px;top:175px;width:460px;height:1095px;
+  background:#FFF7EC;border:2px solid #FCD8A8;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#FA7B17;opacity:0.85;">GOOGLE AI ENGINE</div>
+      <div style="font-size:12px;color:#FA7B17;opacity:0.65;margin-top:2px;font-weight:500;">Vertex AI &amp; Responsible Guardrails</div>
+    </div>
+    <div style="width:24px;height:24px;border-radius:6px;background:white;border:1.5px solid #FCD8A8;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#FA7B17;box-shadow:0 1px 4px rgba(0,0,0,0.05);">4</div>
+  </div>
+</div>
+<div id="z5" style="position:absolute;left:1870px;top:175px;width:330px;height:1095px;
+  background:#FFFDF0;border:2px solid #F6DE84;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#F9AB00;opacity:0.85;">AUDITED DATA STORE</div>
+      <div style="font-size:12px;color:#F9AB00;opacity:0.65;margin-top:2px;font-weight:500;">Firestore Multi-Region Encrypted</div>
+    </div>
+    <div style="width:24px;height:24px;border-radius:6px;background:white;border:1.5px solid #F6DE84;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#F9AB00;box-shadow:0 1px 4px rgba(0,0,0,0.05);">5</div>
+  </div>
+</div>
+<div id="z6" style="position:absolute;left:2240px;top:175px;width:520px;height:1095px;
+  background:#FFF0F0;border:2px solid #F9C2C2;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#EA4335;opacity:0.85;">SECOPS &amp; ISO 42001</div>
+      <div style="font-size:12px;color:#EA4335;opacity:0.65;margin-top:2px;font-weight:500;">Observability &amp; Continuous Compliance</div>
+    </div>
+    <div style="width:24px;height:24px;border-radius:6px;background:white;border:1.5px solid #F9C2C2;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#EA4335;box-shadow:0 1px 4px rgba(0,0,0,0.05);">6</div>
+  </div>
+</div>
+<div id="c1a" style="position:absolute;left:57px;top:240px;width:296px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👥</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Corporate Users</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Enterprise team members sign in using standard corporate Google Workspace accounts. Zero software installation required.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0F6FF;color:#1A73E8;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Google Identity</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Allowed Domains</span>
+        </div>
+</div>
+<div id="c1b" style="position:absolute;left:57px;top:495px;width:296px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FBF4;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚙️</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">CI/CD Pipelines</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Automated security scans in GitHub Actions, GitLab CI, or Jenkins. Blocks deployment if AI compliance score falls below threshold.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FBF4;color:#34A853;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Automated Gate</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">OIDC Tokens</span>
+        </div>
+</div>
+<div id="c1c" style="position:absolute;left:57px;top:750px;width:296px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF7EC;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔧</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Security Operations</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Security teams and auditors manage compliance frameworks, view real-time risk alerts, and export executive audit packs.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF7EC;color:#FA7B17;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Admin Console</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Role-based</span>
+        </div>
+</div>
+<div id="c1d" style="position:absolute;left:57px;top:1005px;width:296px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F8F2FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🖥️</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Executive Dashboard</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Modern React SPA delivering interactive compliance heatmaps, gap analyses, and downloadable board-ready PDF audit reports.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F8F2FF;color:#9334E6;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Real-time UI</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Live Stream</span>
+        </div>
+</div>
+<div id="c2a" style="position:absolute;left:427px;top:240px;width:306px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FAFA;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌐</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Google Front End (GFE)</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Global Anycast edge network providing DDoS mitigation, TLS 1.3 encryption, and Google-managed automated SSL certificates.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FAFA;color:#007B83;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Global Edge</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">TLS 1.3</span>
+        </div>
+</div>
+<div id="c2b" style="position:absolute;left:427px;top:495px;width:306px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FBF4;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔒</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Identity-Aware Proxy</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Verifies user identity and strict domain whitelist before requests touch application code. Complete Zero-Trust perimeter barrier.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FBF4;color:#34A853;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Zero Trust Gate</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">No VPN needed</span>
+        </div>
+</div>
+<div id="c2c" style="position:absolute;left:427px;top:750px;width:306px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF7EC;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔑</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Firebase Auth Engine</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Issues tamper-proof, short-lived JWT identity tokens for in-app authorization, strictly tied to verified Google accounts.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF7EC;color:#FA7B17;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">OAuth 2.0 / OIDC</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Short-lived</span>
+        </div>
+</div>
+<div id="c2d" style="position:absolute;left:427px;top:1005px;width:306px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F8F2FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🗝️</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Secret Manager</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Centralized cryptographic key and credential vault. Zero credentials stored in code, Git repositories, or environment files.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F8F2FF;color:#9334E6;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Keyless Security</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Auto-rotated</span>
+        </div>
+</div>
+<div id="c3a" style="position:absolute;left:807px;top:240px;width:506px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📡</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">API Gateway &amp; Anti-DoW</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Single hardened entry point. Validates caller authorization, enforces API rate limits, and defends against Denial-of-Wallet exploitation.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0F6FF;color:#1A73E8;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Cloud Run Service</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Auto-scales to zero</span>
+        </div>
+</div>
+<div id="c3b" style="position:absolute;left:807px;top:495px;width:506px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🧠</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Audit Intelligence Engine</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Parses architecture blueprints and policies. Maps technical findings directly to ISO/IEC 42001, OWASP AISVS, and EU AI Act controls.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0F6FF;color:#1A73E8;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Core Logic</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Multi-framework</span>
+        </div>
+</div>
+<div id="c3c" style="position:absolute;left:807px;top:750px;width:506px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FAFA;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔀</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">AI Router &amp; Fallback Mesh</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Orchestrates model requests with automated multi-provider failover, strict timeout enforcement, and token budget management.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FAFA;color:#007B83;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">High Availability</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">99.9% Uptime</span>
+        </div>
+</div>
+<div id="c3d" style="position:absolute;left:807px;top:1005px;width:506px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FBF4;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📋</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">GCP Security Posture Scanner</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Automated cloud discovery auditing IAM configurations, VPC settings, and AI workloads against CIS Foundations benchmarks.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FBF4;color:#34A853;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Infrastructure Audit</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Real-time Scan</span>
+        </div>
+</div>
+<div id="c4a" style="position:absolute;left:1387px;top:240px;width:426px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🛡️</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Google Model Armor</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Real-time bidirectional AI firewall. Neutralizes prompt injections and jailbreaks on input; filters sensitive data and toxic content on output.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF0F0;color:#EA4335;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Active Guardrails</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Sub-15ms inline</span>
+        </div>
+</div>
+<div id="c4b" style="position:absolute;left:1387px;top:495px;width:426px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF7EC;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✨</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Gemini 3.8 Flash (Vertex AI)</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Google Cloud flagship multimodal AI. Performs deep analytical reasoning over technical evidence, generating defensible compliance verdicts.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF7EC;color:#FA7B17;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Enterprise AI</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Keyless ADC</span>
+        </div>
+</div>
+<div id="c4c" style="position:absolute;left:1387px;top:750px;width:426px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FBF4;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Model Garden &amp; Registry</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Curated, verified model supply chain. Ensures only cryptographically signed and vetted models are invoked across the lifecycle.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FBF4;color:#34A853;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Supply Chain Security</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Tamper-proof</span>
+        </div>
+</div>
+<div id="c4d" style="position:absolute;left:1387px;top:1005px;width:426px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F8F2FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📊</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Vertex Evaluation &amp; Monitoring</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Continuous quality and drift supervision. Benchmarks model accuracy, hallucination rates, and safety drift against production SLOs.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F8F2FF;color:#9334E6;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Quality Gate</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">AutoSxS Rater</span>
+        </div>
+</div>
+<div id="c5a" style="position:absolute;left:1887px;top:240px;width:296px;height:180px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFFDF0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📁</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Audit Repository</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Immutable compliance verdicts, verbatim technical evidence, and remediated architecture models.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFFDF0;color:#8E5E00;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Audits Collection</span>
+          
+        </div>
+</div>
+<div id="c5b" style="position:absolute;left:1887px;top:440px;width:296px;height:180px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFFDF0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📚</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Compliance Standards</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Live regulatory catalogs: ISO 42001:2023, OWASP AISVS v1.0, EU AI Act, Mexico NOM.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFFDF0;color:#8E5E00;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Standards Catalog</span>
+          
+        </div>
+</div>
+<div id="c5c" style="position:absolute;left:1887px;top:640px;width:296px;height:180px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFFDF0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔐</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">API Key Credential Store</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Scoped, revocable programmatic credentials for CI/CD pipelines and external automation.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFFDF0;color:#8E5E00;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Key Vault</span>
+          
+        </div>
+</div>
+<div id="c5d" style="position:absolute;left:1887px;top:840px;width:296px;height:180px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🚨</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Security Event Ledger</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Audit trail of injection attempts, unauthorized access trials, and anomalous evaluations.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF0F0;color:#EA4335;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Security Alerts</span>
+          
+        </div>
+</div>
+<div id="c5e" style="position:absolute;left:1887px;top:1040px;width:296px;height:195px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📜</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Firestore Security Rules</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Multi-region nam5 database. Encrypted at rest &amp; in transit. Client access strictly enforced at database tier.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0F6FF;color:#1A73E8;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">nam5 Multi-Region</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">CMEK Encrypted</span>
+        </div>
+</div>
+<div id="c6a" style="position:absolute;left:2256px;top:240px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📋</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Cloud Logging</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Immutable, centralized audit logs recording every request, evaluation step, and AI interaction.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0F6FF;color:#1A73E8;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Tamper-proof Log</span>
+          
+        </div>
+</div>
+<div id="c6b" style="position:absolute;left:2256px;top:495px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔍</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Security Command Center</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Enterprise threat detection with AI Protection. Automatically escalates prompt injections to SOC incidents.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF0F0;color:#EA4335;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Active Threat Intel</span>
+          
+        </div>
+</div>
+<div id="c6c" style="position:absolute;left:2256px;top:750px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FAFA;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📈</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Cloud Monitoring</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Real-time operational dashboards tracking latency, error budgets, and 95%+ citation grounding SLOs.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FAFA;color:#007B83;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">SLO Alerting</span>
+          
+        </div>
+</div>
+<div id="c6d" style="position:absolute;left:2256px;top:1005px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F8F2FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏢</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">SIEM &amp; SOC Webhooks</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Instant incident forwarding to enterprise SOCs (Chronicle, Splunk, Sentinel) via authenticated webhooks.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F8F2FF;color:#9334E6;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Enterprise SIEM</span>
+          
+        </div>
+</div>
+<div id="c6e" style="position:absolute;left:2514px;top:240px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0F6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏗️</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">ISO Phase 3: Develop</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Verified supply chain via Model Garden, active prompt sanitization with Model Armor, and automated remediation plans.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0F6FF;color:#1A73E8;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">AI Protections</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Controls A.6-A.8</span>
+        </div>
+</div>
+<div id="c6f" style="position:absolute;left:2514px;top:495px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F0FBF4;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✅</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">ISO Phase 4: Evaluate</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Objective AutoSxS autorating and reproducible safety evaluations serving as formal quality gate before promotion.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F0FBF4;color:#34A853;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">AI Evaluation</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Clause 9.1</span>
+        </div>
+</div>
+<div id="c6g" style="position:absolute;left:2514px;top:750px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#FFF7EC;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🚀</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">ISO Phase 5: Deploy</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Immutable container hashes, zero-downtime revision rollouts, and pre-traffic zero-trust smoke testing.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#FFF7EC;color:#FA7B17;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Controlled Release</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Clause 10.1</span>
+        </div>
+</div>
+<div id="c6h" style="position:absolute;left:2514px;top:1005px;width:230px;height:230px;
+  background:white;border-radius:14px;border:1.5px solid #DADCE0;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;">
+  <div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:#F8F2FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔄</div>
+      <div style="font-size:15px;font-weight:700;color:#202124;line-height:1.2;">Clause 10: Improvement</div>
+    </div>
+    <div style="font-size:12.5px;color:#3C4043;line-height:1.5;margin-top:4px;">Audit verdicts and security findings automatically feed back into architectural redesign, closing the governance loop.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span style="display:inline-block;background:#F8F2FF;color:#9334E6;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:14px;letter-spacing:0.3px;white-space:nowrap;">Continuous Loop</span>
+          <span style="font-size:10.5px;font-weight:600;color:#5F6368;">Feedback Cycle</span>
+        </div>
+</div><svg style="position:absolute;top:0;left:0;width:2800px;height:1575px;overflow:visible;pointer-events:none;z-index:30;">
+  <defs><marker id="aFA7B17" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#FA7B17"/>
+        </marker><marker id="a34A853" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#34A853"/>
+        </marker><marker id="aF9AB00" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#F9AB00"/>
+        </marker><marker id="a1A73E8" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#1A73E8"/>
+        </marker><marker id="a007B83" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#007B83"/>
+        </marker><marker id="a9334E6" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#9334E6"/>
+        </marker><marker id="aEA4335" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#EA4335"/>
+        </marker><marker id="a5F6368" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#5F6368"/>
+        </marker></defs>
+  <line x1="370" y1="355" x2="410" y2="355" stroke="#1A73E8" stroke-width="2.5"  marker-end="url(#a1A73E8)" opacity="0.9"/><line x1="370" y1="610" x2="410" y2="610" stroke="#34A853" stroke-width="2.5"  marker-end="url(#a34A853)" opacity="0.9"/><line x1="750" y1="355" x2="790" y2="355" stroke="#1A73E8" stroke-width="2.5"  marker-end="url(#a1A73E8)" opacity="0.9"/><line x1="750" y1="610" x2="790" y2="610" stroke="#34A853" stroke-width="2.5"  marker-end="url(#a34A853)" opacity="0.9"/><line x1="1330" y1="355" x2="1370" y2="355" stroke="#EA4335" stroke-width="2.5"  marker-end="url(#aEA4335)" opacity="0.9"/><line x1="1330" y1="610" x2="1370" y2="610" stroke="#FA7B17" stroke-width="2.5"  marker-end="url(#aFA7B17)" opacity="0.9"/><line x1="1830" y1="355" x2="1870" y2="355" stroke="#F9AB00" stroke-width="2.5"  marker-end="url(#aF9AB00)" opacity="0.9"/><line x1="1830" y1="610" x2="1870" y2="610" stroke="#F9AB00" stroke-width="2.5"  marker-end="url(#aF9AB00)" opacity="0.9"/><line x1="2200" y1="355" x2="2240" y2="355" stroke="#EA4335" stroke-width="2.5"  marker-end="url(#aEA4335)" opacity="0.9"/><line x1="2200" y1="925" x2="2240" y2="925" stroke="#9334E6" stroke-width="2.5"  marker-end="url(#a9334E6)" opacity="0.9"/>
+  
+  <path d="M 1887,1225 L 350,1225" stroke="#9334E6" stroke-width="2.5" stroke-dasharray="8 5" fill="none" marker-end="url(#a9334E6)"/>
+  <rect x="980" y="1213" width="220" height="24" rx="12" fill="#9334E6" opacity="0.95"/>
+  <text x="1090" y="1229" text-anchor="middle" fill="white" font-family="'Google Sans',Arial,sans-serif" font-size="11.5" font-weight="700">Real-Time SSE Result Stream</text>
+
+</svg>
+<div style="position:absolute;left:375px;top:340px;width:30px;height:30px;
+  border-radius:50%;background:#1A73E8;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">1</div>
+<div style="position:absolute;left:345px;top:373px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#1A73E8;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">HTTPS Ingress</div>
+<div style="position:absolute;left:375px;top:595px;width:30px;height:30px;
+  border-radius:50%;background:#34A853;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">2</div>
+<div style="position:absolute;left:345px;top:628px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#34A853;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">ID Token</div>
+<div style="position:absolute;left:755px;top:340px;width:30px;height:30px;
+  border-radius:50%;background:#1A73E8;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">3</div>
+<div style="position:absolute;left:725px;top:373px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#1A73E8;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">Auth Request</div>
+<div style="position:absolute;left:1335px;top:340px;width:30px;height:30px;
+  border-radius:50%;background:#EA4335;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">4</div>
+<div style="position:absolute;left:1305px;top:373px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#EA4335;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">Sanitize</div>
+<div style="position:absolute;left:1335px;top:595px;width:30px;height:30px;
+  border-radius:50%;background:#FA7B17;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">5</div>
+<div style="position:absolute;left:1305px;top:628px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#FA7B17;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">AI Reasoning</div>
+<div style="position:absolute;left:1835px;top:340px;width:30px;height:30px;
+  border-radius:50%;background:#F9AB00;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">6</div>
+<div style="position:absolute;left:1805px;top:373px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#F9AB00;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">Save Verdict</div>
+<div style="position:absolute;left:2205px;top:340px;width:30px;height:30px;
+  border-radius:50%;background:#EA4335;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">7</div>
+<div style="position:absolute;left:2175px;top:373px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#EA4335;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">Security Log</div>
+<div style="position:absolute;left:2205px;top:910px;width:30px;height:30px;
+  border-radius:50%;background:#9334E6;color:white;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.22);z-index:35;">8</div>
+<div style="position:absolute;left:2175px;top:943px;width:90px;text-align:center;font-size:10.5px;font-weight:700;color:#9334E6;line-height:1.1;z-index:35;text-shadow:0 1px 2px white;">SIEM Push</div>
+<div style="position:absolute;left:40px;top:1290px;width:2720px;height:120px;
+  background:linear-gradient(90deg, #F0F6FF 0%, #F0FBF4 35%, #FFF7EC 70%, #FFF0F0 100%);
+  border:2px solid #DADCE0;border-radius:18px;padding:16px 24px;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#202124;display:flex;align-items:center;gap:8px;">
+      <span>🔐</span> GOOGLE CLOUD ENTERPRISE DEFENSE-IN-DEPTH FOUNDATION
+    </div>
+    <div style="font-size:11px;font-weight:600;color:#5F6368;">Certified FedRAMP High · HIPAA · SOC 1/2/3 · PCI-DSS Compliant Infrastructure</div>
+  </div>
+  <div style="display:flex;gap:14px;align-items:stretch;">
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ Cloud Armor</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Enterprise L7 WAF &amp; DDoS protection</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ VPC Service Controls</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Data exfiltration prevention perimeter</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ Workload Identity</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Zero static service account keys</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ Artifact Registry</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Vulnerability scanning &amp; provenance</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ Binary Authorization</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Cryptographic container signature validation</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ Confidential Computing</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Memory encryption in use via AMD SEV</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ nam5 Multi-Region</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">High-availability geo-redundant storage</div>
+    </div>
+    <div style="background:white;border:1.5px solid #DADCE0;border-radius:12px;padding:10px 16px;flex:1;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div style="font-size:12px;font-weight:800;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🛡️ Customer-Managed Keys</div>
+      <div style="font-size:10.5px;color:#5F6368;margin-top:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CMEK envelope encryption at rest</div>
+    </div></div>
+</div>
+<div style="position:absolute;left:40px;top:1430px;width:2720px;height:105px;
+  background:white;border:1.5px solid #DADCE0;border-radius:16px;padding:16px 28px;
+  display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 12px rgba(0,0,0,0.04);">
+  <div>
+    <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#5F6368;margin-bottom:8px;">DATA FLOW NOTATION</div>
+    <div style="display:flex;gap:24px;align-items:center;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:3.5px;background:#1A73E8;border-radius:2px;"></div>
+      <span style="font-size:12px;font-weight:600;color:#3C4043;">User / API Ingress</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:3.5px;background:#34A853;border-radius:2px;"></div>
+      <span style="font-size:12px;font-weight:600;color:#3C4043;">Zero-Trust Identity Validation</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:3.5px;background:#EA4335;border-radius:2px;"></div>
+      <span style="font-size:12px;font-weight:600;color:#3C4043;">Security &amp; Model Armor Guardrails</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:3.5px;background:#FA7B17;border-radius:2px;"></div>
+      <span style="font-size:12px;font-weight:600;color:#3C4043;">Vertex AI Inference &amp; Reasoning</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:3.5px;background:#F9AB00;border-radius:2px;"></div>
+      <span style="font-size:12px;font-weight:600;color:#3C4043;">Encrypted Database Transaction</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:3.5px;background:#9334E6;border-radius:2px;"></div>
+      <span style="font-size:12px;font-weight:600;color:#3C4043;">Real-time Stream / SOC Incident Event</span>
+    </div></div>
+  </div>
+  <div style="height:50px;width:1.5px;background:#DADCE0;margin:0 24px;"></div>
+  <div>
+    <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#5F6368;margin-bottom:8px;">STANDARDS BENCHMARK COVERAGE</div>
+    <div style="display:flex;gap:12px;align-items:center;">
+    <div style="background:#F0F6FF;border:1px solid #C2D7FA;border-radius:8px;padding:4px 12px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;font-weight:800;color:#0D47A1;">ISO/IEC 42001:2023</span>
+      <span style="font-size:10.5px;color:#5F6368;">· Certified AI Management</span>
+    </div>
+    <div style="background:#F0F6FF;border:1px solid #C2D7FA;border-radius:8px;padding:4px 12px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;font-weight:800;color:#0D47A1;">OWASP AISVS v1.0</span>
+      <span style="font-size:10.5px;color:#5F6368;">· AI Verification Standard</span>
+    </div>
+    <div style="background:#F0F6FF;border:1px solid #C2D7FA;border-radius:8px;padding:4px 12px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;font-weight:800;color:#0D47A1;">EU AI Act Ready</span>
+      <span style="font-size:10.5px;color:#5F6368;">· High-Risk AI Compliance</span>
+    </div>
+    <div style="background:#F0F6FF;border:1px solid #C2D7FA;border-radius:8px;padding:4px 12px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;font-weight:800;color:#0D47A1;">Mexico NOM AI Ready</span>
+      <span style="font-size:10.5px;color:#5F6368;">· National Standard Alignment</span>
+    </div></div>
+  </div>
+</div>
+</body>
+</html>
