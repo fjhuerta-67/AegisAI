@@ -15,7 +15,7 @@
 
 1. **Rol Organizacional en la Cadena de Valor de IA:**
    - **Desarrollador e Integrador de Sistemas de IA:** AegisAI diseña, desarrolla y mantiene el orquestador de evaluación Map-Reduce multinormativo (`server.ts`), el motor determinista de calificación y el pipeline de síntesis de arquitectura remediada (`remediatedArchitectureGenerator.ts`).
-   - **Consumidor de Servicios de IA (Cloud PaaS):** AegisAI consume modelos fundacionales (`gemini-3.8-flash`, `gemini-3.1-flash-lite`, `gemini-3.7-flash`) hospedados en **Google Cloud Vertex AI** bajo acuerdos empresariales de cero retención de datos para entrenamiento.
+   - **Consumidor de Servicios de IA (Cloud PaaS):** AegisAI consume modelos fundacionales (`gemini-3.8-flash`, `gemini-3.5-flash-lite`, `gemini-3.7-flash`) hospedados en **Google Cloud Vertex AI** bajo acuerdos empresariales de cero retención de datos para entrenamiento.
 2. **Contexto Externo y Matriz Regulatoria:**
    - **Ciberseguridad y Aseguramiento Técnico:** OWASP Artificial Intelligence Security Verification Standard (AI-SVS v1.0, Niveles L1, L2 y L3).
    - **Gobernanza y Gestión de IA:** ISO/IEC 42001:2023 y NIST AI Risk Management Framework (AI RMF 1.0).
@@ -90,7 +90,7 @@ En cumplimiento con `Clause 7.3`, todos los usuarios autorizados reciben concien
 
 ### 4.1 Inventario Integral de Activos de IA (`Annex A.4.1`)
 En cumplimiento con `Annex A.4.1` (*Documentation of resources*), la organización mantiene el **Registro Maestro de Recursos y Activos de IA (`AIMS-INV-A.4.1`)**:
-- **Modelos Fundacionales:** `gemini-3.8-flash` (Primario), `gemini-3.1-flash-lite` (Fallback 1), `gemini-3.7-flash` (Fallback 2) en Google Cloud Vertex AI (`us-central1`).
+- **Modelos Fundacionales:** `gemini-3.8-flash` (Primario), `gemini-3.5-flash-lite` (Fallback 1), `gemini-3.7-flash` (Fallback 2) en Google Cloud Vertex AI (`us-central1`).
 - **Bases de Conocimiento Normativo:** `owasp-aisvs-context.md`, `iso-42001-context.md` y `config/frameworks/*.json`, protegidos en sistema de archivos de solo lectura (`/app`) y verificados con hashes SHA-256 (`config/frameworks/integrity-manifest.json`).
 - **Infraestructura y Almacenamiento:** Cloud Run (`aegis-ai`), Cloud Firestore Native (`aegis-ai-db` en `nam5`) y Google Cloud Secret Manager (`aegis-admin-token`).
 

@@ -5,7 +5,11 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 // Reports carry optional fields set to `undefined` (e.g. customFrameworkId); drop them instead of rejecting the write.
-const firestoreSettings = { ignoreUndefinedProperties: true };
+// Enable `experimentalAutoDetectLongPolling` so Firestore WebChannel streams do not stall behind Cloud Run / IAP proxies.
+const firestoreSettings = {
+  ignoreUndefinedProperties: true,
+  experimentalAutoDetectLongPolling: true,
+};
 export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
   ? initializeFirestore(app, firestoreSettings, firebaseConfig.firestoreDatabaseId)
   : initializeFirestore(app, firestoreSettings);
@@ -57,3 +61,19 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   console.error('Firestore Error: ', JSON.stringify(errInfo, null, 2));
   throw new Error(JSON.stringify(errInfo));
 }
+
+export async function getAuthHeaders(extraHeaders: Record<string, string> = {}): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { ...extraHeaders };
+  try {
+    if (auth.currentUser) {
+      const idToken = await auth.currentUser.getIdToken();
+      if (idToken) {
+        headers['Authorization'] = `Bearer ${idToken}`;
+      }
+    }
+  } catch {
+    // Fallback to cookies / IAP headers if Firebase ID token is unavailable
+  }
+  return headers;
+}
+

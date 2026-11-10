@@ -981,6 +981,16 @@ html_content = """<!DOCTYPE html>
 </html>
 """
 
+from generate_deployment_ecosystem_slide import CSS as DEPLOY_CSS, get_slide_html_en
+
+html_content = html_content.replace(" / 11</span>", " / 12</span>")
+html_content = html_content.replace("</style>", DEPLOY_CSS + "\n  </style>")
+html_content = html_content.replace(
+    "<!-- SLIDE 11: ROADMAP -->",
+    get_slide_html_en("11 / 12") + "\n  <!-- SLIDE 12: ROADMAP -->",
+)
+html_content = html_content.replace('<span class="slide-num">11 / 12</span>\n    </div>\n\n    <div class="title-block">\n      <span class="slide-category">Evolution & Roadmap</span>', '<span class="slide-num">12 / 12</span>\n    </div>\n\n    <div class="title-block">\n      <span class="slide-category">Evolution & Roadmap</span>')
+
 temp_html_path = "/tmp/aegis_presentation_en.html"
 with open(temp_html_path, "w", encoding="utf-8") as f:
     f.write(html_content)
@@ -999,3 +1009,4 @@ size_kb = os.path.getsize(output_pdf_eng) / 1024
 print("English Presentation PDF successfully created at:")
 print(f" -> {output_pdf_eng} ({size_kb:.1f} KB)")
 print(f" -> {output_pdf_eng_mirror} ({size_kb:.1f} KB)")
+

@@ -20,6 +20,7 @@ import {
 import { GCPAuthMode, GCPScanComponents, GCPScanTelemetry, AuditReport, VerificationLevel } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
 import { useLanguage } from '../../lib/i18n';
+import { getAuthHeaders } from '../../lib/firebase';
 
 interface GcpLiveScannerViewProps {
   onAuditComplete: (report: AuditReport) => void;
@@ -106,9 +107,10 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
     setTestingConnection(true);
     setConnectionStatus(null);
     try {
+      const headers = await getAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/gcp/test-connection', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           projectId: projectId.trim(),
           authMode,
@@ -154,9 +156,10 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
     setDiscoveredTelemetry(null);
 
     try {
+      const headers = await getAuthHeaders({ 'Content-Type': 'application/json' });
       const response = await fetch('/api/gcp/audit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           projectId: projectId.trim(),
           authMode,
@@ -182,45 +185,72 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
 
       const decoder = new TextDecoder();
       let buffer = '';
+      let receivedResult = false;
+      let streamError: string | null = null;
+
+      const processPart = (part: string) => {
+        const lines = part.split('\n');
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line.startsWith('data:')) continue;
+          const dataStr = line.replace(/^data:\s*/, '').trim();
+          if (!dataStr) continue;
+
+          let event: any;
+          try {
+            event = JSON.parse(dataStr);
+          } catch {
+            // Fragmento JSON incompleto; ignorar línea
+            continue;
+          }
+
+          if (event.type === 'progress') {
+            if (event.percent !== undefined) setProgressPercent(event.percent);
+            if (event.stage !== undefined) setProgressStage(event.stage);
+            if (event.totalStages !== undefined) setProgressTotal(event.totalStages);
+            if (event.message) setProgressMessage(event.message);
+            if (event.telemetry) setDiscoveredTelemetry(event.telemetry);
+          } else if (event.type === 'result' && event.data) {
+            if (!receivedResult) {
+              receivedResult = true;
+              setProgressPercent(100);
+              setProgressMessage('¡Auditoría de infraestructura viva completada con éxito!');
+              onAuditComplete(event.data);
+            }
+          } else if (event.type === 'error') {
+            streamError = event.error || 'Error reportado por el motor de auditoría.';
+          }
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          buffer += decoder.decode();
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const parts = buffer.split('\n\n');
         buffer = parts.pop() || '';
 
         for (const part of parts) {
-          const lines = part.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.replace(/^data:\s*/, '').trim();
-              if (dataStr) {
-                try {
-                  const event = JSON.parse(dataStr);
-                  if (event.type === 'progress') {
-                    if (event.percent !== undefined) setProgressPercent(event.percent);
-                    if (event.stage !== undefined) setProgressStage(event.stage);
-                    if (event.totalStages !== undefined) setProgressTotal(event.totalStages);
-                    if (event.message) setProgressMessage(event.message);
-                    if (event.telemetry) setDiscoveredTelemetry(event.telemetry);
-                  } else if (event.type === 'result' && event.data) {
-                    setProgressPercent(100);
-                    setProgressMessage('¡Auditoría de infraestructura viva completada con éxito!');
-                    setTimeout(() => {
-                      onAuditComplete(event.data);
-                    }, 800);
-                  } else if (event.type === 'error') {
-                    throw new Error(event.error || 'Error reportado por el motor de auditoría.');
-                  }
-                } catch (e: any) {
-                  // Si no es un JSON completo en el chunk, continuamos
-                }
-              }
-            }
-          }
+          processPart(part);
         }
+      }
+
+      if (buffer.trim()) {
+        for (const part of buffer.split('\n\n')) {
+          processPart(part);
+        }
+      }
+
+      if (streamError) {
+        throw new Error(streamError);
+      }
+
+      if (!receivedResult) {
+        throw new Error('La conexión con el motor de auditoría finalizó sin devolver resultados. Por favor intente nuevamente.');
       }
     } catch (err: any) {
       console.error('[GCP Live Audit Error]:', err);
@@ -282,7 +312,7 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
               <label className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider mb-2 font-sans">
                 Método de Autenticación
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -301,25 +331,6 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
                     <span>Demo / Simulación</span>
                   </div>
                   <p className="text-[10px] text-[#4D4D4D] font-normal mt-1 font-sans">Sin credenciales requeridas</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('adc');
-                    setConnectionStatus(null);
-                  }}
-                  className={`p-3 rounded-none border text-left transition-all cursor-pointer ${
-                    authMode === 'adc'
-                      ? 'border-[1.5px] border-[#1A1A1A] bg-[#D9EBF7] text-[#1B5FA6] font-bold'
-                      : 'border-[#ECECEC] hover:bg-[#ECECEC] text-[#1A1A1A]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-sans">
-                    <Server size={14} className={authMode === 'adc' ? 'text-[#1B5FA6]' : 'text-[#767676]'} />
-                    <span>ADC / Cloud Run</span>
-                  </div>
-                  <p className="text-[10px] text-[#4D4D4D] font-normal mt-1 font-sans">Automático en la nube</p>
                 </button>
 
                 <button
@@ -670,7 +681,7 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
               {isAuditing ? (
                 <>
                   <Loader2 size={18} className="animate-spin text-[#1A1A1A]" />
-                  <span>Inspeccionando y Auditando...</span>
+                  <span>{`Auditando (${progressPercent}%)...`}</span>
                 </>
               ) : (
                 <>
@@ -680,6 +691,31 @@ export function GcpLiveScannerView({ onAuditComplete }: GcpLiveScannerViewProps)
                 </>
               )}
             </button>
+
+            {isAuditing && (
+              <div className="p-3 bg-[#D9EBF7] border-[1.5px] border-[#1A1A1A] space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-[#1A1A1A]">
+                  <span className="truncate pr-2">{progressMessage}</span>
+                  <span>{progressPercent}%</span>
+                </div>
+                <div className="w-full bg-white h-2 border border-[#1A1A1A] overflow-hidden">
+                  <div
+                    className="bg-[#1B5FA6] h-full transition-all duration-300 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="p-3 bg-[#FBF3C9] border-[1.5px] border-[#1A1A1A] flex items-start gap-2 text-xs text-[#1A1A1A]">
+                <AlertTriangle size={16} className="text-[#1A1A1A] shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold">Error al ejecutar la auditoría</div>
+                  <div className="text-[#4D4D4D] mt-0.5">{errorMsg}</div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Banner de Garantía Zero-Footprint */}

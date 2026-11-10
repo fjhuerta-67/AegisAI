@@ -43,7 +43,7 @@ This document formally describes the software architecture of **AegisAI**, a mis
 ### 2.5 Multi-Provider Decoupling and Universal Inference Pattern
 - **Problem:** Forcing an exclusive dependency on a single AI provider (vendor lock-in) prevents corporate clients from utilizing their existing agreements with OpenRouter, OpenAI, or local inference servers (vLLM, Ollama, LiteLLM).
 - **Solution:** A decoupled engine centered around `executeAIWithFallback` was implemented:
-  - If the configured provider is `gemini`, it utilizes the `@google/genai` SDK via Vertex AI Application Default Credentials (`aegis-runner-sa`) with its resiliency hierarchy (`gemini-3.8-flash` -> `gemini-3.1-flash-lite` -> `gemini-3.7-flash`).
+  - If the configured provider is `gemini`, it utilizes the `@google/genai` SDK via Vertex AI Application Default Credentials (`aegis-runner-sa`) with its resiliency hierarchy (`gemini-3.8-flash` -> `gemini-3.7-flash` -> `gemini-3.6-flash` -> `gemini-3.5-flash-lite`).
   - If the provider is `openrouter`, `openai`, or `custom_openai_compatible`, it enforces outbound SSRF & host allowlist validation (`validateOutboundEndpoint` — blocking RFC 1918 private IPs, loopback, and cloud metadata `169.254.169.254`) and utilizes a native HTTPS client implementing `/v1/chat/completions` with 180s `AbortController` timeouts, exponential backoff, strict JSON extraction, and token accounting.
 
 ### 2.6 Remediated Architecture Generation Pattern (Drop-in Replacement)

@@ -303,8 +303,8 @@ export function AdminSettingsView() {
     <div className="p-6 max-w-6xl mx-auto flex-1 overflow-y-auto font-sans">
       {/* Division Header */}
       <DivisionHeader
-        title="Configuración del Administrador"
-        subtitle="Administración de motores de IA (Google Cloud Vertex AI sin llaves, Anthropic Claude, OpenRouter, OpenAI o Proxies Privados) y parámetros de auditoría."
+        title="Configuración"
+        subtitle="Configuración de motores de IA (Google Cloud Vertex AI sin llaves, Anthropic Claude, OpenRouter, OpenAI o Proxies Privados) y parámetros de auditoría."
       />
 
       {/* Status Highlights */}
@@ -517,12 +517,12 @@ export function AdminSettingsView() {
                         onChange={(e) => setGeminiModel(e.target.value)}
                         className="w-full mt-1 border-[1.5px] border-[#1A1A1A] rounded-none p-2.5 text-sm bg-white focus:ring-2 focus:ring-[#1B5FA6] focus:outline-none"
                       >
-                        <option value="gemini-3.8-flash">gemini-3.8-flash (Predeterminado - Alta velocidad y precisión • $0.08/auditoría)</option>
-                        <option value="gemini-3.1-pro">gemini-3.1-pro (Razonamiento profundo y arquitecturas complejas • $0.86/auditoría)</option>
-                        <option value="gemini-4.0-argon">gemini-4.0-argon (Modelo Frontier Multimodal y Regulatorio • $1.22/auditoría)</option>
-                        <option value="gemini-3.7-flash">gemini-3.7-flash (Contingencia de alta velocidad 1)</option>
-                        <option value="gemini-3.6-flash">gemini-3.6-flash (Contingencia de alta velocidad 2)</option>
-                        <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (Baja latencia / Ligero)</option>
+                        <option value="gemini-3.8-flash">gemini-3.8-flash (Predeterminado - Alta velocidad y precisión • $0.43/auditoría)</option>
+                        <option value="gemini-4.0-argon">gemini-4.0-argon (Modelo Frontier Multimodal y Regulatorio • $1.14/auditoría)</option>
+                        <option value="gemini-3.1-pro">gemini-3.1-pro (Razonamiento profundo y arquitecturas complejas • $1.22/auditoría)</option>
+                        <option value="gemini-3.7-flash">gemini-3.7-flash (Contingencia de alta velocidad 1 • $0.43/auditoría)</option>
+                        <option value="gemini-3.6-flash">gemini-3.6-flash (Contingencia de alta velocidad 2 • $0.43/auditoría)</option>
+                        <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Baja latencia / Ligero • $0.21/auditoría)</option>
                       </select>
                     </div>
                   </div>

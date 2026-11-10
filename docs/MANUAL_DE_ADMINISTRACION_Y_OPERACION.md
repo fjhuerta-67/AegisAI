@@ -56,7 +56,7 @@ const authenticateAdmin = (req: express.Request, res: express.Response, next: ex
 
 ### 3.1 Soporte Multi-Proveedor Desacoplado
 AegisAI cuenta con un motor universal desacoplado de inferencia que permite operar tanto con modelos de Google Gemini como con proveedores y enrutadores externos compatibles con la especificación OpenAI (`/v1/chat/completions`):
-- **Google Gemini:** Modelos nativos (`gemini-3.8-flash`, `gemini-3.1-flash-lite`, `gemini-3.5-pro`) vía `@google/genai` SDK con tolerancia a picos de demanda.
+- **Google Gemini:** Modelos nativos (`gemini-3.8-flash`, `gemini-3.5-flash-lite`, `gemini-3.5-pro`) vía `@google/genai` SDK con tolerancia a picos de demanda.
 - **OpenRouter (Router Universal):** Enrutamiento centralizado hacia Claude 3.7 Sonnet, GPT-4o, DeepSeek R1, Llama 3.3 70B, etc., con cabeceras `HTTP-Referer` y `X-Title`.
 - **OpenAI Directo:** Modelos insignia de OpenAI (`gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`).
 - **Local / Proxy Universal (OpenAI-Compatible):** Para inferencia privada on-premise mediante **vLLM**, **Ollama**, **LiteLLM**, **OpenWebUI** o **LM Studio**.
@@ -161,7 +161,7 @@ El sistema eliminará el archivo JSON local y removerá el documento correspondi
 
 ### 5.1 Registro de Métricas por Auditoría
 Cada auditoría procesada registra formalmente en su documento de base de datos los siguientes atributos de telemetría de IA:
-- `modelUsed`: Modelo exacto de Gemini que generó el dictamen (ej. `gemini-3.1-flash-lite`).
+- `modelUsed`: Modelo exacto de Gemini que generó el dictamen (ej. `gemini-3.5-flash-lite`).
 - `latencyMs`: Tiempo de respuesta total del motor en milisegundos.
 - `promptTokens`: Total de tokens consumidos en las especificaciones de entrada.
 - `completionTokens`: Total de tokens generados en los análisis y recetas de mitigación.
@@ -198,5 +198,5 @@ curl -I http://localhost:3000/api/health
 
 ### SOP-02: Respuesta ante Incidente de Cuota Excedida (HTTP 429)
 1. Verifique el consumo en la consola de Google Cloud APIs & Services.
-2. Si el proyecto tiene límites de cuota por minuto (RPM) reducidos, configure en `.env` o en la vista de administración el modelo alternativo `gemini-3.1-flash-lite`, el cual cuenta con los límites más amplios y menor costo por token.
+2. Si el proyecto tiene límites de cuota por minuto (RPM) reducidos, configure en `.env` o en la vista de administración el modelo alternativo `gemini-3.5-flash-lite`, el cual cuenta con los límites más amplios y menor costo por token.
 3. Solicite un incremento de cuota (Quota Increase Request) en Google Cloud Console para la API de Gemini v1beta.

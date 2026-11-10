@@ -41,7 +41,7 @@ Este documento describe formalmente la arquitectura de software de **AegisAI**, 
 ### 2.5 Patrón de Desacoplamiento Multi-Proveedor e Inferencia Universal
 - **Problema:** Forzar la dependencia exclusiva de un único proveedor de IA (vendor lock-in) impide a clientes corporativos utilizar sus acuerdos existentes con OpenRouter, OpenAI, o servidores locales de inferencia (vLLM, Ollama, LiteLLM).
 - **Solución:** Se implementó un motor desacoplado centrado en `executeAIWithFallback`:
-  - Si el proveedor configurado es `gemini`, utiliza el SDK `@google/genai` con su jerarquía de resiliencia (`gemini-3.8-flash` -> `gemini-3.1-flash-lite` -> `gemini-3.7-flash`).
+  - Si el proveedor configurado es `gemini`, utiliza el SDK `@google/genai` con su jerarquía de resiliencia (`gemini-3.8-flash` -> `gemini-3.7-flash` -> `gemini-3.6-flash` -> `gemini-3.5-flash-lite`).
   - Si el proveedor es `openrouter`, `openai` o `custom_openai_compatible`, utiliza un cliente HTTP nativo que implementa la especificación universal `/v1/chat/completions` con timeouts de 120s, backoff exponencial, extracción estricta de JSON y accounting de tokens de entrada y salida.
 
 ### 2.6 Patrón de Generación de Arquitectura Remediada (Drop-in Replacement)

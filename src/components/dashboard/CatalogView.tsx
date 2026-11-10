@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, getAuthHeaders } from '../../lib/firebase';
 import { StandardChapter, CustomFramework } from '../../types';
 import { aisvsDatabaseSeed } from '../../lib/aisvsData';
 import { iso42001DatabaseSeed } from '../../lib/iso42001Data';
@@ -78,7 +78,8 @@ export function CatalogView({ onAuditWithFramework }: CatalogViewProps = {}) {
   const fetchCustomFrameworks = async () => {
     setLoadingFrameworks(true);
     try {
-      const res = await fetch('/api/frameworks');
+      const headers = await getAuthHeaders();
+      const res = await fetch('/api/frameworks', { headers });
       if (res.ok) {
         const data: CustomFramework[] = await res.json();
         setCustomFrameworks(data);
@@ -125,7 +126,8 @@ export function CatalogView({ onAuditWithFramework }: CatalogViewProps = {}) {
     }
 
     try {
-      const res = await fetch(`/api/frameworks/${id}`, { method: 'DELETE' });
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/frameworks/${id}`, { method: 'DELETE', headers });
       if (res.ok) {
         setCustomFrameworks(prev => prev.filter(f => f.id !== id));
         if (selectedFrameworkId === id) {
@@ -171,11 +173,10 @@ export function CatalogView({ onAuditWithFramework }: CatalogViewProps = {}) {
         data.append('files', f);
       });
 
+      const headers = await getAuthHeaders({ 'Accept': 'text/event-stream' });
       const res = await fetch('/api/frameworks/ingest', {
         method: 'POST',
-        headers: {
-          'Accept': 'text/event-stream'
-        },
+        headers,
         body: data
       });
 

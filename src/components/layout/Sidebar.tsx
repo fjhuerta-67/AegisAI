@@ -20,7 +20,7 @@ export function Sidebar({ currentView, setView, onLogout }: SidebarProps) {
     { id: 'form', num: '02', label: t('Nueva Auditoría'), icon: PlusCircle },
     { id: 'gcp_scanner', num: '03', label: t('Auditar Google Cloud'), icon: Cloud },
     { id: 'catalog', num: '04', label: t('Catálogos AI'), icon: BookOpen },
-    { id: 'settings', num: '05', label: t('Configuración Admin'), icon: Settings },
+    { id: 'settings', num: '05', label: t('Configuración'), icon: Settings },
   ] as const;
 
   const handleLogout = async () => {

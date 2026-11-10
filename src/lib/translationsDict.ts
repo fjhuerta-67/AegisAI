@@ -277,11 +277,23 @@ export const EXACT_TRANSLATIONS: Record<string, { en: string; pt?: string; fr?: 
     fr: 'Catalogues IA',
     de: 'KI-Kataloge',
   },
+  'Configuración': {
+    en: 'Settings',
+    pt: 'Configuração',
+    fr: 'Paramètres',
+    de: 'Einstellungen',
+  },
+  'Configuración de motores de IA (Google Cloud Vertex AI sin llaves, Anthropic Claude, OpenRouter, OpenAI o Proxies Privados) y parámetros de auditoría.': {
+    en: 'Configuration of AI engines (keyless Google Cloud Vertex AI, Anthropic Claude, OpenRouter, OpenAI, or Private Proxies) and audit parameters.',
+    pt: 'Configuração de motores de IA (Google Cloud Vertex AI sem chaves, Anthropic Claude, OpenRouter, OpenAI ou Proxies Privados) e parâmetros de auditoria.',
+    fr: 'Configuration des moteurs IA (Google Cloud Vertex AI sans clé, Anthropic Claude, OpenRouter, OpenAI ou Proxies Privés) et des paramètres d’audit.',
+    de: 'Konfiguration von KI-Engines (schlüsselloses Google Cloud Vertex AI, Anthropic Claude, OpenRouter, OpenAI oder Private Proxies) und Prüfparametern.',
+  },
   'Configuración Admin': {
-    en: 'Admin Settings',
-    pt: 'Configuração Admin',
-    fr: 'Paramètres Admin',
-    de: 'Admin-Einstellungen',
+    en: 'Settings',
+    pt: 'Configuração',
+    fr: 'Paramètres',
+    de: 'Einstellungen',
   },
   'Cerrar Sesión': {
     en: 'Sign Out',
@@ -4721,41 +4733,41 @@ export const EXACT_TRANSLATIONS: Record<string, { en: string; pt?: string; fr?: 
     fr: 'Local / Proxy',
     de: 'Lokal / Proxy',
   },
-  'gemini-3.8-flash (Predeterminado - Alta velocidad y precisión • $0.08/auditoría)': {
-    en: 'gemini-3.8-flash (Default - High speed & accuracy • $0.08/audit)',
-    pt: 'gemini-3.8-flash (Padrão - Alta velocidade e precisão • $0.08/auditoria)',
-    fr: 'gemini-3.8-flash (Par défaut - Haute vitesse et précision • 0,08 $/audit)',
-    de: 'gemini-3.8-flash (Standard - Hohe Geschwindigkeit & Präzision • 0,08 $/Audit)',
+  'gemini-3.8-flash (Predeterminado - Alta velocidad y precisión • $0.43/auditoría)': {
+    en: 'gemini-3.8-flash (Default - High speed & accuracy • $0.43/audit)',
+    pt: 'gemini-3.8-flash (Padrão - Alta velocidade e precisão • $0.43/auditoria)',
+    fr: 'gemini-3.8-flash (Par défaut - Haute vitesse et précision • 0,43 $/audit)',
+    de: 'gemini-3.8-flash (Standard - Hohe Geschwindigkeit & Präzision • 0,43 $/Audit)',
   },
-  'gemini-3.1-pro (Razonamiento profundo y arquitecturas complejas • $0.86/auditoría)': {
-    en: 'gemini-3.1-pro (Deep reasoning & complex architectures • $0.86/audit)',
-    pt: 'gemini-3.1-pro (Raciocínio profundo e arquiteturas complexas • $0.86/auditoria)',
-    fr: 'gemini-3.1-pro (Raisonnement approfondi et architectures complexes • 0,86 $/audit)',
-    de: 'gemini-3.1-pro (Tiefes Reasoning & komplexe Architekturen • 0,86 $/Audit)',
+  'gemini-4.0-argon (Modelo Frontier Multimodal y Regulatorio • $1.14/auditoría)': {
+    en: 'gemini-4.0-argon (Frontier Multimodal & Regulatory Model • $1.14/audit)',
+    pt: 'gemini-4.0-argon (Modelo Frontier Multimodal e Regulatório • $1.14/auditoria)',
+    fr: 'gemini-4.0-argon (Modèle Frontier Multimodal et Réglementaire • 1,14 $/audit)',
+    de: 'gemini-4.0-argon (Frontier Multimodales & Regulatorisches Modell • 1,14 $/Audit)',
   },
-  'gemini-4.0-argon (Modelo Frontier Multimodal y Regulatorio • $1.22/auditoría)': {
-    en: 'gemini-4.0-argon (Frontier Multimodal & Regulatory Model • $1.22/audit)',
-    pt: 'gemini-4.0-argon (Modelo Frontier Multimodal e Regulatório • $1.22/auditoria)',
-    fr: 'gemini-4.0-argon (Modèle Frontier Multimodal et Réglementaire • 1,22 $/audit)',
-    de: 'gemini-4.0-argon (Frontier Multimodales & Regulatorisches Modell • 1,22 $/Audit)',
+  'gemini-3.1-pro (Razonamiento profundo y arquitecturas complejas • $1.22/auditoría)': {
+    en: 'gemini-3.1-pro (Deep reasoning & complex architectures • $1.22/audit)',
+    pt: 'gemini-3.1-pro (Raciocínio profundo e arquiteturas complexas • $1.22/auditoria)',
+    fr: 'gemini-3.1-pro (Raisonnement approfondi et architectures complexes • 1,22 $/audit)',
+    de: 'gemini-3.1-pro (Tiefes Reasoning & komplexe Architekturen • 1,22 $/Audit)',
   },
-  'gemini-3.7-flash (Contingencia de alta velocidad 1)': {
-    en: 'gemini-3.7-flash (High-speed fallback 1)',
-    pt: 'gemini-3.7-flash (Contingência de alta velocidade 1)',
-    fr: 'gemini-3.7-flash (Secours haute vitesse 1)',
-    de: 'gemini-3.7-flash (Hochgeschwindigkeits-Fallback 1)',
+  'gemini-3.7-flash (Contingencia de alta velocidad 1 • $0.43/auditoría)': {
+    en: 'gemini-3.7-flash (High-speed fallback 1 • $0.43/audit)',
+    pt: 'gemini-3.7-flash (Contingência de alta velocidade 1 • $0.43/auditoria)',
+    fr: 'gemini-3.7-flash (Secours haute vitesse 1 • 0,43 $/audit)',
+    de: 'gemini-3.7-flash (Hochgeschwindigkeits-Fallback 1 • 0,43 $/Audit)',
   },
-  'gemini-3.6-flash (Contingencia de alta velocidad 2)': {
-    en: 'gemini-3.6-flash (High-speed fallback 2)',
-    pt: 'gemini-3.6-flash (Contingência de alta velocidade 2)',
-    fr: 'gemini-3.6-flash (Secours haute vitesse 2)',
-    de: 'gemini-3.6-flash (Hochgeschwindigkeits-Fallback 2)',
+  'gemini-3.6-flash (Contingencia de alta velocidad 2 • $0.43/auditoría)': {
+    en: 'gemini-3.6-flash (High-speed fallback 2 • $0.43/audit)',
+    pt: 'gemini-3.6-flash (Contingência de alta velocidade 2 • $0.43/auditoria)',
+    fr: 'gemini-3.6-flash (Secours haute vitesse 2 • 0,43 $/audit)',
+    de: 'gemini-3.6-flash (Hochgeschwindigkeits-Fallback 2 • 0,43 $/Audit)',
   },
-  'gemini-3.1-flash-lite (Baja latencia / Ligero)': {
-    en: 'gemini-3.1-flash-lite (Low latency / Lightweight)',
-    pt: 'gemini-3.1-flash-lite (Baixa latência / Leve)',
-    fr: 'gemini-3.1-flash-lite (Faible latence / Léger)',
-    de: 'gemini-3.1-flash-lite (Niedrige Latenz / Leichtgewichtig)',
+  'gemini-3.5-flash-lite (Baja latencia / Ligero • $0.21/auditoría)': {
+    en: 'gemini-3.5-flash-lite (Low latency / Lightweight • $0.21/audit)',
+    pt: 'gemini-3.5-flash-lite (Baixa latência / Leve • $0.21/auditoria)',
+    fr: 'gemini-3.5-flash-lite (Faible latence / Léger • 0,21 $/audit)',
+    de: 'gemini-3.5-flash-lite (Niedrige Latenz / Leichtgewichtig • 0,21 $/Audit)',
   },
   'claude-opus-5-5-max (Claude Opus 5.5 Max - Razonamiento Frontier • $8.55/auditoría)': {
     en: 'claude-opus-5-5-max (Claude Opus 5.5 Max - Frontier Reasoning • $8.55/audit)',
@@ -5300,6 +5312,223 @@ export const EXACT_TRANSLATIONS: Record<string, { en: string; pt?: string; fr?: 
     fr: 'RÉVISION REQUISE',
     de: 'ÜBERPRÜFUNG ERFORDERLICH',
   },
+  // === Corrected Documents & Per-File AI Remediation (100% Compliance) ===
+  'Documentos Corregidos': {
+    en: 'Corrected Documents',
+    pt: 'Documentos Corrigidos',
+    fr: 'Documents Corrigés',
+    de: 'Korrigierte Dokumente',
+  },
+  'Generar, inspeccionar y descargar la versión corregida de cada documento subido (100% cumplimiento)': {
+    en: 'Generate, inspect, and download the corrected version of each uploaded document (100% compliance)',
+    pt: 'Gerar, inspecionar e baixar a versão corrigida de cada documento enviado (100% de conformidade)',
+    fr: 'Générer, inspecter et télécharger la version corrigée de chaque document téléversé (100 % de conformité)',
+    de: 'Korrigierte Version jedes hochgeladenen Dokuments generieren, prüfen und herunterladen (100 % Compliance)',
+  },
+  'Documentos Corregidos y Subsanados con IA (100% Cumplimiento)': {
+    en: 'AI-Corrected & Remediated Documents (100% Compliance)',
+    pt: 'Documentos Corrigidos e Remediados com IA (100% de Conformidade)',
+    fr: 'Documents Corrigés et Remédiés par IA (100 % de Conformité)',
+    de: 'KI-korrigierte & behobene Dokumente (100 % Compliance)',
+  },
+  'Para cada documento o archivo de código subido en esta auditoría, puedes generar o reescribir su versión corregida completa con IA (Gemini), comparar el original contra el documento corregido y descargarlo en PDF, Markdown (.md) o su extensión de código original (.py, .ts, .tf, .yaml, .json).': {
+    en: 'For every document or code file uploaded in this audit, you can generate or rewrite its complete AI-corrected version (Gemini), compare the original against the corrected document, and download it in PDF, Markdown (.md), or its native code extension (.py, .ts, .tf, .yaml, .json).',
+    pt: 'Para cada documento ou arquivo de código enviado nesta auditoria, você pode gerar ou reescrever sua versão corrigida completa com IA (Gemini), comparar o original com o documento corrigido e baixá-lo em PDF, Markdown (.md) ou em sua extensão de código original (.py, .ts, .tf, .yaml, .json).',
+    fr: 'Pour chaque document ou fichier de code téléversé dans cet audit, vous pouvez générer ou réécrire sa version complète corrigée par IA (Gemini), comparer l\'original au document corrigé et le télécharger en PDF, Markdown (.md) ou dans son extension de code d\'origine (.py, .ts, .tf, .yaml, .json).',
+    de: 'Für jedes in diesem Audit hochgeladene Dokument oder jede Codedatei können Sie die vollständige KI-korrigierte Version (Gemini) generieren oder neu schreiben, das Original mit dem korrigierten Dokument vergleichen und es als PDF, Markdown (.md) oder in der ursprünglichen Dateiendung (.py, .ts, .tf, .yaml, .json) herunterladen.',
+  },
+  'Reescribir todos los documentos subidos con IA (Gemini) para integrar 100% de controles': {
+    en: 'Rewrite all uploaded documents with AI (Gemini) to integrate 100% of controls',
+    pt: 'Reescrever todos os documentos enviados com IA (Gemini) para integrar 100% dos controles',
+    fr: 'Réécrire tous les documents téléversés avec l\'IA (Gemini) pour intégrer 100 % des contrôles',
+    de: 'Alle hochgeladenen Dokumente mit KI (Gemini) neu schreiben, um 100 % der Kontrollen zu integrieren',
+  },
+  'Reescribiendo con IA...': {
+    en: 'Rewriting with AI...',
+    pt: 'Reescrevendo com IA...',
+    fr: 'Réécriture avec l\'IA...',
+    de: 'Wird mit KI neu geschrieben...',
+  },
+  'Reescribir Todos con IA': {
+    en: 'Rewrite All with AI',
+    pt: 'Reescrever Todos com IA',
+    fr: 'Tout Réécrire avec l\'IA',
+    de: 'Alle mit KI neu schreiben',
+  },
+  'Reescribir con IA': {
+    en: 'Rewrite with AI',
+    pt: 'Reescrever com IA',
+    fr: 'Réécrire avec l\'IA',
+    de: 'Mit KI neu schreiben',
+  },
+  'Descargar la versión corregida de todos los documentos subidos': {
+    en: 'Download the corrected version of all uploaded documents',
+    pt: 'Baixar a versão corrigida de todos os documentos enviados',
+    fr: 'Télécharger la version corrigée de tous les documents téléversés',
+    de: 'Korrigierte Version aller hochgeladenen Dokumente herunterladen',
+  },
+  'Descargar Todo': {
+    en: 'Download All',
+    pt: 'Baixar Tudo',
+    fr: 'Tout Télécharger',
+    de: 'Alle herunterladen',
+  },
+  'Descargar Todos': {
+    en: 'Download All',
+    pt: 'Baixar Todos',
+    fr: 'Tout Télécharger',
+    de: 'Alle herunterladen',
+  },
+  'Descargar especificación maestra unificada (.md) con todos los documentos y recetas': {
+    en: 'Download unified master specification (.md) with all documents and code recipes',
+    pt: 'Baixar especificação mestra unificada (.md) com todos os documentos e receitas',
+    fr: 'Télécharger la spécification principale unifiée (.md) avec tous les documents et correctifs',
+    de: 'Einheitliche Master-Spezifikation (.md) mit allen Dokumenten und Vorlagen herunterladen',
+  },
+  'Paquete Maestro (.md)': {
+    en: 'Master Package (.md)',
+    pt: 'Pacote Mestre (.md)',
+    fr: 'Paquet Principal (.md)',
+    de: 'Master-Paket (.md)',
+  },
+  'Cargar los documentos corregidos en una nueva auditoría para certificar 100% de cumplimiento': {
+    en: 'Load the corrected documents into a new audit to certify 100% compliance',
+    pt: 'Carregar os documentos corrigidos em uma nova auditoria para certificar 100% de conformidade',
+    fr: 'Charger les documents corrigés dans un nouvel audit pour certifier 100 % de conformité',
+    de: 'Korrigierte Dokumente in ein neues Audit laden, um 100 % Compliance zu zertifizieren',
+  },
+  'Re-auditar Corregidos': {
+    en: 'Re-audit Corrected',
+    pt: 'Reauditar Corrigidos',
+    fr: 'Ré-auditer les Corrigés',
+    de: 'Korrigierte neu prüfen',
+  },
+  'Versión Corregida Lista (100% Cumplimiento)': {
+    en: 'Corrected Version Ready (100% Compliance)',
+    pt: 'Versão Corrigida Pronta (100% de Conformidade)',
+    fr: 'Version Corrigée Prête (100 % de Conformité)',
+    de: 'Korrigierte Version bereit (100 % Compliance)',
+  },
+  'Reescribir y corregir este documento completo con IA (Gemini)': {
+    en: 'Rewrite and remediate this entire document with AI (Gemini)',
+    pt: 'Reescrever e corrigir este documento completo com IA (Gemini)',
+    fr: 'Réécrire et corriger l\'intégralité de ce document avec l\'IA (Gemini)',
+    de: 'Dieses gesamte Dokument mit KI (Gemini) neu schreiben und korrigieren',
+  },
+  'Generando con IA...': {
+    en: 'Generating with AI...',
+    pt: 'Gerando com IA...',
+    fr: 'Génération avec l\'IA...',
+    de: 'Wird mit KI generiert...',
+  },
+  'Generar / Reescribir con IA': {
+    en: 'Generate / Rewrite with AI',
+    pt: 'Gerar / Reescrever com IA',
+    fr: 'Générer / Réécrire avec l\'IA',
+    de: 'Mit KI generieren / neu schreiben',
+  },
+  'Ver documento corregido o comparar con el original subido': {
+    en: 'View corrected document or compare against the uploaded original',
+    pt: 'Ver documento corrigido ou comparar com o original enviado',
+    fr: 'Voir le document corrigé ou comparer avec l\'original téléversé',
+    de: 'Korrigiertes Dokument anzeigen oder mit dem hochgeladenen Original vergleichen',
+  },
+  'Ver / Comparar': {
+    en: 'View / Compare',
+    pt: 'Ver / Comparar',
+    fr: 'Voir / Comparer',
+    de: 'Anzeigen / Vergleichen',
+  },
+  'Descargar el documento corregido en formato PDF ejecutivo': {
+    en: 'Download the corrected document in executive PDF format',
+    pt: 'Baixar o documento corrigido em formato PDF executivo',
+    fr: 'Télécharger le document corrigé au format PDF exécutif',
+    de: 'Korrigiertes Dokument im Executive-PDF-Format herunterladen',
+  },
+  'Descargar Corregido (PDF)': {
+    en: 'Download Corrected (PDF)',
+    pt: 'Baixar Corrigido (PDF)',
+    fr: 'Télécharger Corrigé (PDF)',
+    de: 'Korrigiert herunterladen (PDF)',
+  },
+  'Descargar Corregido': {
+    en: 'Download Corrected',
+    pt: 'Baixar Corrigido',
+    fr: 'Télécharger Corrigé',
+    de: 'Korrigiert herunterladen',
+  },
+  'Paquete Maestro de Arquitectura Remediada': {
+    en: 'Remediated Architecture Master Package',
+    pt: 'Pacote Mestre de Arquitetura Remediada',
+    fr: 'Paquet Principal d\'Architecture Remédiée',
+    de: 'Master-Paket der behobenen Architektur',
+  },
+  'Especificación unificada con todas las correcciones sugeridas y parches listos para producción.': {
+    en: 'Unified specification with all suggested remediations and production-ready patches.',
+    pt: 'Especificação unificada com todas as correções sugeridas e patches prontos para produção.',
+    fr: 'Spécification unifiée avec toutes les corrections suggérées et correctifs prêts pour la production.',
+    de: 'Einheitliche Spezifikation mit allen vorgeschlagenen Korrekturen und produktionsreifen Patches.',
+  },
+  'Versión corregida completa lista para descargar e implementar.': {
+    en: 'Complete corrected version ready to download and deploy.',
+    pt: 'Versão corrigida completa pronta para baixar e implementar.',
+    fr: 'Version corrigée complète prête à être téléchargée et déployée.',
+    de: 'Vollständige korrigierte Version bereit zum Herunterladen und Bereitstellen.',
+  },
+  'Paquete Maestro Unificado': {
+    en: 'Unified Master Package',
+    pt: 'Pacote Mestre Unificado',
+    fr: 'Paquet Principal Unifié',
+    de: 'Einheitliches Master-Paket',
+  },
+  'Versión Corregida (100%)': {
+    en: 'Corrected Version (100%)',
+    pt: 'Versão Corrigida (100%)',
+    fr: 'Version Corrigée (100 %)',
+    de: 'Korrigierte Version (100 %)',
+  },
+  'Comparar Original vs. Corregido': {
+    en: 'Compare Original vs. Corrected',
+    pt: 'Comparar Original vs. Corrigido',
+    fr: 'Comparer Original vs Corrigé',
+    de: 'Original vs. Korrigiert vergleichen',
+  },
+  'Original Subido': {
+    en: 'Uploaded Original',
+    pt: 'Original Enviado',
+    fr: 'Original Téléversé',
+    de: 'Hochgeladenes Original',
+  },
+  'Sin contenido original': {
+    en: 'No original content',
+    pt: 'Sem conteúdo original',
+    fr: 'Aucun contenu original',
+    de: 'Kein Originalinhalt',
+  },
+  'Documento Corregido y Subsanado (100% Cumplimiento)': {
+    en: 'Corrected & Remediated Document (100% Compliance)',
+    pt: 'Documento Corrigido e Remediado (100% de Conformidade)',
+    fr: 'Document Corrigé et Remédié (100 % de Conformité)',
+    de: 'Korrigiertes & behobenes Dokument (100 % Compliance)',
+  },
+  'CORREGIDO CON IA': {
+    en: 'AI-CORRECTED',
+    pt: 'CORRIGIDO COM IA',
+    fr: 'CORRIGÉ PAR IA',
+    de: 'KI-KORRIGIERT',
+  },
+  'Reescribir este Documento con IA': {
+    en: 'Rewrite This Document with AI',
+    pt: 'Reescrever Este Documento com IA',
+    fr: 'Réécrire ce Document avec l\'IA',
+    de: 'Dieses Dokument mit KI neu schreiben',
+  },
+  'Descargar Paquete Maestro (.md)': {
+    en: 'Download Master Package (.md)',
+    pt: 'Baixar Pacote Mestre (.md)',
+    fr: 'Télécharger le Paquet Principal (.md)',
+    de: 'Master-Paket herunterladen (.md)',
+  },
 };
 
 export const PATTERN_TRANSLATIONS: Array<{
@@ -5791,6 +6020,110 @@ export const PATTERN_TRANSLATIONS: Array<{
     pt: (fw) => `Tem certeza de que deseja excluir o marco "${fw}"?`,
     fr: (fw) => `Êtes-vous sûr de vouloir supprimer le cadre "${fw}" ?`,
     de: (fw) => `Möchten Sie das Rahmenwerk "${fw}" wirklich löschen?`,
+  },
+  // "Documentos Corregidos (3)"
+  {
+    regex: /^Documentos Corregidos \((\d+)\)$/,
+    en: (n) => `Corrected Documents (${n})`,
+    pt: (n) => `Documentos Corrigidos (${n})`,
+    fr: (n) => `Documents Corrigés (${n})`,
+    de: (n) => `Korrigierte Dokumente (${n})`,
+  },
+  // "3 Documento(s) Subido(s)" / "1 Documento Subido" / "3 Documentos Subidos"
+  {
+    regex: /^(\d+) Documento(?:\(s\)|s)? Subido(?:\(s\)|s)?$/,
+    en: (n) => `${n} Uploaded ${Number(n) === 1 ? 'Document' : 'Documents'}`,
+    pt: (n) => `${n} ${Number(n) === 1 ? 'Documento Enviado' : 'Documentos Enviados'}`,
+    fr: (n) => `${n} ${Number(n) === 1 ? 'Document Téléversé' : 'Documents Téléversés'}`,
+    de: (n) => `${n} ${Number(n) === 1 ? 'Hochgeladenes Dokument' : 'Hochgeladene Dokumente'}`,
+  },
+  // "12 Controles Integrados" / "1 Control Integrado"
+  {
+    regex: /^(\d+) Control(?:es)? Integrados?$/,
+    en: (n) => `${n} Integrated ${Number(n) === 1 ? 'Control' : 'Controls'}`,
+    pt: (n) => `${n} ${Number(n) === 1 ? 'Controle Integrado' : 'Controles Integrados'}`,
+    fr: (n) => `${n} ${Number(n) === 1 ? 'Contrôle Intégré' : 'Contrôles Intégrés'}`,
+    de: (n) => `${n} ${Number(n) === 1 ? 'Integrierte Kontrolle' : 'Integrierte Kontrollen'}`,
+  },
+  // "Descargar Todos (3)" / "Descargar Todo (3)"
+  {
+    regex: /^Descargar Todos? \((\d+)\)$/,
+    en: (n) => `Download All (${n})`,
+    pt: (n) => `Baixar Todos (${n})`,
+    fr: (n) => `Tout Télécharger (${n})`,
+    de: (n) => `Alle herunterladen (${n})`,
+  },
+  // "Descargar Corregido (.md)" / "Descargar Corregido (.py)"
+  {
+    regex: /^Descargar Corregido \((\.[^)]+)\)$/,
+    en: (ext) => `Download Corrected (${ext})`,
+    pt: (ext) => `Baixar Corrigido (${ext})`,
+    fr: (ext) => `Télécharger Corrigé (${ext})`,
+    de: (ext) => `Korrigiert herunterladen (${ext})`,
+  },
+  // "Descargar el documento corregido en formato .md"
+  {
+    regex: /^Descargar el documento corregido en formato (\.\S+)$/,
+    en: (ext) => `Download the corrected document in ${ext} format`,
+    pt: (ext) => `Baixar o documento corrigido em formato ${ext}`,
+    fr: (ext) => `Télécharger le document corrigé au format ${ext}`,
+    de: (ext) => `Korrigiertes Dokument im Format ${ext} herunterladen`,
+  },
+  // "Documento Corregido: file.pdf"
+  {
+    regex: /^Documento Corregido:\s*(.+)$/,
+    en: (fn) => `Corrected Document: ${fn}`,
+    pt: (fn) => `Documento Corrigido: ${fn}`,
+    fr: (fn) => `Document Corrigé : ${fn}`,
+    de: (fn) => `Korrigiertes Dokument: ${fn}`,
+  },
+  // "Documento Original Subido (file.pdf)"
+  {
+    regex: /^Documento Original Subido \((.+)\)$/,
+    en: (fn) => `Uploaded Original Document (${fn})`,
+    pt: (fn) => `Documento Original Enviado (${fn})`,
+    fr: (fn) => `Document Original Téléversé (${fn})`,
+    de: (fn) => `Hochgeladenes Originaldokument (${fn})`,
+  },
+  // "Documento corregido integrando las cláusulas normativas y salvaguardas técnicas para X."
+  {
+    regex: /^Documento corregido integrando las cláusulas normativas y salvaguardas técnicas para (.+)\.$/,
+    en: (sys) => `Corrected document integrating regulatory clauses and technical safeguards for ${sys}.`,
+    pt: (sys) => `Documento corrigido integrando as cláusulas normativas e salvaguardas técnicas para ${sys}.`,
+    fr: (sys) => `Document corrigé intégrant les clauses réglementaires et les garanties techniques pour ${sys}.`,
+    de: (sys) => `Korrigiertes Dokument mit integrierten regulatorischen Klauseln und technischen Schutzmaßnahmen für ${sys}.`,
+  },
+  // "Versión corregida de X con N controles obligatorios integrados."
+  {
+    regex: /^Versión corregida de (.+) con (\d+) controles obligatorios integrados\.$/,
+    en: (fn, n) => `Corrected version of ${fn} with ${n} mandatory controls integrated.`,
+    pt: (fn, n) => `Versão corrigida de ${fn} com ${n} controles obrigatórios integrados.`,
+    fr: (fn, n) => `Version corrigée de ${fn} avec ${n} contrôles obligatoires intégrés.`,
+    de: (fn, n) => `Korrigierte Version von ${fn} mit ${n} integrierten verbindlichen Kontrollen.`,
+  },
+  // "Versión corregida de X con N controles subsanados."
+  {
+    regex: /^Versión corregida de (.+) con (\d+) controles subsanados\.$/,
+    en: (fn, n) => `Corrected version of ${fn} with ${n} remediated controls.`,
+    pt: (fn, n) => `Versão corrigida de ${fn} com ${n} controles remediados.`,
+    fr: (fn, n) => `Version corrigée de ${fn} avec ${n} contrôles corrigés.`,
+    de: (fn, n) => `Korrigierte Version von ${fn} mit ${n} behobenen Kontrollen.`,
+  },
+  // "Versión corregida de X integrando N controles normativos (Y)."
+  {
+    regex: /^Versión corregida de (.+) integrando (\d+) controles normativos \((.+)\)\.$/,
+    en: (fn, n, fw) => `Corrected version of ${fn} integrating ${n} regulatory controls (${fw}).`,
+    pt: (fn, n, fw) => `Versão corrigida de ${fn} integrando ${n} controles normativos (${fw}).`,
+    fr: (fn, n, fw) => `Version corrigée de ${fn} intégrant ${n} contrôles réglementaires (${fw}).`,
+    de: (fn, n, fw) => `Korrigierte Version von ${fn} mit ${n} integrierten regulatorischen Kontrollen (${fw}).`,
+  },
+  // "Documento completo corregido y subsanado para X cumpliendo el 100% de los controles evaluados."
+  {
+    regex: /^Documento completo corregido y subsanado para (.+) cumpliendo el 100% de los controles evaluados\.$/,
+    en: (sys) => `Complete remediated document for ${sys} satisfying 100% of evaluated controls.`,
+    pt: (sys) => `Documento completo corrigido e remediado para ${sys} cumprindo 100% dos controles avaliados.`,
+    fr: (sys) => `Document complet corrigé et remédié pour ${sys} respectant 100 % des contrôles évalués.`,
+    de: (sys) => `Vollständiges korrigiertes und behobenes Dokument für ${sys} mit 100 % Erfüllung der bewerteten Kontrollen.`,
   },
 ];
 

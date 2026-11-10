@@ -256,7 +256,7 @@ AegisAI incluye un motor desacoplado de inferencia que le permite operar con **G
 ### A. Configuración desde la Interfaz Web (Sin Reiniciar el Servidor)
 1. Inicie sesión en la plataforma y diríjase a la pestaña **Administración**.
 2. En la sección **Configuración del Motor LLM**, seleccione el proveedor deseado:
-   - **Google Gemini**: Permite seleccionar entre `gemini-3.8-flash`, `gemini-3.1-flash-lite` y `gemini-3.5-pro`. Utiliza la API Key provista en `.env` o configurada en la pantalla.
+   - **Google Gemini**: Permite seleccionar entre `gemini-3.8-flash`, `gemini-4.0-argon`, `gemini-3.1-pro`, `gemini-3.7-flash`, `gemini-3.6-flash` y `gemini-3.5-flash-lite`. Utiliza Vertex AI ADC o la API Key configurada.
    - **OpenRouter (Router Universal)**: Permite enrutar auditorías hacia cientos de modelos (Claude 3.7 Sonnet, GPT-4o, DeepSeek R1, Llama 3.3 70B, etc.). URL base predefinida: `https://openrouter.ai/api/v1`. Requiere su clave `sk-or-v1-...`.
    - **OpenAI Directo**: Conexión nativa a modelos de OpenAI (`gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`). URL base predefinida: `https://api.openai.com/v1`.
    - **Local / Proxy Universal (OpenAI Compatible)**: Para inferencia privada on-premise mediante Ollama (`http://localhost:11434/v1`), vLLM (`http://localhost:8000/v1`), LiteLLM Proxy (`http://localhost:4000/v1`) u OpenWebUI.

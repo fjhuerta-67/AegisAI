@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuditReport, AISVSChapter, PuntoProbado } from '@/src/types';
+import { AuditReport, AISVSChapter, PuntoProbado, UploadedDocumentRecord } from '@/src/types';
 import { format } from 'date-fns';
 import { 
   CheckCircle2, 
@@ -19,6 +19,8 @@ import {
   ShieldAlert,
   FileDown,
   FileText,
+  FileCode,
+  Loader2,
   Cloud,
   Cpu,
   Server,
@@ -30,9 +32,20 @@ import {
   Scale
 } from 'lucide-react';
 import { generateActionPlanMarkdown, generateActionPlanPDF, extractActionItems } from '@/src/lib/actionPlanGenerator';
-import { downloadRemediatedArchitecture, generateRemediatedArchitectureMarkdown } from '@/src/lib/remediatedArchitectureGenerator';
+import {
+  downloadRemediatedArchitecture,
+  generateRemediatedArchitectureMarkdown,
+  extractUploadedDocumentsFromAudit,
+  generateCorrectedSingleDocumentContent,
+  getPreferredCorrectedExtension,
+  downloadSingleCorrectedDocument,
+  exportSingleCorrectedDocumentPDF
+} from '@/src/lib/remediatedArchitectureGenerator';
 import { DivisionLoopLogo } from '@/src/components/layout/BrandAssets';
+import { GcpPrescriptiveView } from '@/src/components/dashboard/GcpPrescriptiveView';
+import { generatePrescriptiveBlueprintPDF } from '@/src/lib/gcpPrescriptiveEngine';
 import { useLanguage, useTranslatedAudit, LanguageSelector } from '@/src/lib/i18n';
+import { auth } from '@/src/lib/firebase';
 
 interface AuditReportViewProps {
   audit: AuditReport;
@@ -45,6 +58,7 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   const { lang, t, tStatus, tRisk } = useLanguage();
   const localizedInitialAudit = useTranslatedAudit(initialAudit);
   const [audit, setAudit] = React.useState<AuditReport>(localizedInitialAudit);
+  const [postAuditStep, setPostAuditStep] = React.useState<'audit' | 'prescriptive'>('audit');
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [exportingActionPdf, setExportingActionPdf] = React.useState(false);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
@@ -52,17 +66,27 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
   const [expandedHardening, setExpandedHardening] = React.useState<Record<string, boolean>>({});
   const [showRemediationModal, setShowRemediationModal] = React.useState(false);
   const [copiedRemediation, setCopiedRemediation] = React.useState(false);
+  const [selectedDocIdx, setSelectedDocIdx] = React.useState<number | 'all'>(0);
+  const [modalViewMode, setModalViewMode] = React.useState<'corrected' | 'original' | 'diff'>('corrected');
+  const [remediatingDocIds, setRemediatingDocIds] = React.useState<Record<string, boolean>>({});
+  const [remediatingAllDocs, setRemediatingAllDocs] = React.useState(false);
   
   // Action Items for Specific Remediation Plan
   const actionItems = React.useMemo(() => extractActionItems(audit), [audit]);
   const criticalCount = React.useMemo(() => actionItems.filter(i => i.priorityWeight === 1).length, [actionItems]);
   const mediumCount = React.useMemo(() => actionItems.filter(i => i.priorityWeight === 2).length, [actionItems]);
   const lowCount = React.useMemo(() => actionItems.filter(i => i.priorityWeight === 3).length, [actionItems]);
+
+  // Uploaded documents & their corrected versions
+  const [uploadedDocs, setUploadedDocs] = React.useState<UploadedDocumentRecord[]>(() =>
+    extractUploadedDocumentsFromAudit(localizedInitialAudit, lang)
+  );
   
   // Keep local state in sync if parent changes the audit or language changes
   React.useEffect(() => {
     setAudit(localizedInitialAudit);
-  }, [localizedInitialAudit]);
+    setUploadedDocs(extractUploadedDocumentsFromAudit(localizedInitialAudit, lang));
+  }, [localizedInitialAudit, lang]);
   
   const [selectedStandardFilter, setSelectedStandardFilter] = React.useState<string>('ALL');
   const [activeChapterId, setActiveChapterId] = React.useState<string>(audit.chapters[0]?.chapterId || '');
@@ -185,17 +209,146 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
     downloadRemediatedArchitecture(audit, 'txt', lang);
   };
 
+  const handleOpenDocPreview = (idx: number | 'all', mode: 'corrected' | 'original' | 'diff' = 'corrected') => {
+    setSelectedDocIdx(idx);
+    setModalViewMode(mode);
+    setShowRemediationModal(true);
+  };
+
+  const handleGenerateDocWithAI = async (doc: UploadedDocumentRecord, docIndex: number) => {
+    const docKey = doc.id || `doc-${docIndex + 1}`;
+    setRemediatingDocIds(prev => ({ ...prev, [docKey]: true }));
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      try {
+        if (auth.currentUser) {
+          const token = await auth.currentUser.getIdToken();
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (_) {}
+
+      const failingPayload = actionItems.map(item => ({
+        id: item.punto.id,
+        name: item.punto.name,
+        status: item.punto.status,
+        remediation: item.punto.remediation,
+        strategy: item.punto.remediationDetails?.strategy,
+        actionableSteps: item.punto.remediationDetails?.actionableSteps,
+        codeOrConfigExample: item.punto.remediationDetails?.codeOrConfigExample,
+      }));
+
+      const res = await fetch('/api/remediate-document', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          auditId: audit.id,
+          document: {
+            id: docKey,
+            fileName: doc.fileName,
+            mimeType: doc.mimeType || 'text/plain',
+            originalContent: doc.originalContent,
+          },
+          systemName: audit.systemName,
+          failingControls: failingPayload,
+          frameworkTitle: audit.customFrameworkName || audit.standard || 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023',
+          targetLevel: audit.assessedLevel || audit.targetLevel || 'L2',
+          techPlatformName: audit.techPlatformName || audit.techPlatform || 'Google Cloud / Gemini Enterprise',
+          language: lang,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Error al generar documento corregido con IA');
+      }
+
+      const data = await res.json();
+      const updatedDoc: UploadedDocumentRecord = data.document || {
+        ...doc,
+        id: docKey,
+        remediatedContent: data.remediatedContent || generateCorrectedSingleDocumentContent(doc, audit, lang),
+        remediatedSummary: data.remediatedSummary,
+        appliedControls: data.appliedControls,
+        updatedAt: new Date().toISOString(),
+      };
+
+      setUploadedDocs(prev => {
+        const next = [...prev];
+        if (next[docIndex]) {
+          next[docIndex] = updatedDoc;
+        }
+        const updatedAudit: AuditReport = {
+          ...audit,
+          uploadedDocuments: next,
+        };
+        setAudit(updatedAudit);
+        if (onUpdate) onUpdate(updatedAudit);
+        return next;
+      });
+    } catch (err) {
+      console.error('Error generating corrected document with AI:', err);
+      // Fallback to client-side complete corrected document
+      const fallbackContent = generateCorrectedSingleDocumentContent({ ...doc, remediatedContent: undefined }, audit, lang);
+      const fallbackDoc: UploadedDocumentRecord = {
+        ...doc,
+        remediatedContent: fallbackContent,
+        updatedAt: new Date().toISOString(),
+      };
+      setUploadedDocs(prev => {
+        const next = [...prev];
+        if (next[docIndex]) next[docIndex] = fallbackDoc;
+        return next;
+      });
+    } finally {
+      setRemediatingDocIds(prev => ({ ...prev, [docKey]: false }));
+    }
+  };
+
+  const handleGenerateAllDocsWithAI = async () => {
+    setRemediatingAllDocs(true);
+    try {
+      for (let i = 0; i < uploadedDocs.length; i++) {
+        await handleGenerateDocWithAI(uploadedDocs[i], i);
+      }
+    } finally {
+      setRemediatingAllDocs(false);
+    }
+  };
+
+  const handleDownloadAllCorrectedDocs = () => {
+    uploadedDocs.forEach((doc, idx) => {
+      setTimeout(() => {
+        downloadSingleCorrectedDocument(doc, audit, 'native', lang);
+      }, idx * 220);
+    });
+  };
+
+  const getActiveModalText = (): string => {
+    if (selectedDocIdx === 'all' || !uploadedDocs[selectedDocIdx]) {
+      return generateRemediatedArchitectureMarkdown(audit, lang);
+    }
+    const activeDoc = uploadedDocs[selectedDocIdx];
+    if (modalViewMode === 'original') {
+      return activeDoc.originalContent || '';
+    }
+    return generateCorrectedSingleDocumentContent(activeDoc, audit, lang);
+  };
+
   const handleCopyRemediatedText = () => {
-    const text = generateRemediatedArchitectureMarkdown(audit, lang);
+    const text = getActiveModalText();
     navigator.clipboard.writeText(text);
     setCopiedRemediation(true);
     setTimeout(() => setCopiedRemediation(false), 2500);
   };
 
   const handleReauditClick = () => {
-    const text = generateRemediatedArchitectureMarkdown(audit, lang);
+    const combinedDocsText = uploadedDocs.length > 0
+      ? uploadedDocs
+          .map((d, i) => `--- DOCUMENTO CORREGIDO ${i + 1}: ${d.fileName} ---\n${generateCorrectedSingleDocumentContent(d, audit, lang)}`)
+          .join('\n\n')
+      : generateRemediatedArchitectureMarkdown(audit, lang);
     if (onReauditWithRemediation) {
-      onReauditWithRemediation(text, audit);
+      onReauditWithRemediation(combinedDocsText, audit);
     }
   };
 
@@ -462,16 +615,14 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
 
           <div className="flex items-center gap-2 flex-wrap">
             <LanguageSelector variant="header" />
-            {actionItems.length > 0 && (
-              <button 
-                onClick={handleDownloadRemediatedMarkdown}
-                title="Descargar archivo con correcciones sugeridas y arquitectura remediada para 100% de cumplimiento"
-                className="bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] font-bold px-3 py-1.5 text-xs rounded-none border-[1.5px] border-[#1A1A1A] transition-colors flex items-center gap-1.5"
-              >
-                <Sparkles size={14} className="text-[#1A1A1A]" />
-                <span>Correcciones Sugeridas (.md)</span>
-              </button>
-            )}
+            <button 
+              onClick={() => handleOpenDocPreview(0, 'corrected')}
+              title="Generar, inspeccionar y descargar la versión corregida de cada documento subido (100% cumplimiento)"
+              className="bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] font-bold px-3 py-1.5 text-xs rounded-none border-[1.5px] border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+            >
+              <Sparkles size={14} className="text-[#1A1A1A]" />
+              <span>{`Documentos Corregidos (${uploadedDocs.length})`}</span>
+            </button>
             <button 
               onClick={handleDownloadActionPlanMarkdown}
               title="Descargar checklist técnico de remediación en formato Markdown (.md) con tareas [ ] y código"
@@ -501,6 +652,76 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
         </div>
       </div>
 
+      {/* Post-Audit 2-Step Workflow Bar */}
+      <div className="border-b-[1.5px] border-[#1A1A1A] bg-[#ECECEC] px-6 py-2 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setPostAuditStep('audit')}
+            className={`px-3.5 py-1.5 text-xs font-extrabold border-[1.5px] border-[#1A1A1A] flex items-center gap-2 transition-all ${
+              postAuditStep === 'audit'
+                ? 'bg-[#1A1A1A] text-white shadow-[2px_2px_0px_#1B5FA6]'
+                : 'bg-white text-[#1A1A1A] hover:bg-[#D9EBF7]/40'
+            }`}
+          >
+            <span className="px-1.5 py-0.2 bg-[#FBE017] text-[#1A1A1A] font-mono text-[10px]">PASO 1</span>
+            <span>{lang === 'es' ? 'Diagnóstico de Auditoría (Control por Control)' : 'Diagnostic Audit Report (Control-by-Control)'}</span>
+          </button>
+
+          <span className="text-[#1A1A1A] font-extrabold text-sm">&rarr;</span>
+
+          <button
+            type="button"
+            onClick={() => setPostAuditStep('prescriptive')}
+            className={`px-3.5 py-1.5 text-xs font-extrabold border-[1.5px] border-[#1A1A1A] flex items-center gap-2 transition-all ${
+              postAuditStep === 'prescriptive'
+                ? 'bg-[#1B5FA6] text-white shadow-[2px_2px_0px_#1A1A1A]'
+                : 'bg-[#FBE017] text-[#1A1A1A] hover:bg-[#ebd009]'
+            }`}
+          >
+            <Cloud size={14} className={postAuditStep === 'prescriptive' ? 'text-[#FBE017]' : 'text-[#1B5FA6]'} />
+            <span className="px-1.5 py-0.2 bg-[#1A1A1A] text-white font-mono text-[10px]">PASO 2</span>
+            <span>
+              {lang === 'es'
+                ? 'Plano Prescriptivo Google Cloud y Remediación Técnica (Infra · Qué Pedir a GCP · Alcance y Entregables)'
+                : 'Google Cloud Prescriptive Blueprint & Tech Remediation (Infra · What to Ask GCP · Scope & Deliverables)'}
+            </span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="text-[11px] font-bold text-[#1A1A1A]/75 hidden 2xl:block">
+            {lang === 'es'
+              ? '¿Sin tiempo para leer toda la auditoría? Descarga o abre la Guía Prescriptiva Google Cloud.'
+              : 'No time to read the full audit? Download or open the Google Cloud Prescriptive Guide.'}
+          </div>
+          <button
+            type="button"
+            onClick={() => generatePrescriptiveBlueprintPDF(audit, lang)}
+            className="px-3 py-1.5 text-xs font-extrabold border-[1.5px] border-[#1A1A1A] bg-white hover:bg-[#FBF3C9] text-[#1A1A1A] flex items-center gap-1.5 transition-colors shadow-[2px_2px_0px_#1A1A1A]"
+            title={
+              lang === 'es'
+                ? 'Descarga rápida en PDF con el proceso de remediación completo, productos Google Cloud, comandos gcloud y criterios de aceptación'
+                : 'Quick PDF download explaining the complete remediation process, Google Cloud products, gcloud commands, and acceptance criteria'
+            }
+          >
+            <FileText size={13} className="text-[#1B5FA6]" />
+            <span>
+              {lang === 'es'
+                ? 'Descargar Guía Prescriptiva GCP (PDF)'
+                : 'Download GCP Prescriptive Guide (PDF)'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {postAuditStep === 'prescriptive' ? (
+        <GcpPrescriptiveView
+          audit={audit}
+          onOpenRemediationModal={() => handleOpenDocPreview(0, 'corrected')}
+          onSwitchToAuditStep={() => setPostAuditStep('audit')}
+        />
+      ) : (
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Chapter List */}
         <div className="w-[300px] border-r-[1.5px] border-[#1A1A1A] h-full flex flex-col bg-white shrink-0">
@@ -761,9 +982,9 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
             </div>
           </div>
 
-          {/* Remediation & Suggested Corrections File Card (100% Compliance Package) */}
-          {actionItems.length > 0 && (
-            <div className="bg-[#FBF3C9] border-[1.5px] border-[#1A1A1A] rounded-none p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[#1A1A1A]">
+          {/* Per-Document Corrected Documents Panel (100% Compliance for Every Uploaded Document) */}
+          <div className="bg-[#FBF3C9] border-[1.5px] border-[#1A1A1A] rounded-none p-4 flex flex-col gap-4 text-[#1A1A1A]">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-start gap-3.5">
                 <div className="p-2.5 border-[1.5px] border-[#1A1A1A] bg-[#FBE017] text-[#1A1A1A] shrink-0">
                   <Sparkles size={22} />
@@ -771,17 +992,17 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-extrabold text-[#1A1A1A]">
-                      Archivo de Correcciones Sugeridas (100% Cumplimiento)
+                      Documentos Corregidos y Subsanados con IA (100% Cumplimiento)
                     </h3>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-white text-[#1A1A1A] border border-[#1A1A1A]">
-                      Drop-in Replacement
+                      {`${uploadedDocs.length} Documento(s) Subido(s)`}
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A]">
-                      {`${actionItems.length} Brechas Resueltas`}
+                      {`${actionItems.length} Controles Integrados`}
                     </span>
                   </div>
-                  <p className="text-xs text-[#1A1A1A] mt-1 max-w-2xl leading-relaxed">
-                    Hemos preparado un archivo técnico con la arquitectura corregida y las recetas de código requeridas para que tu sistema satisfaga el <strong>100% de los puntos de la auditoría</strong>. Puedes descargarlo directamente, inspeccionarlo o re-auditar el sistema con él.
+                  <p className="text-xs text-[#1A1A1A] mt-1 max-w-3xl leading-relaxed font-medium">
+                    Para cada documento o archivo de código subido en esta auditoría, puedes generar o reescribir su versión corregida completa con IA (Gemini), comparar el original contra el documento corregido y descargarlo en PDF, Markdown (.md) o su extensión de código original (.py, .ts, .tf, .yaml, .json).
                   </p>
                 </div>
               </div>
@@ -789,36 +1010,139 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
               <div className="flex items-center gap-2 shrink-0 flex-wrap self-end md:self-center">
                 <button
                   type="button"
-                  onClick={() => setShowRemediationModal(true)}
-                  className="px-3 py-2 text-xs font-bold rounded-none bg-white border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#ECECEC] transition-all flex items-center gap-1.5"
-                  title="Ver contenido del archivo corregido antes de descargarlo"
+                  onClick={handleGenerateAllDocsWithAI}
+                  disabled={remediatingAllDocs}
+                  className="px-3 py-2 text-xs font-bold rounded-none bg-white border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#ECECEC] disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  title="Reescribir todos los documentos subidos con IA (Gemini) para integrar 100% de controles"
                 >
-                  <Eye size={14} className="text-[#1A1A1A]" />
-                  <span>Ver Vista Previa</span>
+                  {remediatingAllDocs ? (
+                    <Loader2 size={14} className="animate-spin text-[#1B5FA6]" />
+                  ) : (
+                    <Sparkles size={14} className="text-[#1B5FA6]" />
+                  )}
+                  <span>{remediatingAllDocs ? 'Reescribiendo con IA...' : 'Reescribir Todos con IA'}</span>
                 </button>
+                {uploadedDocs.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadAllCorrectedDocs}
+                    className="px-3 py-2 text-xs font-bold rounded-none bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] border-[1.5px] border-[#1A1A1A] transition-all flex items-center gap-1.5"
+                    title="Descargar la versión corregida de todos los documentos subidos"
+                  >
+                    <FileDown size={14} />
+                    <span>{`Descargar Todos (${uploadedDocs.length})`}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleDownloadRemediatedMarkdown}
-                  className="px-3.5 py-2 text-xs font-bold rounded-none bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] border-[1.5px] border-[#1A1A1A] transition-all flex items-center gap-1.5"
-                  title="Descargar archivo en formato Markdown (.md) con todas las correcciones integradas"
+                  className="px-3 py-2 text-xs font-bold rounded-none bg-white hover:bg-[#ECECEC] text-[#1A1A1A] border-[1.5px] border-[#1A1A1A] transition-all flex items-center gap-1.5"
+                  title="Descargar especificación maestra unificada (.md) con todos los documentos y recetas"
                 >
                   <FileDown size={14} />
-                  <span>Descargar Archivo (.md)</span>
+                  <span>Paquete Maestro (.md)</span>
                 </button>
                 {onReauditWithRemediation && (
                   <button
                     type="button"
                     onClick={handleReauditClick}
                     className="px-3 py-2 text-xs font-bold rounded-none bg-[#1B5FA6] hover:bg-[#164F86] text-white border-[1.5px] border-[#1A1A1A] transition-all flex items-center gap-1.5"
-                    title="Cargar la arquitectura corregida en una nueva auditoría para certificar 100% de cumplimiento"
+                    title="Cargar los documentos corregidos en una nueva auditoría para certificar 100% de cumplimiento"
                   >
                     <RefreshCw size={13} />
-                    <span>Re-auditar</span>
+                    <span>Re-auditar Corregidos</span>
                   </button>
                 )}
               </div>
             </div>
-          )}
+
+            {/* Individual Uploaded Document Rows */}
+            <div className="grid grid-cols-1 gap-2.5 pt-2 border-t border-[#1A1A1A]/20">
+              {uploadedDocs.map((doc, docIdx) => {
+                const docKey = doc.id || `doc-${docIdx + 1}`;
+                const isGenerating = Boolean(remediatingDocIds[docKey]);
+                const preferredExt = getPreferredCorrectedExtension(doc.fileName);
+                const isCodeFile = preferredExt !== 'md';
+
+                return (
+                  <div
+                    key={docKey}
+                    className="bg-white border-[1.5px] border-[#1A1A1A] p-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-9 h-9 border border-[#1A1A1A] bg-[#D9EBF7] text-[#1B5FA6] flex items-center justify-center shrink-0 mt-0.5">
+                        {isCodeFile ? <FileCode size={18} /> : <FileText size={18} />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-extrabold text-[#1A1A1A] truncate max-w-md">
+                            {doc.fileName}
+                          </span>
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-[#ECECEC] border border-[#1A1A1A] text-[#1A1A1A] uppercase">
+                            {`.${preferredExt}`}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A] flex items-center gap-1">
+                            <CheckCircle2 size={11} />
+                            <span>Versión Corregida Lista (100% Cumplimiento)</span>
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#1A1A1A]/80 mt-1 line-clamp-2">
+                          {doc.remediatedSummary || `Documento corregido integrando las cláusulas normativas y salvaguardas técnicas para ${audit.systemName}.`}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap shrink-0 self-end lg:self-center">
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateDocWithAI(doc, docIdx)}
+                        disabled={isGenerating}
+                        className="px-2.5 py-1.5 text-[11px] font-bold rounded-none bg-[#FBF3C9] hover:bg-[#FBE017] text-[#1A1A1A] border border-[#1A1A1A] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                        title="Reescribir y corregir este documento completo con IA (Gemini)"
+                      >
+                        {isGenerating ? (
+                          <Loader2 size={13} className="animate-spin text-[#1A1A1A]" />
+                        ) : (
+                          <Sparkles size={13} className="text-[#1A1A1A]" />
+                        )}
+                        <span>{isGenerating ? 'Generando con IA...' : 'Generar / Reescribir con IA'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDocPreview(docIdx, 'corrected')}
+                        className="px-2.5 py-1.5 text-[11px] font-bold rounded-none bg-white hover:bg-[#ECECEC] text-[#1A1A1A] border border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+                        title="Ver documento corregido o comparar con el original subido"
+                      >
+                        <Eye size={13} />
+                        <span>Ver / Comparar</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => exportSingleCorrectedDocumentPDF(doc, audit, lang)}
+                        className="px-2.5 py-1.5 text-[11px] font-bold rounded-none bg-[#1B5FA6] hover:bg-[#164F86] text-white border border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+                        title="Descargar el documento corregido en formato PDF ejecutivo"
+                      >
+                        <FileText size={13} />
+                        <span>Descargar Corregido (PDF)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => downloadSingleCorrectedDocument(doc, audit, 'native', lang)}
+                        className="px-3 py-1.5 text-[11px] font-extrabold rounded-none bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] border border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+                        title={`Descargar el documento corregido en formato .${preferredExt}`}
+                      >
+                        <FileDown size={13} />
+                        <span>{`Descargar Corregido (.${preferredExt})`}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Executive Action Plan Callout Banner */}
           {actionItems.length > 0 ? (
@@ -846,7 +1170,14 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                <button
+                  onClick={() => setPostAuditStep('prescriptive')}
+                  className="px-3.5 py-2 text-xs font-extrabold rounded-none bg-[#1B5FA6] hover:bg-[#154b85] text-white border-[1.5px] border-[#1A1A1A] transition-all flex items-center gap-1.5"
+                >
+                  <Cloud size={14} className="text-[#FBE017]" />
+                  {lang === 'es' ? 'Ir al Paso 2: Plano Prescriptivo GCP →' : 'Go to Step 2: GCP Prescriptive Blueprint →'}
+                </button>
                 <button
                   onClick={handleDownloadActionPlanMarkdown}
                   className="px-3.5 py-2 text-xs font-bold rounded-none bg-white border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#ECECEC] transition-all flex items-center gap-1.5"
@@ -1194,47 +1525,152 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
           </div>
         </div>
       </div>
+      )}
 
-      {/* Modal de Vista Previa de Arquitectura Corregida */}
+      {/* Modal de Vista Previa y Comparación de Documentos Corregidos */}
       {showRemediationModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-none border-[2px] border-[#1A1A1A] max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-none border-[2px] border-[#1A1A1A] max-w-6xl w-full max-h-[92vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b-[1.5px] border-[#1A1A1A] bg-[#ECECEC] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 border border-[#1A1A1A] bg-[#FBE017] text-[#1A1A1A]">
+            <div className="px-6 py-4 border-b-[1.5px] border-[#1A1A1A] bg-[#ECECEC] flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 border border-[#1A1A1A] bg-[#FBE017] text-[#1A1A1A] shrink-0">
                   <Sparkles size={18} />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-[#1A1A1A] text-base flex items-center gap-2">
-                    Especificación de Arquitectura Remediada
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-[#1A1A1A] text-base flex items-center gap-2 flex-wrap">
+                    <span>
+                      {selectedDocIdx === 'all' || !uploadedDocs[selectedDocIdx]
+                        ? 'Paquete Maestro de Arquitectura Remediada'
+                        : `Documento Corregido: ${uploadedDocs[selectedDocIdx].fileName}`}
+                    </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-[#D9EBF7] text-[#1B5FA6] border border-[#1A1A1A]">
                       100% Cumplimiento Proyectado
                     </span>
                   </h3>
-                  <p className="text-xs text-[#1A1A1A]/70">
-                    Archivo generado con todas las correcciones sugeridas y parches de código listos para producción.
+                  <p className="text-xs text-[#1A1A1A]/70 truncate">
+                    {selectedDocIdx === 'all' || !uploadedDocs[selectedDocIdx]
+                      ? 'Especificación unificada con todas las correcciones sugeridas y parches listos para producción.'
+                      : uploadedDocs[selectedDocIdx].remediatedSummary || 'Versión corregida completa lista para descargar e implementar.'}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowRemediationModal(false)}
-                className="p-1.5 border border-[#1A1A1A] bg-white text-[#1A1A1A] hover:bg-[#ECECEC] transition-colors"
+                className="p-1.5 border border-[#1A1A1A] bg-white text-[#1A1A1A] hover:bg-[#ECECEC] transition-colors shrink-0"
                 title="Cerrar ventana"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Modal Body: Markdown Content */}
-            <div className="p-6 overflow-y-auto flex-1 bg-[#1A1A1A] font-mono text-xs text-white leading-relaxed whitespace-pre-wrap">
-              {generateRemediatedArchitectureMarkdown(audit, lang)}
+            {/* Document Selector Tabs + View Mode Bar */}
+            <div className="px-6 py-2.5 border-b-[1.5px] border-[#1A1A1A] bg-[#FBF3C9] flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {uploadedDocs.map((doc, idx) => {
+                  const active = selectedDocIdx === idx;
+                  return (
+                    <button
+                      key={doc.id || idx}
+                      type="button"
+                      onClick={() => setSelectedDocIdx(idx)}
+                      className={`px-3 py-1.5 text-xs font-bold border border-[#1A1A1A] transition-colors flex items-center gap-1.5 ${
+                        active
+                          ? 'bg-[#1A1A1A] text-[#FBE017]'
+                          : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
+                      }`}
+                    >
+                      <FileText size={12} />
+                      <span className="truncate max-w-[200px]">{doc.fileName}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDocIdx('all')}
+                  className={`px-3 py-1.5 text-xs font-bold border border-[#1A1A1A] transition-colors flex items-center gap-1.5 ${
+                    selectedDocIdx === 'all'
+                      ? 'bg-[#1A1A1A] text-[#FBE017]'
+                      : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
+                  }`}
+                >
+                  <Layers size={12} />
+                  <span>Paquete Maestro Unificado</span>
+                </button>
+              </div>
+
+              {selectedDocIdx !== 'all' && uploadedDocs[selectedDocIdx] && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setModalViewMode('corrected')}
+                    className={`px-2.5 py-1 text-[11px] font-bold border border-[#1A1A1A] ${
+                      modalViewMode === 'corrected'
+                        ? 'bg-[#1B5FA6] text-white'
+                        : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
+                    }`}
+                  >
+                    Versión Corregida (100%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalViewMode('diff')}
+                    className={`px-2.5 py-1 text-[11px] font-bold border border-[#1A1A1A] ${
+                      modalViewMode === 'diff'
+                        ? 'bg-[#1B5FA6] text-white'
+                        : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
+                    }`}
+                  >
+                    Comparar Original vs. Corregido
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalViewMode('original')}
+                    className={`px-2.5 py-1 text-[11px] font-bold border border-[#1A1A1A] ${
+                      modalViewMode === 'original'
+                        ? 'bg-[#1B5FA6] text-white'
+                        : 'bg-white text-[#1A1A1A] hover:bg-[#ECECEC]'
+                    }`}
+                  >
+                    Original Subido
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Modal Body */}
+            {selectedDocIdx !== 'all' && uploadedDocs[selectedDocIdx] && modalViewMode === 'diff' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 flex-1 overflow-hidden divide-y md:divide-y-0 md:divide-x divide-[#1A1A1A]">
+                <div className="flex flex-col overflow-hidden">
+                  <div className="px-4 py-2 bg-[#ECECEC] border-b border-[#1A1A1A] text-[11px] font-extrabold text-[#1A1A1A] uppercase">
+                    {`Documento Original Subido (${uploadedDocs[selectedDocIdx].fileName})`}
+                  </div>
+                  <div className="p-5 overflow-y-auto flex-1 bg-[#1A1A1A]/95 font-mono text-xs text-white/80 leading-relaxed whitespace-pre-wrap">
+                    {uploadedDocs[selectedDocIdx].originalContent || 'Sin contenido original'}
+                  </div>
+                </div>
+                <div className="flex flex-col overflow-hidden">
+                  <div className="px-4 py-2 bg-[#D9EBF7] border-b border-[#1A1A1A] text-[11px] font-extrabold text-[#1B5FA6] uppercase flex items-center justify-between">
+                    <span>Documento Corregido y Subsanado (100% Cumplimiento)</span>
+                    <span className="px-1.5 py-0.5 bg-[#FBE017] text-[#1A1A1A] border border-[#1A1A1A] text-[10px]">
+                      CORREGIDO CON IA
+                    </span>
+                  </div>
+                  <div className="p-5 overflow-y-auto flex-1 bg-[#1A1A1A] font-mono text-xs text-[#FBE017] leading-relaxed whitespace-pre-wrap">
+                    {generateCorrectedSingleDocumentContent(uploadedDocs[selectedDocIdx], audit, lang)}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 overflow-y-auto flex-1 bg-[#1A1A1A] font-mono text-xs text-white leading-relaxed whitespace-pre-wrap">
+                {getActiveModalText()}
+              </div>
+            )}
 
             {/* Modal Footer */}
             <div className="px-6 py-3.5 border-t-[1.5px] border-[#1A1A1A] bg-white flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={handleCopyRemediatedText}
@@ -1252,18 +1688,45 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                     </>
                   )}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadRemediatedTxt}
-                  className="px-3.5 py-2 text-xs font-bold rounded-none bg-white border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#ECECEC] transition-colors flex items-center gap-1.5"
-                  title="Descargar como texto plano (.txt)"
-                >
-                  <FileText size={14} />
-                  <span>Descargar (.txt)</span>
-                </button>
+
+                {selectedDocIdx !== 'all' && uploadedDocs[selectedDocIdx] ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateDocWithAI(uploadedDocs[selectedDocIdx], selectedDocIdx)}
+                      disabled={Boolean(remediatingDocIds[uploadedDocs[selectedDocIdx].id || `doc-${selectedDocIdx + 1}`])}
+                      className="px-3.5 py-2 text-xs font-bold rounded-none bg-[#FBF3C9] hover:bg-[#FBE017] border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      {remediatingDocIds[uploadedDocs[selectedDocIdx].id || `doc-${selectedDocIdx + 1}`] ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Sparkles size={14} />
+                      )}
+                      <span>Reescribir este Documento con IA</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadSingleCorrectedDocument(uploadedDocs[selectedDocIdx], audit, 'txt', lang)}
+                      className="px-3 py-2 text-xs font-bold rounded-none bg-white border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#ECECEC] transition-colors flex items-center gap-1.5"
+                    >
+                      <FileText size={14} />
+                      <span>Descargar (.txt)</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDownloadRemediatedTxt}
+                    className="px-3.5 py-2 text-xs font-bold rounded-none bg-white border-[1.5px] border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#ECECEC] transition-colors flex items-center gap-1.5"
+                    title="Descargar como texto plano (.txt)"
+                  >
+                    <FileText size={14} />
+                    <span>Descargar (.txt)</span>
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setShowRemediationModal(false)}
@@ -1271,14 +1734,35 @@ export function AuditReportView({ audit: initialAudit, onUpdate, onBack, onReaud
                 >
                   Cerrar
                 </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadRemediatedMarkdown}
-                  className="px-4 py-2 text-xs font-bold rounded-none bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] border-[1.5px] border-[#1A1A1A] transition-colors flex items-center gap-1.5"
-                >
-                  <FileDown size={14} />
-                  <span>Descargar Archivo (.md)</span>
-                </button>
+                {selectedDocIdx !== 'all' && uploadedDocs[selectedDocIdx] ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => exportSingleCorrectedDocumentPDF(uploadedDocs[selectedDocIdx], audit, lang)}
+                      className="px-4 py-2 text-xs font-bold rounded-none bg-[#1B5FA6] hover:bg-[#164F86] text-white border-[1.5px] border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+                    >
+                      <FileText size={14} />
+                      <span>Descargar Corregido (PDF)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadSingleCorrectedDocument(uploadedDocs[selectedDocIdx], audit, 'native', lang)}
+                      className="px-4 py-2 text-xs font-extrabold rounded-none bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] border-[1.5px] border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+                    >
+                      <FileDown size={14} />
+                      <span>{`Descargar Corregido (.${getPreferredCorrectedExtension(uploadedDocs[selectedDocIdx].fileName)})`}</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDownloadRemediatedMarkdown}
+                    className="px-4 py-2 text-xs font-bold rounded-none bg-[#FBE017] hover:bg-[#ebd009] text-[#1A1A1A] border-[1.5px] border-[#1A1A1A] transition-colors flex items-center gap-1.5"
+                  >
+                    <FileDown size={14} />
+                    <span>Descargar Paquete Maestro (.md)</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

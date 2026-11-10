@@ -36,9 +36,10 @@ import { StandardType, StandardBreakdown } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
 import { auth } from '../../lib/firebase';
 import { useLanguage } from '../../lib/i18n';
+import { generateAuditId, sanitizeAuditReportForFirestore } from '../../lib/auditPersistence';
 
 interface AuditFormProps {
-  onSubmit: (report: AuditReport) => void;
+  onSubmit: (report: AuditReport) => void | Promise<void>;
   onCancel: () => void;
   standardType?: StandardType;
   initialCustomFrameworkId?: string;
@@ -236,6 +237,8 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
         ? 'MULTI' 
         : (selectedStandards[0] === 'ISO-42001' ? 'ISO-42001' : (selectedStandards[0] === 'AI-SVS' ? 'AI-SVS' : 'CUSTOM'));
 
+      const clientAuditId = generateAuditId(effectiveStandardType, selectedStandards);
+      data.append('auditId', clientAuditId);
       data.append('standardType', effectiveStandardType);
       data.append('selectedStandards', JSON.stringify(selectedStandards));
       if (!['AI-SVS', 'ISO-42001'].includes(selectedStandards[0])) {
@@ -285,72 +288,109 @@ export function AuditForm({ onSubmit, onCancel, standardType: initialStandardTyp
       let resultData: any = null;
       let serverError: string | null = null;
 
+      const processSseFrame = (line: string) => {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data: ')) return;
+        const jsonStr = trimmed.slice(6);
+        try {
+          const event = JSON.parse(jsonStr);
+          if (event.type === 'progress') {
+            setProgress({
+              stage: event.stage,
+              totalStages: event.totalStages,
+              message: event.message,
+              percent: event.percent
+            });
+          } else if (event.type === 'result') {
+            resultData = event.data;
+          } else if (event.type === 'error') {
+            serverError = event.error || 'El motor de auditoría reportó un error.';
+          }
+        } catch (parseError) {
+          console.warn('Error parsing SSE event:', parseError);
+        }
+      };
+
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          buffer += decoder.decode();
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
         buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const jsonStr = line.slice(6);
-            try {
-              const event = JSON.parse(jsonStr);
-              if (event.type === 'progress') {
-                setProgress({
-                  stage: event.stage,
-                  totalStages: event.totalStages,
-                  message: event.message,
-                  percent: event.percent
-                });
-              } else if (event.type === 'result') {
-                resultData = event.data;
-              } else if (event.type === 'error') {
-                serverError = event.error || 'El motor de auditoría reportó un error.';
-              }
-            } catch (parseError) {
-              console.warn('Error parsing SSE event:', parseError);
-            }
-          }
+          processSseFrame(line);
+        }
+      }
+
+      if (buffer.trim()) {
+        for (const line of buffer.split('\n\n')) {
+          processSseFrame(line);
         }
       }
 
       if (serverError) {
         throw new Error(serverError);
       }
+
+      // Fallback recovery: if a long-running SSE stream disconnected right as the server finished,
+      // check whether the server already persisted `clientAuditId` in `aegis-ai-db`.
+      if (!resultData) {
+        try {
+          const recoveryHeaders: Record<string, string> = {};
+          if (evalHeaders['Authorization']) {
+            recoveryHeaders['Authorization'] = evalHeaders['Authorization'];
+          }
+          const recoveryRes = await fetch('/api/audits', { headers: recoveryHeaders });
+          if (recoveryRes.ok) {
+            const recoveryJson = await recoveryRes.json();
+            const recovered = (recoveryJson.audits || []).find((a: any) => a.id === clientAuditId);
+            if (recovered) {
+              resultData = recovered;
+            }
+          }
+        } catch {
+          // Ignore recovery fetch error
+        }
+      }
+
       if (!resultData) {
         throw new Error('No se recibió el dictamen final de la auditoría. Por favor intenta nuevamente.');
       }
       
       const resStandards: string[] = resultData.standards || selectedStandards || [];
-      const resIsMulti = resStandards.length > 1 || resultData.standard === 'MULTI';
-      const prefix = resIsMulti 
-        ? 'MULTI' 
-        : (effectiveStandardType === 'CUSTOM' ? 'CUSTOM' : (effectiveStandardType === 'ISO-42001' ? 'ISO' : 'AISVS'));
-
       const firstCustomId = selectedStandards.find(s => !['AI-SVS', 'ISO-42001'].includes(s));
       const firstCustomFw = firstCustomId ? customFrameworks.find(f => f.id === firstCustomId) : null;
 
-      const newAudit: AuditReport = {
-        id: `${prefix}-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-        date: new Date().toISOString(),
-        systemName: formData.systemName,
-        technicalLead: formData.technicalLead,
-        email: formData.email,
-        description: formData.description,
-        standard: resultData.standard || effectiveStandardType,
-        standards: resStandards,
-        standardsBreakdown: resultData.standardsBreakdown,
-        customFrameworkId: firstCustomId || undefined,
-        customFrameworkName: resultData.customFrameworkName || firstCustomFw?.name || undefined,
-        targetLevel,
-        techPlatform,
-        ...resultData
-      };
+      const newAudit = sanitizeAuditReportForFirestore(
+        {
+          ...resultData,
+          id: resultData.id || clientAuditId,
+          date: resultData.date || new Date().toISOString(),
+          systemName: formData.systemName || resultData.systemName,
+          technicalLead: formData.technicalLead || resultData.technicalLead,
+          email: formData.email || resultData.email,
+          description: resultData.description || formData.description,
+          uploadedDocuments: resultData.uploadedDocuments,
+          remediatedArchitectureDoc: resultData.remediatedArchitectureDoc,
+          standard: resultData.standard || effectiveStandardType,
+          standards: resStandards,
+          standardsBreakdown: resultData.standardsBreakdown,
+          customFrameworkId: firstCustomId || undefined,
+          customFrameworkName: resultData.customFrameworkName || firstCustomFw?.name || undefined,
+          targetLevel,
+          techPlatform,
+        },
+        auth.currentUser
+          ? { uid: auth.currentUser.uid, email: auth.currentUser.email }
+          : null
+      );
 
-      onSubmit(newAudit);
+      await onSubmit(newAudit);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Error inesperado durante la auditoría');

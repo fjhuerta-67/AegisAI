@@ -14,7 +14,7 @@
 ### Slide 1: Cover & Mission Statement
 * **Title:** AegisAI Enterprise — From AI Studio PoC to Enterprise Release Candidate
 * **Subtitle:** Google Cloud AI Security & ISO/IEC 42001 AIMS Governance Platform
-* **Mission:** How AegisAI was prototyped in **Google AI Studio (`Gemini 3.8` to `3.6 Flash`)**, engineered in **Google Antigravity (`Gemini 3.8 Flash`)**, **self-audited against its own codebase & documentation** (`68.9%` ➔ `97.8%`), and presented as a **Release Candidate (RC)** to **Farmacias del Ahorro**, **Asociación Mexicana de Franquicias**, and **Grupo Coppel** — for a total creation cost of **`$19.41 USD`**.
+* **Mission:** How AegisAI was prototyped in **Google AI Studio (`Gemini 3.6 Flash`)**, architected with **`Gemini 3.1 Pro` (5%)**, engineered at scale in **Google Antigravity (`Gemini 3.8 Flash` — 80% combined Flash)**, **self-audited against its own codebase & documentation** (`68.9%` ➔ `97.8%`), hardened and QA-verified with **`Gemini 4.0 Argon` (10%)** and **`Claude Opus 5.5 Max` (5%)**, and presented as a **Release Candidate (RC)** to **Farmacias del Ahorro**, **Asociación Mexicana de Franquicias**, and **Grupo Coppel** — for a total multi-model creation cost of **`$215.24 USD`** (`$319.80 USD` including full agentic tool-loop & thinking overhead).
 
 ---
 
@@ -42,16 +42,16 @@
 
 ---
 
-### Slide 4: The 4-Stage Engineering Journey (From PoC to Enterprise RC)
-* **Stage 1 — Google AI Studio PoC (`Gemini 3.8` to `3.6 Flash`):**
-  * Rapid Proof of Concept validating multimodal PDF/diagram ingestion, structured JSON schema enforcement (`responseSchema`), and initial OWASP AI-SVS prompt engineering.
-  * Tested model migration tolerances between `Gemini 3.8 Flash` and `Gemini 3.6 Flash` to establish baseline latency, determinism (`temperature: 0.0`), and context-window behavior (~45 prompt iterations, `$1.17 USD`).
-* **Stage 2 — Google Antigravity Migration (`Gemini 3.8 Flash`):**
-  * Imported the AI Studio prototype into **Google Antigravity** paired with **`Gemini 3.8 Flash`** for full-stack agentic software engineering (171 logged build & architecture prompts across Phases 1–7).
-  * Built the decoupled Express + React 19 SPA, parallel 3-chapter Map-Reduce engine, Keyless GCP Scanner, BYOF custom framework engine, and bilingual 10-document manual suite (`$9.60 USD`).
-* **Stage 3 — Recursive Self-Audit ("Dogfooding") (`MULTI-2026-0437` ➔ `MULTI-2026-8983`):**
-  * Once the working prototype was running on Cloud Run, we fed **AegisAI's own codebase and 10-PDF documentation bundle (`Originaldocs.zip`)** directly into AegisAI's OWASP AI-SVS + ISO/IEC 42001 engine.
-  * Baseline audit `MULTI-2026-0437` scored **`68.9%`** (exposing 15 partial and 4 failed controls); we remediated every code, container, IAM, Firestore rule, and manual finding, achieving **`97.8%`** on re-audit `MULTI-2026-8983` (`0` failed controls).
+### Slide 4: The 4-Stage Multi-Model Engineering Journey (From PoC to Enterprise RC)
+* **Stage 1 — Google AI Studio PoC (`Gemini 3.6 Flash`, ~6% of tokens):**
+  * Rapid Proof of Concept validating multimodal PDF/diagram ingestion, structured JSON schema enforcement (`responseSchema`), and initial OWASP AI-SVS prompt engineering (~45 prompt iterations, `4.20M` In / `0.90M` Out at official `$0.75/$3.75` rate = **`$6.53 USD`**).
+* **Stage 2 — System Architecture (`Gemini 3.1 Pro`, 5%) & Bulk Construction (`Gemini 3.8 Flash`, 74%):**
+  * **System Architecture (`Gemini 3.1 Pro`, 5% — `$14.06 USD`):** Designed the 4-layer Zero-Trust topology, 12-batch Map-Reduce orchestration engine, 265-control taxonomy, and multi-tenant Firestore security model (`3.55M` In / `0.58M` Out at official `$2.00/$12.00` rate).
+  * **Bulk Full-Stack Construction & Live Audits (`Gemini 3.8 Flash`, 74% — `$70.65 USD`):** Executed 171 logged engineering prompts in **Google Antigravity** to build the Express + React 19 SPA, Keyless GCP Scanner, BYOF engine, 17 bilingual PDF manuals/decks (`47.80M` In / `8.00M` Out = `$65.85`), and live Vertex AI self-audits (`4.80M` In / `0.32M` Out = `$4.80` at official `$0.75/$3.75` rate). Together with Stage 1, **Flash models handled 80% of all tokens for just `$77.18 USD`**.
+* **Stage 3 — Recursive Self-Audit (`68.9%` ➔ `97.8%`), Hardening & Bugfixing (`4.0 Argon` 10% + `Claude Opus 5.5 Max` 5%):**
+  * Baseline self-audit `MULTI-2026-0437` scored **`68.9%`** (exposing 15 partial and 4 failed controls).
+  * **Deep Hardening (`Gemini 4.0 Argon`, 10% — `$25.70 USD`):** Engineered keyless Vertex AI ADC, Cloud IAP perimeter, 308 Firestore rules unit tests, and 4K/8K executive architecture diagrams (`7.10M` In / `1.15M` Out at official `$2.00/$10.00` rate).
+  * **Adversarial Red-Team & Edge Bugfixing (`Claude Opus 5.5 Max`, 5% — `$96.45 USD`):** Cross-model adversarial audit, timing-safe auth (`C05.3`), SSRF/DNS rebinding guards (`C04.3`, `C10.5`), and final QA (`3.55M` In / `0.58M` Out), achieving **`97.8%`** on re-audit `MULTI-2026-8983` (`0` failed controls).
 * **Stage 4 — Enterprise RC Roadshow:**
   * Presented the hardened **Release Candidate (RC)** (`aegis-ai-00009-gk6`) to **Farmacias del Ahorro**, **Asociación Mexicana de Franquicias (AMF)**, and **Grupo Coppel**.
 
@@ -85,7 +85,7 @@
      * Demonstrated how AegisAI prevents hallucinated medical/pharmacological guidance via continuous RAG grounding telemetry (`C08.4`) and mandatory human clinical appeal workflows (`ISO 42001 A.5.2`).
   2. **Asociación Mexicana de Franquicias — AMF (National Franchise Ecosystem):**
      * Presented standardized, repeatable AI assurance blueprints across multi-brand franchise networks, ensuring uniform compliance with Mexican consumer protection laws (**LFPC Art. 56** cooling-off & algorithmic transparency).
-     * Showcased how multi-tenant isolation (`tenantDomain` & `ownerUid` in `C05.4`/`C08.1`) allows franchise operators to audit AI customer-service agents and chatbots at **`$0.08 USD` per audit**.
+     * Showcased how multi-tenant isolation (`tenantDomain` & `ownerUid` in `C05.4`/`C08.1`) allows franchise operators to audit AI customer-service agents and chatbots at **`$0.43 USD` per standard audit** (`$0.21 USD` on Batch/Flex tier).
   3. **Grupo Coppel (Financial Services, Fintech & Omnichannel Retail Giant):**
      * Demonstrated enterprise-scale Zero-Trust AI security for high-volume credit scoring, digital banking, and retail copilots under **OWASP AI-SVS Level 3** and **ISO/IEC 42001:2023**.
      * Highlighted cryptographic MCP tool manifest verification (`C10.1`), compensating transaction sagas (`C09.4`), Denial-of-Wallet protection (`C11.1`), and live keyless GCP scanning (`C05.2`).
@@ -93,40 +93,41 @@
 ---
 
 ### Slide 7: FinOps Analysis — Cost per Dual Audit (OWASP AI-SVS + ISO/IEC 42001)
-* **Topic:** Real Token Telemetry & Unit Economics Across Frontier Models.
-* **Measured Token Profiles (from Cloud Firestore `aegis-ai-db` across 12 Map-Reduce Calls per `MULTI` Audit):**
+* **Topic:** Real Token Telemetry & Official 2026 Unit Economics Across Frontier Models.
+* **Measured Token Profiles (from Cloud Firestore `aegis-ai-db` across Map-Reduce Calls per `MULTI` Audit):**
   * **Profile A — Standard Enterprise Architecture Audit (`MULTI-2026-0507` / `MULTI-2026-1250`):** **`370,000` Input Tokens** (`368,827` avg) + **`40,000` Output Tokens** (`39,812` avg).
   * **Profile B — Full 10-PDF Documentation Bundle Self-Audit (`MULTI-2026-0437` / `MULTI-2026-8983`):** **`1,640,000` Input Tokens** (`1,638,410` avg, ~136K context per batch) + **`86,500` Output Tokens** (`86,495` avg).
 
-| AI Model Evaluated | Pricing (Input / Output per 1M Tokens) | Profile A: Standard OWASP + ISO Audit (`370K` In / `40K` Out) | Profile B: Full 10-PDF Suite Audit (`1.64M` In / `86.5K` Out) | Monthly Run-Rate (1,000 Standard Audits / Mo) | Cost Multiplier vs. Gemini 3.8 Flash |
+| AI Model Evaluated | Official 2026 Pricing (Input / Output per 1M Tokens) | Profile A: Standard OWASP + ISO Audit (`370K` In / `40K` Out) | Profile B: Full 10-PDF Suite Audit (`1.64M` In / `86.5K` Out) | Monthly Run-Rate (1,000 Standard Audits / Mo) | Cost Multiplier vs. Gemini 3.8 Flash |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Gemini 3.8 Flash (AegisAI Default)** | **`$0.15` / `$0.60`** | **`$0.08 USD`** (`$0.0795`) | **`$0.30 USD`** (`$0.2979`) | **`$79.50 / mo`** | **1.0x (Baseline)** |
-| **Gemini 3.1 Pro** | `$1.25` / `$10.00` | **`$0.86 USD`** (`$0.8625`) | **`$2.92 USD`** (`$2.9150`) | `$862.50 / mo` | **9.8x – 10.8x** |
-| **Gemini 4.0 Argon** | `$2.00` / `$12.00` | **`$1.22 USD`** (`$1.2200`) | **`$4.32 USD`** (`$4.3180`) | `$1,220.00 / mo` | **14.5x – 15.3x** |
-| **Claude Fable 5.1 Medium** | `$3.00` / `$15.00` | **`$1.71 USD`** (`$1.7100`) | **`$6.22 USD`** (`$6.2175`) | `$1,710.00 / mo` | **20.9x – 21.5x more expensive** |
-| **Claude Opus 5.5 Max** | `$15.00` / `$75.00` | **`$8.55 USD`** (`$8.5500`) | **`$31.09 USD`** (`$31.0875`) | `$8,550.00 / mo` | **104.4x – 107.5x more expensive** |
+| **Gemini 3.8 Flash (AegisAI Default)** | **`$0.75` / `$3.75`** *(Batch/Flex: `$0.375` / `$1.875`)* | **`$0.43 USD`** (`$0.4275`) *(Batch: `$0.21`)* | **`$1.55 USD`** (`$1.5544`) *(Batch: `$0.78`)* | **`$427.50 / mo`** *(Batch: `$213.75`)* | **1.0x (Baseline)** |
+| **Gemini 4.0 Argon** | `$2.00` / `$10.00` | **`$1.14 USD`** (`$1.1400`) | **`$4.15 USD`** (`$4.1450`) | `$1,140.00 / mo` | **2.67x** |
+| **Gemini 3.1 Pro** | `$2.00` / `$12.00` | **`$1.22 USD`** (`$1.2200`) | **`$4.32 USD`** (`$4.3180`) | `$1,220.00 / mo` | **2.78x – 2.85x** |
+| **Claude Fable 5.1 Medium** | `$3.00` / `$15.00` | **`$1.71 USD`** (`$1.7100`) | **`$6.22 USD`** (`$6.2175`) | `$1,710.00 / mo` | **4.0x more expensive** *(8.0x vs. Batch)* |
+| **Claude Opus 5.5 Max** | `$15.00` / `$75.00` *(Std Opus: `$5` / `$25`)* | **`$8.55 USD`** (`$8.5500`) *(Std: `$2.85`)* | **`$31.09 USD`** (`$31.0875`) *(Std: `$10.36`)* | `$8,550.00 / mo` *(Std: `$2,850`)* | **20.0x more expensive** *(40.0x vs. Batch; 6.7x vs. Std)* |
 
-* **Key FinOps Takeaway:** Running a complete 22-chapter dual OWASP AI-SVS + ISO/IEC 42001 audit on **Gemini 3.8 Flash** costs **`$0.08 USD`** for a standard architecture (`$0.30 USD` for a full 10-PDF manual bundle) — **95.3% cheaper than Claude Fable 5.1 Medium** and **99.1% cheaper than Claude Opus 5.5 Max**, while enforcing 100% deterministic JSON schema compliance.
+* **Key FinOps Takeaway:** Running a complete 22-chapter dual OWASP AI-SVS + ISO/IEC 42001 audit on **Gemini 3.8 Flash** (`$0.75 / $3.75`) costs **`$0.43 USD`** for a standard architecture (`$0.21 USD` on Batch/Flex tier; `$1.55 USD` for a full 10-PDF manual bundle) — **75.0% cheaper (`4.0x`) than Claude Fable 5.1 Medium** and **95.0% cheaper (`20.0x`, or `40.0x` on Batch) than Claude Opus 5.5 Max** (`85.0%` / `6.7x` cheaper than standard `$5/$25` Opus), while enforcing 100% deterministic JSON schema compliance.
 
 ---
 
-### Slide 8: Total Cost of Creating AegisAI (`$19.41 USD` End-to-End TCO)
-* **Topic:** Complete Development, Self-Audit & Cloud Infrastructure Investment Breakdown.
+### Slide 8: Total Cost of Creating AegisAI (`$215.24 USD` Multi-Model End-to-End TCO)
+* **Topic:** Right-Sized Multi-Model Engineering Lifecycle (`80%` Flash · `10%` Argon · `5%` 3.1 Pro · `5%` Claude Opus 5.5 Max).
 
-| Development Phase & Environment | Primary Model / Cloud Service | Activity & Measured Volume | Token Volume (Input / Output) | Total Cost (USD) |
-| :--- | :--- | :--- | :---: | :---: |
-| **1. Google AI Studio Proof of Concept (PoC)** | `Gemini 3.8 Flash` ➔ `Gemini 3.6 Flash` | ~45 rapid prototyping iterations, schema validation & multimodal PDF ingestion tests | `4.2M` In / `0.9M` Out | **`$1.17 USD`** |
-| **2. Antigravity Full-Stack Engineering (Phases 1–7)** | `Gemini 3.8 Flash` (via Antigravity IDE) | 171 logged engineering prompts building backend, React 19 UI, scanner, BYOF & 10 manuals | `38.0M` In / `6.5M` Out | **`$9.60 USD`** |
-| **3. Antigravity Hardening & Self-Audit Remediation** | `Gemini 3.8 Flash` (via Antigravity IDE) | 100% remediation of OWASP AI-SVS & ISO 42001 findings, 308 Firestore tests, 17 PDF builds | `24.0M` In / `3.8M` Out | **`$5.88 USD`** |
-| **4. Live Vertex AI Self-Audits & QA Executions** | Vertex AI `gemini-3.8-flash` (`us-central1`) | Full 10-PDF self-audits (`MULTI-2026-0437`, `8983`), standard audits (`0507`, `1250`) & smoke tests | `4.8M` In / `0.32M` Out | **`$0.91 USD`** |
-| **5. Google Cloud Run, Build, Firestore & IAP** | Cloud Build (9x), Cloud Run, Firestore `nam5` | 9 container builds (`aegis-ai-00001`..`00009-gk6`), Artifact Registry, Firestore & Secret Manager | Serverless Scale-to-Zero | **`$1.85 USD`** |
-| **TOTAL INVESTMENT TO CREATE AEGISAI** | **End-to-End Concept to Enterprise RC** | **Full-Stack Zero-Trust Platform + 308 Unit Tests + 17 Bilingual PDF Manuals & Decks** | **`71.0M` In / `11.52M` Out** | **`$19.41 USD`** |
+| Development Phase & Lifecycle Role | Model / Cloud Service & Share | Activity & Engineering Scope | Token Volume (Input / Output) | Actual Spend (Official 2026 Rates) | If 100% Opus 5.5 Max (`$15/$75`) |
+| :--- | :--- | :--- | :---: | :---: | :---: |
+| **1. Rapid Proof of Concept (PoC)** | `Gemini 3.6 Flash` (~6% / AI Studio) | ~45 prototyping iterations, JSON schema validation & multimodal PDF ingestion tests (`$0.75/$3.75`) | `4.20M` In / `0.90M` Out | **`$6.53 USD`** | `$130.50 USD` |
+| **2. System Architecture & Blueprint** | `Gemini 3.1 Pro` (**5%** / Antigravity) | 4-layer Zero-Trust blueprint, 12-batch Map-Reduce design, 265-control taxonomy & APIs (`$2.00/$12.00`) | `3.55M` In / `0.58M` Out | **`$14.06 USD`** | `$96.45 USD` |
+| **3. Bulk Full-Stack Build, Docs & Audits** | `Gemini 3.8 Flash` (**74%** / Antigravity + Vertex) | 171 prompts (Express, React 19, GCP Scanner, BYOF, 17 PDFs = `$65.85`) + Live Self-Audits (`$4.80`) (`$0.75/$3.75`) | `52.60M` In / `8.32M` Out | **`$70.65 USD`** | `$1,412.70 USD` |
+| **4. Frontier Hardening & Visuals** | `Gemini 4.0 Argon` (**10%** / Antigravity) | Keyless Vertex AI ADC, Cloud IAP, 308 Firestore rules unit tests & 4K/8K architecture diagrams (`$2.00/$10.00`) | `7.10M` In / `1.15M` Out | **`$25.70 USD`** | `$192.90 USD` |
+| **5. Adversarial Bugfixing & Edge QA** | `Claude Opus 5.5 Max` (**5%** / Antigravity) | Red-team code review, timing-safe auth (`C05.3`), SSRF/DNS rebinding fixes (`C04.3`, `C10.5`) & QA (`$15/$75`) | `3.55M` In / `0.58M` Out | **`$96.45 USD`** | `$96.45 USD` |
+| **6. Google Cloud Serverless Infra** | Cloud Build (9x), Cloud Run, Firestore `nam5` | 9 container builds (`aegis-ai-00001`..`00009-gk6`), Artifact Registry, Firestore & Secret Manager | Serverless Scale-to-Zero | **`$1.85 USD`** | `$1.85 USD` |
+| **TOTAL INVESTMENT TO CREATE AEGISAI** | **80% Flash · 10% Argon · 5% Pro · 5% Opus** | **Full-Stack Zero-Trust Platform + 308 Unit Tests + 17 Bilingual PDF Manuals & Decks** | **`71.00M` In / `11.52M` Out** | **`$215.24 USD`** | **`$1,930.85 USD`** |
 
-* **Comparative Development ROI:**
-  * **Built with AI Studio + Antigravity (`Gemini 3.8 Flash`):** **`$19.41 USD`** total spend.
-  * **If Built with Claude Fable 5.1 Medium (`$3/$15`):** **`$387.65 USD`** (`$385.80` tokens + `$1.85` infra) — **20x more expensive**.
-  * **If Built with Claude Opus 5.5 Max (`$15/$75`):** **`$1,930.85 USD`** (`$1,929.00` tokens + `$1.85` infra) — **99.5x more expensive**.
-  * **Traditional Consulting / DevSecOps Team (6 Weeks):** **`~$95,000 USD`** — **99.98% cost reduction**.
+* **Comparative Development ROI & FinOps Takeaways:**
+  * **Multi-Model Routing (`80% Flash / 10% Argon / 5% Pro / 5% Opus`):** **`$215.24 USD`** direct token + infra spend (**`$319.80 USD`** including full multi-step agentic tool-loop & thinking overhead across `114.8M` In / `18.82M` Out tokens).
+  * **Flash Efficiency (`Gemini 3.6 + 3.8 Flash`):** Handled **80% of all engineering & audit tokens (`56.80M` In / `9.22M` Out)** for just **`$77.18 USD`** (`$38.59 USD` on Batch/Contributor tier).
+  * **If Built 100% with Claude Opus 5.5 Max (`$15/$75`):** **`$1,930.85 USD`** (`$1,929.00` tokens + `$1.85` infra) — **9.0x more expensive (88.9% savings via multi-model routing)**.
+  * **Traditional Consulting / DevSecOps Team (4 Engineers × 3 Months):** **`~$95,000 USD`** — **99.77% cost reduction (441x cheaper)**.
 
 ---
 

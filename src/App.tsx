@@ -2,11 +2,17 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Sidebar, ViewType } from './components/layout/Sidebar';
 import { Login } from './components/auth/Login';
 import { AuditReport } from './types';
-import { db, auth, handleFirestoreError, OperationType } from './lib/firebase';
+import { db, auth } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, query, limit } from 'firebase/firestore';
 import { SAMPLE_AUDITS } from './lib/sampleAudits';
 import { LanguageProvider, useLanguage, useTranslatedAudits } from './lib/i18n';
+import {
+  sanitizeAuditReportForFirestore,
+  saveAuditToLocalBackup,
+  loadAuditsFromLocalBackup,
+  mergeAuditLists,
+} from './lib/auditPersistence';
 
 // Lazy-loaded route views for optimal bundle splitting
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -32,7 +38,9 @@ function AppContent() {
   const [authLoading, setAuthLoading] = useState(true);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
-  const [audits, setAudits] = useState<AuditReport[]>(SAMPLE_AUDITS);
+  const [audits, setAudits] = useState<AuditReport[]>(() =>
+    mergeAuditLists(loadAuditsFromLocalBackup(), SAMPLE_AUDITS)
+  );
   const [isSeeding, setIsSeeding] = useState(false);
   const [auditCustomFrameworkId, setAuditCustomFrameworkId] = useState<string | undefined>(undefined);
   const [remediatedPrefill, setRemediatedPrefill] = useState<{ description: string; systemName: string } | null>(null);
@@ -99,10 +107,13 @@ function AppContent() {
   // Manual or automatic seeding handler for the 5 sample audits
   const handleSeedAudits = async () => {
     setIsSeeding(true);
-    setAudits(SAMPLE_AUDITS);
+    setAudits((prev) => mergeAuditLists(prev, loadAuditsFromLocalBackup(), SAMPLE_AUDITS));
     try {
       for (const sample of SAMPLE_AUDITS) {
-        await setDoc(doc(db, 'audits', sample.id), sample);
+        if (auth.currentUser) {
+          const ownedSample = attachTenantOwnership(sample);
+          await setDoc(doc(db, 'audits', ownedSample.id), ownedSample, { merge: true });
+        }
       }
     } catch (e) {
       console.warn("Error al persistir auditorías de ejemplo en aegis-ai-db:", e);
@@ -111,49 +122,132 @@ function AppContent() {
     }
   };
 
-  // Firestore real-time listener with query limit
-  useEffect(() => {
-    if (!user) {
-      setAudits(SAMPLE_AUDITS);
-      return;
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (auth.currentUser) {
+      try {
+        const token = await auth.currentUser.getIdToken();
+        headers['Authorization'] = `Bearer ${token}`;
+      } catch {
+        // Ignore token errors
+      }
+    }
+    return headers;
+  };
+
+  const syncAuditToBackendAndFirestore = async (cleanReport: AuditReport) => {
+    // 1. Persist via backend Admin SDK endpoint (`/api/audits` -> `aegis-ai-db`)
+    let persistedViaBackend = false;
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch('/api/audits', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ audit: cleanReport }),
+      });
+      if (res.ok) {
+        persistedViaBackend = true;
+      }
+    } catch (apiErr) {
+      console.warn('[AegisPersistence] Backend /api/audits save warning:', apiErr);
     }
 
-    const auditsQuery = query(collection(db, 'audits'), limit(50));
+    // 2. Fallback to Firebase client SDK only if backend persistence did not succeed
+    if (!persistedViaBackend && auth.currentUser) {
+      try {
+        await setDoc(doc(db, 'audits', cleanReport.id), cleanReport, { merge: true });
+      } catch (fsErr) {
+        console.warn('[AegisPersistence] Client Firestore setDoc warning:', fsErr);
+      }
+    }
+  };
+
+  // Multi-source Audit Hydration & Real-Time Listener (Backend Admin SDK + Firestore onSnapshot + localStorage backup)
+  useEffect(() => {
+    if (authLoading) return;
+    let isCancelled = false;
+    const localBackups = loadAuditsFromLocalBackup();
+    const sampleIds = new Set(SAMPLE_AUDITS.map((s) => s.id));
+
+    // Hydrate from backend `/api/audits` (Admin SDK -> `aegis-ai-db`) so users behind Argolis IAP
+    // or in Demo Mode always see all saved analyses from `aegis-ai-db`.
+    (async () => {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await fetch('/api/audits', { headers });
+        if (res.ok && !isCancelled) {
+          const data = await res.json();
+          const serverAudits: AuditReport[] = Array.isArray(data?.audits) ? data.audits : [];
+          for (const srvAudit of serverAudits) {
+            if (srvAudit?.id && !sampleIds.has(srvAudit.id)) {
+              saveAuditToLocalBackup(srvAudit);
+            }
+          }
+          const currentLocal = loadAuditsFromLocalBackup();
+          setAudits((prev) =>
+            mergeAuditLists(serverAudits, currentLocal, prev, SAMPLE_AUDITS)
+          );
+        }
+      } catch (err) {
+        console.warn('[AegisPersistence] Backend /api/audits fetch fallback:', err);
+      }
+    })();
+
+    if (!user || !auth.currentUser) {
+      setAudits((prev) => mergeAuditLists(localBackups, prev, SAMPLE_AUDITS));
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    const auditsQuery = query(collection(db, 'audits'), limit(100));
     const unsubscribe = onSnapshot(
       auditsQuery,
       async (snapshot) => {
+        if (isCancelled) return;
         const fetchedAudits: AuditReport[] = [];
-        snapshot.forEach((doc) => {
-          fetchedAudits.push(doc.data() as AuditReport);
+        snapshot.forEach((d) => {
+          fetchedAudits.push(d.data() as AuditReport);
         });
-        
-        // Sort descending by date
-        fetchedAudits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        for (const remoteAudit of fetchedAudits) {
+          if (remoteAudit?.id && !sampleIds.has(remoteAudit.id)) {
+            saveAuditToLocalBackup(remoteAudit);
+          }
+        }
+
+        const currentLocal = loadAuditsFromLocalBackup();
 
         if (fetchedAudits.length === 0) {
-          // Si la base aegis-ai-db está vacía en Firestore, persistimos automáticamente las 5 de muestra
-          setAudits(SAMPLE_AUDITS);
-          for (const s of SAMPLE_AUDITS) {
-            try {
-              await setDoc(doc(db, 'audits', s.id), s);
-            } catch (err) {
-              console.warn("Auto-seed doc error:", err);
+          // Never drop `prev` (which holds audits already hydrated from `/api/audits`)
+          setAudits((prev) => mergeAuditLists(prev, currentLocal, SAMPLE_AUDITS));
+
+          // Only seed sample audits if this is an authoritative server response (not an initial/offline cache fallback)
+          // and no real user audits exist locally.
+          if (!snapshot.metadata.fromCache && currentLocal.length === 0) {
+            for (const s of SAMPLE_AUDITS) {
+              try {
+                await setDoc(doc(db, 'audits', s.id), attachTenantOwnership(s), { merge: true });
+              } catch (err) {
+                console.warn("Auto-seed doc error:", err);
+              }
             }
           }
         } else {
-          setAudits(fetchedAudits);
+          setAudits((prev) => mergeAuditLists(fetchedAudits, prev, currentLocal, SAMPLE_AUDITS));
         }
       },
       (error) => {
         console.warn("Firestore error reading 'audits':", error);
-        if (audits.length === 0) {
-          setAudits(SAMPLE_AUDITS);
-        }
+        setAudits((prev) => mergeAuditLists(loadAuditsFromLocalBackup(), prev, SAMPLE_AUDITS));
       }
     );
 
-    return () => unsubscribe();
-  }, [user]);
+    return () => {
+      isCancelled = true;
+      unsubscribe();
+    };
+  }, [user, authLoading]);
 
   const handleNewAudit = () => {
     setAuditCustomFrameworkId(undefined);
@@ -186,33 +280,38 @@ function AppContent() {
 
   const attachTenantOwnership = (report: AuditReport): AuditReport => {
     const currentUid = auth.currentUser?.uid;
-    const currentEmail = auth.currentUser?.email || '';
+    const currentEmail = auth.currentUser?.email || (user as any)?.email || report.ownerEmail || report.email || '';
     const currentTenant = currentEmail.includes('@') ? currentEmail.split('@')[1].toLowerCase() : '';
-    return {
-      ...report,
-      ...(currentUid ? { ownerUid: currentUid } : {}),
-      ...(currentEmail ? { ownerEmail: currentEmail } : {}),
-      ...(currentTenant ? { tenantDomain: currentTenant } : {}),
-    };
+    return sanitizeAuditReportForFirestore(report, {
+      uid: currentUid,
+      email: currentEmail,
+      tenantDomain: currentTenant,
+    });
   };
 
   const handleAuditSubmit = async (report: AuditReport) => {
     const ownedReport = attachTenantOwnership(report);
-    try {
-      await setDoc(doc(db, 'audits', ownedReport.id), ownedReport);
-      setSelectedAuditId(ownedReport.id);
-      setCurrentView('report');
-    } catch (e) {
-      handleFirestoreError(e, OperationType.CREATE, `audits/${ownedReport.id}`);
+    // 1. Optimistically update local backup and React UI immediately so the user NEVER loses their analysis
+    saveAuditToLocalBackup(ownedReport);
+    setAudits((prev) => mergeAuditLists([ownedReport], prev));
+    setSelectedAuditId(ownedReport.id);
+    setCurrentView('report');
+
+    // 2. Only re-sync to `aegis-ai-db` if the report wasn't already persisted by the server SSE endpoint
+    // or if client Firebase ownership needs to be attached to an unowned report
+    const alreadyPersistedOnServer =
+      Boolean((report as any).persistedOnServer) &&
+      (!auth.currentUser?.uid || report.ownerUid === auth.currentUser.uid);
+    if (!alreadyPersistedOnServer) {
+      await syncAuditToBackendAndFirestore(ownedReport);
     }
   };
 
   const handleAuditUpdate = async (updatedReport: AuditReport) => {
-    try {
-      await setDoc(doc(db, 'audits', updatedReport.id), updatedReport);
-    } catch (e) {
-      handleFirestoreError(e, OperationType.UPDATE, `audits/${updatedReport.id}`);
-    }
+    const ownedReport = attachTenantOwnership(updatedReport);
+    saveAuditToLocalBackup(ownedReport);
+    setAudits((prev) => mergeAuditLists([ownedReport], prev));
+    await syncAuditToBackendAndFirestore(ownedReport);
   };
 
   const handleDeleteAudit = async (id: string) => {
@@ -274,25 +373,16 @@ function AppContent() {
               <GcpLiveScannerView 
                 onAuditComplete={async (report) => {
                   const auditId = report.id || `gcp-audit-${Date.now()}`;
-                  // The scanner result carries no form metadata; fill the fields every stored audit needs (see firestore.rules).
                   const projectLabel = report.gcpProjectId || 'Google Cloud';
-                  const reportWithId = attachTenantOwnership({
+                  await handleAuditSubmit({
                     ...report,
                     id: auditId,
                     date: report.date || new Date().toISOString(),
                     systemName: report.systemName || `GCP Live Scan: ${projectLabel}`,
                     technicalLead: report.technicalLead || '',
                     email: report.email || '',
-                    description: (report.description || `Auditoría en vivo del proyecto ${projectLabel} (GCP Live Scanner).`).slice(0, 100000),
+                    description: report.description || `Auditoría en vivo del proyecto ${projectLabel} (GCP Live Scanner).`,
                   });
-                  try {
-                    await setDoc(doc(db, 'audits', auditId), reportWithId);
-                  } catch (err) {
-                    console.warn("Error guardando auditoría GCP en Firestore:", err);
-                  }
-                  setAudits(prev => [reportWithId, ...prev]);
-                  setSelectedAuditId(auditId);
-                  setCurrentView('report');
                 }} 
               />
             </div>

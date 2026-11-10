@@ -4,20 +4,35 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Key, Copy, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import { db, auth, handleFirestoreError, OperationType } from '../../lib/firebase';
-import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { ApiKey } from '../../types';
 import { DivisionHeader } from '../layout/BrandAssets';
+
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 export function ApiConnectionView() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [newKeyName, setNewKeyName] = useState('');
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'apiKeys'), (snapshot) => {
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) {
+      setApiKeys([]);
+      return;
+    }
+    const keysQuery = query(collection(db, 'apiKeys'), where('ownerUid', '==', currentUid));
+    const unsubscribe = onSnapshot(keysQuery, (snapshot) => {
       const keys: ApiKey[] = [];
-      snapshot.forEach((doc) => keys.push(doc.data() as ApiKey));
+      snapshot.forEach((docSnap) => keys.push(docSnap.data() as ApiKey));
       setApiKeys(keys.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     });
     return () => unsubscribe();
@@ -26,28 +41,36 @@ export function ApiConnectionView() {
   const generateApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newKeyName.trim()) return;
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) {
+      alert('Debes iniciar sesión con tu cuenta corporativa para generar una API Key.');
+      return;
+    }
     setLoading(true);
 
     const rawKey = `aisvs_${crypto.randomUUID().replace(/-/g, '')}`;
-    const currentUid = auth.currentUser?.uid;
+    const keyHash = await sha256Hex(rawKey);
+    const keyPreview = `${rawKey.slice(0, 12)}...${rawKey.slice(-4)}`;
     const currentEmail = auth.currentUser?.email || '';
     const currentTenant = currentEmail.includes('@') ? currentEmail.split('@')[1].toLowerCase() : '';
     const newApiKey: ApiKey = {
-      id: rawKey,
-      key: rawKey,
-      name: newKeyName,
+      id: keyHash,
+      keyHash,
+      keyPreview,
+      name: newKeyName.trim(),
       createdAt: new Date().toISOString(),
       status: 'active',
-      ...(currentUid ? { ownerUid: currentUid } : {}),
+      ownerUid: currentUid,
       ...(currentEmail ? { ownerEmail: currentEmail } : {}),
       ...(currentTenant ? { tenantDomain: currentTenant } : {}),
     };
 
     try {
-      await setDoc(doc(db, 'apiKeys', rawKey), newApiKey);
+      await setDoc(doc(db, 'apiKeys', keyHash), newApiKey);
+      setNewlyCreatedKey(rawKey);
       setNewKeyName('');
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `apiKeys/${rawKey}`);
+      handleFirestoreError(err, OperationType.CREATE, `apiKeys/${keyHash}`);
     } finally {
       setLoading(false);
     }
@@ -134,7 +157,7 @@ export function ApiConnectionView() {
             <CardHeader className="border-b border-[#1A1A1A] pb-3">
               <CardTitle className="text-base font-bold text-[#1A1A1A]">Generar nueva API Key</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 space-y-3">
               <form onSubmit={generateApiKey} className="flex gap-2">
                 <Input 
                   placeholder="Ej. CI/CD GitHub Actions" 
@@ -146,6 +169,23 @@ export function ApiConnectionView() {
                   <Plus size={18} />
                 </Button>
               </form>
+              {newlyCreatedKey && (
+                <div className="p-3 bg-amber-50 border border-amber-400 text-xs space-y-2">
+                  <p className="font-bold text-amber-900">
+                    Copia tu API Key ahora. Por seguridad solo almacenamos su hash SHA-256 y no volverá a mostrarse completa:
+                  </p>
+                  <div className="flex items-center justify-between bg-white border border-amber-500 p-1.5 pl-2">
+                    <span className="font-mono font-bold text-gray-900 break-all">{newlyCreatedKey}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(newlyCreatedKey)}
+                      className="text-gray-700 hover:text-black p-1 shrink-0"
+                    >
+                      {copiedKey === newlyCreatedKey ? <CheckCircle2 size={14} className="text-[#1B5FA6]" /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -158,26 +198,24 @@ export function ApiConnectionView() {
                 <p className="text-sm text-gray-500 text-center py-4">No tienes API Keys generadas.</p>
               ) : (
                 <ul className="space-y-3">
-                  {apiKeys.map(key => (
-                    <li key={key.id} className="p-3 bg-[#ECECEC]/30 border-[1.5px] border-[#1A1A1A] rounded-none flex flex-col gap-2">
-                      <div className="flex justify-between items-start">
-                        <span className="font-bold text-sm text-[#1A1A1A]">{key.name}</span>
-                        <button onClick={() => deleteKey(key.id)} className="text-gray-500 hover:text-red-700 transition-colors p-1">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between bg-white border border-[#1A1A1A] rounded-none p-1.5 pl-2 group">
-                        <span className="text-xs font-mono font-bold text-gray-700 truncate w-[160px]">{key.key.substring(0, 15)}...</span>
-                        <button 
-                          onClick={() => copyToClipboard(key.key)}
-                          className="text-gray-600 hover:text-[#1A1A1A] p-1 rounded-none hover:bg-[#ECECEC] transition-colors"
-                        >
-                          {copiedKey === key.key ? <CheckCircle2 size={14} className="text-[#1B5FA6]" /> : <Copy size={14} />}
-                        </button>
-                      </div>
-                      <span className="text-[10px] font-bold text-gray-500">Creada: {new Date(key.createdAt).toLocaleDateString()}</span>
-                    </li>
-                  ))}
+                  {apiKeys.map(key => {
+                    const displayPreview = key.keyPreview || (key.key ? `${key.key.substring(0, 15)}...` : `SHA256:${key.id.slice(0, 12)}...`);
+                    return (
+                      <li key={key.id} className="p-3 bg-[#ECECEC]/30 border-[1.5px] border-[#1A1A1A] rounded-none flex flex-col gap-2">
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-sm text-[#1A1A1A]">{key.name}</span>
+                          <button onClick={() => deleteKey(key.id)} className="text-gray-500 hover:text-red-700 transition-colors p-1">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between bg-white border border-[#1A1A1A] rounded-none p-1.5 pl-2 group">
+                          <span className="text-xs font-mono font-bold text-gray-700 truncate">{displayPreview}</span>
+                          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 border border-emerald-200">SHA-256</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-500">Creada: {new Date(key.createdAt).toLocaleDateString()}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </CardContent>

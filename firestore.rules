@@ -30,17 +30,16 @@ rules_version = '2';
 //   - technicalLead: string (required, <= 200)
 //   - email: string (required, <= 200) - technical lead contact. NOTE: PII
 //     that every allowed user can read (shared, org-wide audit dashboard).
-//   - description: string (required, <= 100,000)
+//   - description: string (required, <= 250,000)
 //   - overallScore: number (required, 0..100, fractions allowed)
-//   - executiveSummary: string (required, <= 100,000)
+//   - executiveSummary: string (required, <= 250,000)
 //   - chapters: list (required, <= 500 entries)
 //   - standard: string (optional, <= 32) - AI-SVS | ISO-42001 | FULL | CUSTOM | MULTI
-//   - remediatedArchitectureDoc: string (optional, <= 200,000)
-//   - ownerUid: string (optional, <= 128; if present on create, must == request.auth.uid;
-//     if present on existing doc, immutable on update)
-//   - ownerEmail: string (optional, <= 200; if present on create, must match
-//     request.auth.token.email case-insensitively)
-//   - tenantDomain: string (optional, <= 100)
+//   - remediatedArchitectureDoc: string (optional, <= 500,000)
+//   - levelAssessmentRationale: string (optional, <= 50,000)
+//   - ownerUid: string (required, <= 128, must == request.auth.uid, immutable on update)
+//   - ownerEmail: string (required, <= 320, must match request.auth.token.email, immutable on update)
+//   - tenantDomain: string (optional, <= 255, must match caller's email domain if present, immutable on update)
 //   - Any other report metadata produced by the evaluation engine
 //     (standards, standardsBreakdown, customFrameworkId/Name, targetLevel,
 //     assessedLevel, levelAssessmentRationale, techPlatform/Name,
@@ -63,18 +62,18 @@ rules_version = '2';
 //   - Never deleted by clients.
 //
 // Collection: apiKeys                 (client: list / get / create / delete)
-// Document ID: the API key itself, 'aisvs_' + 32..64 alphanumerics
-//              (the UI generates 'aisvs_' + 32 lowercase hex characters).
+// Document ID: 64-character lowercase hex SHA-256 digest of the raw API key
+//              (plaintext API keys are never stored in Firestore).
 // Fields on create (only these allowed):
 //   - id: string (required, == document ID)
-//   - key: string (required, == document ID)
-//   - name: string (required, 1..200 chars)
+//   - keyHash: string (required, == document ID, 64-char hex SHA-256)
+//   - keyPreview: string (required, 8..40 chars masked preview)
+//   - name: string (required, 1..100 chars)
 //   - createdAt: string (required, ISO-8601 UTC, e.g. 2026-01-31T12:00:00.000Z)
-//   - status: string (required, must be 'active' on create)
-//   - ownerUid: string (optional, <= 128; if present on create, must == request.auth.uid;
-//     if present on existing doc, only ownerUid or admin@fjhuerta.altostrat.com can delete)
-//   - ownerEmail: string (optional, <= 200)
-//   - tenantDomain: string (optional, <= 100)
+//   - status: string (required, 'active' | 'revoked')
+//   - ownerUid: string (required, == request.auth.uid; only ownerUid can read or delete)
+//   - ownerEmail: string (optional, <= 320, must match caller email)
+//   - tenantDomain: string (optional, <= 255, must match caller email domain)
 //   - Client updates are denied (revocation == delete). Server-managed
 //     fields such as lastUsedAt are written by the Admin SDK only.
 //
@@ -113,12 +112,24 @@ service cloud.firestore {
         && request.auth.token.email.lower().matches('.*@(google[.]com|fjhuerta[.]altostrat[.]com)$');
     }
 
+    function userEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function userDomain() {
+      return userEmail().split('@')[1];
+    }
+
     // =================================================================
     // Generic helpers
     // =================================================================
 
     function incoming() {
       return request.resource.data;
+    }
+
+    function isBoundedString(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
     }
 
     // Audit document IDs (unchanged from the previous rules).
@@ -134,20 +145,20 @@ service cloud.firestore {
         && id.matches('^[a-zA-Z0-9_.-]+( [a-zA-Z0-9_.-]+)*$');
     }
 
-    // API key document IDs: 'aisvs_' + 32..64 alphanumerics.
-    function isValidApiKeyId(id) {
-      return id is string && id.matches('^aisvs_[a-zA-Z0-9]{32,64}$');
-    }
-
     // ISO-8601 UTC string as produced by Date.prototype.toISOString().
     function isIsoUtcString(value) {
       return value is string && value.size() <= 40
         && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]{1,9})?Z$');
     }
 
-    // Optional field: absent, or a string of at most maxLen characters.
+    function isIsoDateString(value) {
+      return isIsoUtcString(value);
+    }
+
+    // Optional field: absent, null, or a string of at most maxLen characters.
     function isOptionalString(data, field, maxLen) {
       return !(field in data)
+        || data[field] == null
         || (data[field] is string && data[field].size() <= maxLen);
     }
 
@@ -158,20 +169,21 @@ service cloud.firestore {
     function isValidAuditReport(data) {
       return data.keys().hasAll(['id', 'date', 'systemName', 'technicalLead', 'email',
                                  'description', 'overallScore', 'executiveSummary', 'chapters'])
-        && data.id is string && data.id.size() <= 128
-        && data.date is string && data.date.size() <= 100
-        && data.systemName is string && data.systemName.size() <= 500
-        && data.technicalLead is string && data.technicalLead.size() <= 200
-        && data.email is string && data.email.size() <= 200
-        && data.description is string && data.description.size() <= 100000
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.date is string && data.date.size() > 0 && data.date.size() <= 100
+        && data.systemName is string && data.systemName.size() > 0 && data.systemName.size() <= 500
+        && data.technicalLead is string && data.technicalLead.size() <= 300
+        && data.email is string && data.email.size() <= 320
+        && data.description is string && data.description.size() <= 250000
         && data.overallScore is number && data.overallScore >= 0 && data.overallScore <= 100
-        && data.executiveSummary is string && data.executiveSummary.size() <= 100000
+        && data.executiveSummary is string && data.executiveSummary.size() <= 250000
         && data.chapters is list && data.chapters.size() <= 500
-        && isOptionalString(data, 'standard', 32)
-        && isOptionalString(data, 'remediatedArchitectureDoc', 200000)
+        && isOptionalString(data, 'standard', 64)
+        && isOptionalString(data, 'remediatedArchitectureDoc', 500000)
+        && isOptionalString(data, 'levelAssessmentRationale', 50000)
         && isOptionalString(data, 'ownerUid', 128)
-        && isOptionalString(data, 'ownerEmail', 200)
-        && isOptionalString(data, 'tenantDomain', 100);
+        && isOptionalString(data, 'ownerEmail', 320)
+        && isOptionalString(data, 'tenantDomain', 255);
     }
 
     function isValidStandardChapter(data) {
@@ -185,19 +197,20 @@ service cloud.firestore {
         && data.order is number;
     }
 
-    // Document written by ApiConnectionView.generateApiKey() (plus optional C05.4 ownership fields).
-    function isValidNewApiKey(data, keyId) {
-      return data.keys().hasAll(['id', 'key', 'name', 'createdAt', 'status'])
-        && data.keys().hasOnly(['id', 'key', 'name', 'createdAt', 'status', 'ownerUid', 'ownerEmail', 'tenantDomain'])
-        && data.id == keyId
-        && data.key == keyId
-        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
-        && isIsoUtcString(data.createdAt)
-        && data.status == 'active'
-        && isOptionalString(data, 'ownerUid', 128)
-        && isOptionalString(data, 'ownerEmail', 200)
-        && isOptionalString(data, 'tenantDomain', 100)
-        && (!('ownerUid' in data) || data.ownerUid == request.auth.uid);
+    // Document written by ApiConnectionView.generateApiKey() (hashed SHA-256 key).
+    function isValidApiKey(data, keyId) {
+      return data.keys().hasAll(['id', 'keyHash', 'keyPreview', 'name', 'createdAt', 'status', 'ownerUid'])
+        && data.keys().hasOnly(['id', 'keyHash', 'keyPreview', 'name', 'createdAt', 'status', 'ownerUid', 'ownerEmail', 'tenantDomain'])
+        && keyId is string && keyId.matches('^[a-f0-9]{64}$')
+        && data.id is string && data.id == keyId
+        && data.keyHash is string && data.keyHash == keyId
+        && data.keyPreview is string && data.keyPreview.size() >= 8 && data.keyPreview.size() <= 40
+        && isBoundedString(data.name, 1, 100)
+        && isIsoDateString(data.createdAt)
+        && data.status in ['active', 'revoked']
+        && data.ownerUid is string && data.ownerUid.size() > 0 && data.ownerUid.size() <= 128 && data.ownerUid == request.auth.uid
+        && (!('ownerEmail' in data) || (data.ownerEmail is string && data.ownerEmail.size() <= 320 && data.ownerEmail.lower() == userEmail()))
+        && (!('tenantDomain' in data) || (data.tenantDomain is string && data.tenantDomain.size() <= 255 && data.tenantDomain.lower() == userDomain()));
     }
 
     // Shared write check for both standards catalogs.
@@ -212,22 +225,22 @@ service cloud.firestore {
     // Collections
     // =================================================================
 
-    // Audit reports. The UI lists them with query(collection, limit(50)),
-    // creates them with setDoc (seeding + new reports) and updates them with
-    // setDoc on an existing id (remediation toggles, re-seeding).
+    // Audit reports. The UI lists them with query(collection, limit(100)),
+    // creates them with setDoc and updates them with setDoc on an existing
+    // document (remediation toggles, re-audits, sample seeding).
     match /audits/{auditId} {
       allow read: if isAllowedUser();
       allow create: if isAllowedUser()
         && isValidId(auditId)
         && isValidAuditReport(incoming())
         && incoming().id == auditId
-        && (!('ownerUid' in incoming()) || incoming().ownerUid == request.auth.uid)
-        && (!('ownerEmail' in incoming()) || incoming().ownerEmail.lower() == request.auth.token.email.lower());
+        && (incoming().get('ownerUid', null) == null || incoming().ownerUid == request.auth.uid)
+        && (incoming().get('ownerEmail', null) == null || incoming().ownerEmail.lower() == userEmail());
       allow update: if isAllowedUser()
         && isValidId(auditId)
         && isValidAuditReport(incoming())
         && incoming().id == auditId
-        && (!('ownerUid' in resource.data) || incoming().get('ownerUid', null) == resource.data.ownerUid);
+        && (resource.data.get('ownerUid', null) == null || incoming().get('ownerUid', null) == resource.data.ownerUid);
       // Invariant: audits are an immutable audit trail and are never deleted.
       allow delete: if false;
     }
@@ -246,17 +259,12 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // API keys (ApiConnectionView: onSnapshot list, setDoc create, deleteDoc).
+    // API keys (ApiConnectionView: onSnapshot where('ownerUid','==',uid), setDoc create, deleteDoc).
     match /apiKeys/{keyId} {
-      allow read: if isAllowedUser();
-      allow create: if isAllowedUser()
-        && isValidApiKeyId(keyId)
-        && isValidNewApiKey(incoming(), keyId);
+      allow read: if isAllowedUser() && resource.data.ownerUid == request.auth.uid;
+      allow create: if isAllowedUser() && isValidApiKey(incoming(), keyId);
       allow update: if false;
-      allow delete: if isAllowedUser()
-        && (resource.data.get('ownerUid', null) == null
-            || resource.data.ownerUid == request.auth.uid
-            || request.auth.token.email.lower() == 'admin@fjhuerta.altostrat.com');
+      allow delete: if isAllowedUser() && resource.data.ownerUid == request.auth.uid;
     }
 
     // Async API audit jobs: written and read by the server (Admin SDK) only.

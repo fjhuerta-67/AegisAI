@@ -63,6 +63,17 @@ export interface AISVSChapter {
   standardName?: string;
 }
 
+export interface UploadedDocumentRecord {
+  id: string;
+  fileName: string;
+  mimeType?: string;
+  originalContent: string;
+  remediatedContent?: string;
+  remediatedSummary?: string;
+  appliedControls?: string[];
+  updatedAt?: string;
+}
+
 export interface AuditReport {
   id: string;
   date: string;
@@ -85,6 +96,7 @@ export interface AuditReport {
   techPlatformName?: string;
   deploymentType?: DeploymentType;
   remediatedArchitectureDoc?: string;
+  uploadedDocuments?: UploadedDocumentRecord[];
   isLiveGcpScan?: boolean;
   gcpProjectId?: string;
   gcpTelemetry?: GCPScanTelemetry;
@@ -138,12 +150,16 @@ export interface CustomFramework {
   chapters: StandardChapter[];
   allowedDomains?: string[];
   tenantDomain?: string;
+  ownerUid?: string;
+  ownerEmail?: string;
 }
 
 export interface ApiKey {
   id: string;
   name: string;
-  key: string;
+  key?: string;
+  keyHash?: string;
+  keyPreview?: string;
   createdAt: string;
   lastUsedAt?: string;
   status: 'active' | 'revoked';
@@ -199,7 +215,7 @@ export interface AdminTestResult {
   error?: string;
 }
 
-export type GCPAuthMode = 'adc' | 'token' | 'service_account' | 'demo';
+export type GCPAuthMode = 'demo' | 'token' | 'service_account';
 
 export interface GCPScanComponents {
   iam: boolean;

@@ -57,7 +57,7 @@ const authenticateAdmin = (req: express.Request, res: express.Response, next: ex
 
 ### 3.1 Decoupled Multi-Provider Support
 AegisAI features a universal decoupled inference engine that allows operating with both Google Cloud Vertex AI / Gemini models and external providers/routers compatible with the OpenAI specification (`/v1/chat/completions`):
-- **Google Cloud Vertex AI (Default Enterprise Backend):** Native models (`gemini-3.8-flash`, `gemini-3.1-flash-lite`, `gemini-3.7-flash`) via the `@google/genai` SDK using Application Default Credentials (`aegis-runner-sa`) with `responseLogprobs: false` (`C11.4`).
+- **Google Cloud Vertex AI (Default Enterprise Backend):** Native models (`gemini-3.8-flash`, `gemini-3.5-flash-lite`, `gemini-3.7-flash`) via the `@google/genai` SDK using Application Default Credentials (`aegis-runner-sa`) with `responseLogprobs: false` (`C11.4`).
 - **OpenRouter / Direct OpenAI / Local Proxy:** Validated against SSRF and private IP ranges via `validateOutboundEndpoint` (`C04.3`) before dispatching HTTPS requests.
 
 ### 3.2 Secret Manager & Immutable Runtime Configuration (`C04.1`, `C05.2`)
@@ -79,7 +79,7 @@ Dynamic administrative overrides are persisted to **Cloud Firestore (`system_con
   "preferredModel": "gemini-3.8-flash",
   "temperature": 0.0,
   "maxTokens": 8192,
-  "fallbackModel": "gemini-3.1-flash-lite",
+  "fallbackModel": "gemini-3.5-flash-lite",
   "updatedAt": "2026-10-25T23:00:00.000Z"
 }
 ```

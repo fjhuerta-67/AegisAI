@@ -207,6 +207,7 @@ css = """
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
     .pill-blue { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
@@ -223,6 +224,121 @@ css = """
     .stat-box { text-align: center; padding: 9px 8px; }
     .stat-number { font-family: 'Google Sans', sans-serif; font-size: 22pt; font-weight: 800; line-height: 1.05; margin-bottom: 3px; }
     .stat-label { font-size: 7.5pt; color: #94a3b8; font-weight: 500; line-height: 1.3; }
+
+    /* Executive FinOps Visual Charts */
+    .finops-kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 9px;
+    }
+    .finops-kpi-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.92) 0%, rgba(9, 13, 22, 0.95) 100%);
+      border-radius: 9px;
+      padding: 7px 11px;
+      border: 1px solid rgba(255,255,255,0.09);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .finops-kpi-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+    }
+    .finops-kpi-green::before { background: linear-gradient(180deg, #10b981, #34d399); }
+    .finops-kpi-sky::before { background: linear-gradient(180deg, #0ea5e9, #38bdf8); }
+    .finops-kpi-amber::before { background: linear-gradient(180deg, #f59e0b, #fbbf24); }
+    .finops-kpi-purple::before { background: linear-gradient(180deg, #8b5cf6, #c084fc); }
+
+    .finops-main-grid {
+      display: grid;
+      grid-template-columns: 1.42fr 1fr;
+      gap: 12px;
+      flex: 1;
+    }
+    .hbar-row {
+      padding: 5.5px 8px;
+      border-radius: 7px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 5.5px;
+    }
+    .hbar-row-active {
+      background: linear-gradient(90deg, rgba(6, 78, 59, 0.35) 0%, rgba(15, 23, 42, 0.85) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.12);
+    }
+    .hbar-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .hbar-track {
+      width: 100%;
+      height: 8.5px;
+      background: rgba(30, 41, 59, 0.85);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 3px;
+    }
+    .hbar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+    .vbar-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 215px;
+      padding: 18px 8px 4px 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      background-image: repeating-linear-gradient(
+        to top,
+        rgba(148, 163, 184, 0.11) 0px,
+        rgba(148, 163, 184, 0.11) 1px,
+        transparent 1px,
+        transparent 40px
+      );
+      gap: 8px;
+      position: relative;
+    }
+    .vbar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+    }
+    .vbar-val {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 6.8pt;
+      font-weight: 700;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+    .vbar-pillar {
+      width: 100%;
+      max-width: 34px;
+      border-radius: 5px 5px 0 0;
+    }
+    .vbar-lbl {
+      font-size: 6.4pt;
+      color: #cbd5e1;
+      text-align: center;
+      margin-top: 5px;
+      line-height: 1.15;
+      font-weight: 600;
+      white-space: nowrap;
+    }
 
     .step-box {
       display: flex;
@@ -325,21 +441,21 @@ html_en = f"""<!DOCTYPE html>
         Assurance, Self-Auditing &<br><span>GenAI FinOps Economics</span>
       </h1>
       <p class="cover-desc-big">
-        How <strong>AegisAI Enterprise</strong> was prototyped in <strong>Google AI Studio (Gemini 3.8 to 3.6 Flash)</strong>, engineered in <strong>Google Antigravity (Gemini 3.8 Flash)</strong>, self-audited against <strong>OWASP AI-SVS v1.0 & ISO/IEC 42001:2023</strong> (68.9% ➔ 97.8%), and presented as a Release Candidate to <strong>Farmacias del Ahorro</strong>, <strong>Asociación Mexicana de Franquicias</strong>, and <strong>Grupo Coppel</strong>—for a total build cost of <strong>$19.41 USD</strong>.
+        How <strong>AegisAI Enterprise</strong> was prototyped in <strong>Google AI Studio (Gemini 3.6 Flash)</strong>, architected with <strong>Gemini 3.1 Pro (5%)</strong>, engineered at scale in <strong>Google Antigravity (Gemini 3.8 Flash — 80% combined Flash)</strong>, self-audited (68.9% ➔ 97.8%), hardened &amp; QA-verified with <strong>Gemini 4.0 Argon (10%)</strong> and <strong>Claude Opus 5.5 Max (5%)</strong>, and presented as a Release Candidate to <strong>Farmacias del Ahorro</strong>, <strong>Asociación Mexicana de Franquicias</strong>, and <strong>Grupo Coppel</strong>—for a total build cost of <strong>$215.24 USD</strong> ($319.80 w/ full agentic loops).
       </p>
 
       <div class="tech-badges-row">
-        <span class="pill pill-blue">1. AI Studio PoC (Gemini 3.8–3.6 Flash)</span>
-        <span class="pill pill-blue">2. Antigravity Full-Stack Build (3.8 Flash)</span>
-        <span class="pill pill-green">3. Self-Audit Loop: 68.9% ➔ 97.8%</span>
+        <span class="pill pill-blue">1. AI Studio PoC (Gemini 3.6 Flash)</span>
+        <span class="pill pill-blue">2. Arch (3.1 Pro 5%) + Bulk Build (3.8 Flash 74%)</span>
+        <span class="pill pill-green">3. Hardening &amp; QA (4.0 Argon 10% + Opus 5.5 5%)</span>
         <span class="pill pill-purple">4. RC: Farmacias del Ahorro • AMF • Coppel</span>
-        <span class="pill pill-amber">5. Audit Cost: $0.08–$0.30 vs $8.55–$31.09</span>
-        <span class="pill pill-green">6. Total App Build Cost: $19.41 USD</span>
+        <span class="pill pill-amber">5. Audit Cost: $0.43–$1.55 (Batch: $0.21) vs $8.55–$31.09</span>
+        <span class="pill pill-green">6. Total App Build Cost: $215.24 USD</span>
       </div>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise v2.5 • Executive & FinOps Presentation</span>
+      <span>AegisAI Enterprise v2.5 • Executive &amp; FinOps Presentation</span>
       <span>Google Cloud Run • Vertex AI • Cloud Firestore • Identity-Aware Proxy</span>
       <span>October 2026</span>
     </div>
@@ -356,40 +472,39 @@ html_en = f"""<!DOCTYPE html>
     </div>
 
     <div class="title-block">
-      <span class="slide-category">End-to-End Engineering Lifecycle</span>
+      <span class="slide-category">End-to-End Multi-Model Engineering Lifecycle</span>
       <h2 class="slide-title">How We Built, Self-Audited, and Validated AegisAI</h2>
-      <p class="slide-subtitle">A four-stage agentic software engineering journey from rapid concept validation to enterprise release candidate.</p>
+      <p class="slide-subtitle">A four-stage right-sized multi-model engineering journey (80% Flash • 10% Argon • 5% 3.1 Pro • 5% Opus 5.5 Max).</p>
     </div>
 
     <div class="slide-body">
       <div class="grid-2" style="gap: 12px;">
         <div class="card card-highlight">
-          <div class="pill pill-blue" style="margin-bottom: 6px;">Phase 1 • Proof of Concept</div>
-          <div class="card-title" style="color: #38bdf8;">1. Prototyped in Google AI Studio (Gemini 3.8 to 3.6 Flash)</div>
+          <div class="pill pill-blue" style="margin-bottom: 6px;">Phase 1 • Proof of Concept (~6% Tokens)</div>
+          <div class="card-title" style="color: #38bdf8;">1. Prototyped in Google AI Studio (Gemini 3.6 Flash — $6.53)</div>
           <p class="card-text">
-            • Built the initial Proof of Concept in <strong>Google AI Studio</strong> using <strong>Gemini 3.8 Flash</strong> with automatic fallback to <strong>Gemini 3.6 Flash</strong>.<br>
-            • Validated structured JSON Schema output generation, multi-chapter normative reasoning, and initial React UI scaffolding.<br>
-            • Proved that Flash-class models with strict system instructions and temperature <code>0.0</code> could evaluate complex security controls rapidly.
+            • Built the initial Proof of Concept in <strong>Google AI Studio</strong> using <strong>Gemini 3.6 Flash</strong> (~45 iterations, 4.20M In / 0.90M Out tokens @ official $0.75/$3.75 rate).<br>
+            • Validated structured JSON Schema output generation, multimodal PDF/diagram ingestion, and initial React UI scaffolding.<br>
+            • Proved that Flash-class models with strict system instructions and temperature <code>0.0</code> evaluate complex security controls rapidly.
           </p>
         </div>
 
         <div class="card card-highlight">
-          <div class="pill pill-blue" style="margin-bottom: 6px;">Phase 2 • Full-Stack Engineering</div>
-          <div class="card-title" style="color: #60a5fa;">2. Migrated to Google Antigravity (Worked Upon with 3.8 Flash)</div>
+          <div class="pill pill-blue" style="margin-bottom: 6px;">Phase 2 • Architecture (5%) &amp; Bulk Build (74%)</div>
+          <div class="card-title" style="color: #60a5fa;">2. Architected in 3.1 Pro ($14.06) &amp; Built in 3.8 Flash ($70.65)</div>
           <p class="card-text">
-            • Transitioned the repository into <strong>Google Antigravity (AGY)</strong> powered by <strong>Gemini 3.8 Flash</strong>.<br>
-            • Executed <strong>171+ conversational engineering prompts</strong> across 7 structured phases to build the Express/TypeScript backend, parallel Map-Reduce evaluator, keyless GCP Live Scanner, multi-tenant Firestore persistence, and 16 bilingual PDF manuals.<br>
-            • Deployed to Google Cloud Run behind Identity-Aware Proxy (IAP).
+            • <strong>Architecture (Gemini 3.1 Pro, 5%):</strong> Designed the 4-layer Zero-Trust topology, 12-batch Map-Reduce engine, 265-control taxonomy &amp; Firestore security model (3.55M In / 0.58M Out @ $2.00/$12.00).<br>
+            • <strong>Bulk Construction (Gemini 3.8 Flash, 74%):</strong> Executed <strong>171+ engineering prompts</strong> in <strong>Google Antigravity</strong> to build the Express/React 19 stack, GCP Live Scanner, 17 bilingual PDF manuals ($65.85), and live Vertex AI self-audits ($4.80). Combined Flash = <strong>80% of tokens for $77.18</strong> ($38.59 Batch).
           </p>
         </div>
 
         <div class="card card-emerald">
-          <div class="pill pill-green" style="margin-bottom: 6px;">Phase 3 • Dogfooding & Hardening</div>
-          <div class="card-title" style="color: #34d399;">3. Self-Audited Codebase & Docs Against AegisAI Itself</div>
+          <div class="pill pill-green" style="margin-bottom: 6px;">Phase 3 • Self-Audit, Hardening (10%) &amp; QA (5%)</div>
+          <div class="card-title" style="color: #34d399;">3. Self-Audited (68.9%➔97.8%) + Hardened in Argon &amp; Opus 5.5</div>
           <p class="card-text">
-            • Once the working prototype was live on Cloud Run, we uploaded <strong>AegisAI's own codebase and 10-PDF documentation bundle (<code>Originaldocs.zip</code>)</strong> into AegisAI to run a full <strong>OWASP AI-SVS v1.0 + ISO/IEC 42001:2023</strong> audit.<br>
-            • Baseline self-audit (<code>MULTI-2026-0437</code>) scored <strong>68.9%</strong> and flagged 35 gaps (6 Failed, 29 Missing Evidence).<br>
-            • We fixed both the documentation and the application, re-auditing at <strong>97.8%</strong> (<code>MULTI-2026-8983</code>, <strong>100% ISO 42001</strong>, 0 failures).
+            • Baseline self-audit (<code>MULTI-2026-0437</code>) on <code>Originaldocs.zip</code> scored <strong>68.9%</strong> (35 gaps).<br>
+            • <strong>Gemini 4.0 Argon (10%, $25.70):</strong> Keyless Vertex AI ADC, Cloud IAP perimeter, 308 Firestore rules unit tests &amp; 4K/8K architecture diagrams (7.10M In / 1.15M Out @ $2.00/$10.00).<br>
+            • <strong>Claude Opus 5.5 Max (5%, $96.45):</strong> Adversarial red-team review, constant-time auth, SSRF/DNS rebinding fixes &amp; QA ➔ <strong>97.8%</strong> (<code>MULTI-2026-8983</code>, 0 failures).
           </p>
         </div>
 
@@ -398,18 +513,18 @@ html_en = f"""<!DOCTYPE html>
           <div class="card-title" style="color: #d8b4fe;">4. Release Candidate (RC) Presented to Industry Leaders</div>
           <p class="card-text">
             • Presented the hardened Release Candidate (RC) to three major Mexican organizations:<br>
-            &nbsp;&nbsp;1. <strong>Farmacias del Ahorro</strong> (Healthcare & Retail Pharmacy)<br>
+            &nbsp;&nbsp;1. <strong>Farmacias del Ahorro</strong> (Healthcare &amp; Retail Pharmacy)<br>
             &nbsp;&nbsp;2. <strong>Asociación Mexicana de Franquicias (AMF)</strong> (Franchise Ecosystem)<br>
-            &nbsp;&nbsp;3. <strong>Grupo Coppel</strong> (Financial Services & Omnichannel Retail)<br>
-            • Validated multi-standard compliance (OWASP AI-SVS, ISO 42001, LFPC & LFPDPPP).
+            &nbsp;&nbsp;3. <strong>Grupo Coppel</strong> (Financial Services &amp; Omnichannel Retail)<br>
+            • Validated multi-standard compliance (OWASP AI-SVS, ISO 42001, LFPC &amp; LFPDPPP).
           </p>
         </div>
       </div>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise • 4-Stage Product Evolution</span>
-      <span>AI Studio (3.8–3.6 Flash) ➔ Antigravity (3.8 Flash) ➔ Self-Audit ➔ Enterprise RC</span>
+      <span>AegisAI Enterprise • 4-Stage Multi-Model Evolution</span>
+      <span>3.6 Flash (PoC) ➔ 3.1 Pro (Arch) + 3.8 Flash (Build) ➔ 4.0 Argon + Opus 5.5 Max (Hardening &amp; QA) ➔ RC</span>
     </div>
   </div>
 
@@ -521,7 +636,7 @@ html_en = f"""<!DOCTYPE html>
             • <strong>Use Case Focus:</strong> Standardizing AI adoption, customer chatbots, and automated marketing compliance across hundreds of member franchises.<br>
             • <strong>Key AegisAI Capabilities Demonstrated:</strong><br>
             &nbsp;&nbsp;– <strong>LFPC (Profeco 2026)</strong> compliance: preventing deceptive AI commercial patterns and enforcing Art. 56 5-day cooling-off retraction.<br>
-            &nbsp;&nbsp;– <strong>BYOF Engine:</strong> Custom franchise governance templates with low-cost Flash evaluations (<code>$0.08/audit</code>).
+            &nbsp;&nbsp;– <strong>BYOF Engine:</strong> Custom franchise governance templates with low-cost Flash evaluations (<code>$0.43/audit</code> standard or <code>$0.21/audit</code> Batch).
           </p>
         </div>
 
@@ -561,91 +676,299 @@ html_en = f"""<!DOCTYPE html>
       <span class="slide-num">05 / 12</span>
     </div>
 
-    <div class="title-block">
+    <div class="title-block" style="margin-bottom: 5px;">
       <span class="slide-category">FinOps Analysis: Cost per Complete OWASP AI-SVS + ISO/IEC 42001 Audit</span>
-      <h2 class="slide-title">Gemini (3.8 Flash, 3.1 Pro, 4.0 Argon) vs. Claude (Fable 5.1, Opus 5.5)</h2>
-      <p class="slide-subtitle">Calculated from real production Firestore token telemetry across 12 Map-Reduce LLM calls per full dual-standard audit.</p>
+      <h2 class="slide-title">Gemini (3.8 Flash, 4.0 Argon, 3.1 Pro) vs. Claude (Fable 5.1, Opus 5.5)</h2>
+      <p class="slide-subtitle">Calculated from real production Firestore token telemetry using Official 2026 Rate Cards per full dual-standard audit.</p>
     </div>
 
-    <div class="slide-body">
-      <table class="slide-table card" style="padding: 0;">
-        <thead>
-          <tr>
-            <th style="width: 21%;">Model Tier</th>
-            <th style="width: 17%;">API Rate Card<br><span style="font-weight:400; font-size:7pt; color:#94a3b8;">(Input / Output per 1M tok)</span></th>
-            <th style="width: 21%;">Standard Audit Cost<br><span style="font-weight:400; font-size:7pt; color:#94a3b8;">(370K In + 40K Out tok)</span></th>
-            <th style="width: 23%;">Full 10-PDF Bundle Audit<br><span style="font-weight:400; font-size:7pt; color:#94a3b8;">(1.64M In + 86.5K Out tok)</span></th>
-            <th style="width: 18%;">Cost Multiplier vs.<br>Gemini 3.8 Flash</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong style="color: #34d399;">Gemini 3.8 Flash</strong> <span class="pill pill-green">Production</span></td>
-            <td><code>$0.15</code> / <code>$0.60</code></td>
-            <td><strong style="color: #6ee7b7; font-size: 9.5pt;">$0.08 USD</strong> <span style="color:#94a3b8;">($0.0795)</span></td>
-            <td><strong style="color: #6ee7b7; font-size: 9.5pt;">$0.30 USD</strong> <span style="color:#94a3b8;">($0.2979)</span></td>
-            <td><span class="pill pill-green">1.0x (Baseline)</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #60a5fa;">Gemini 3.1 Pro</strong></td>
-            <td><code>$1.25</code> / <code>$10.00</code></td>
-            <td><strong style="color: #93c5fd; font-size: 9.5pt;">$0.86 USD</strong> <span style="color:#94a3b8;">($0.8625)</span></td>
-            <td><strong style="color: #93c5fd; font-size: 9.5pt;">$2.92 USD</strong> <span style="color:#94a3b8;">($2.9150)</span></td>
-            <td><span class="pill pill-blue">9.8x – 10.8x</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #38bdf8;">Gemini 4.0 Argon</strong> <span class="pill pill-blue">Frontier</span></td>
-            <td><code>$2.00</code> / <code>$12.00</code></td>
-            <td><strong style="color: #bae6fd; font-size: 9.5pt;">$1.22 USD</strong> <span style="color:#94a3b8;">($1.2200)</span></td>
-            <td><strong style="color: #bae6fd; font-size: 9.5pt;">$4.32 USD</strong> <span style="color:#94a3b8;">($4.3180)</span></td>
-            <td><span class="pill pill-blue">14.5x – 15.3x</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #fcd34d;">Claude Fable 5.1 Medium</strong></td>
-            <td><code>$3.00</code> / <code>$15.00</code></td>
-            <td><strong style="color: #fde68a; font-size: 9.5pt;">$1.71 USD</strong> <span style="color:#94a3b8;">($1.7100)</span></td>
-            <td><strong style="color: #fde68a; font-size: 9.5pt;">$6.22 USD</strong> <span style="color:#94a3b8;">($6.2175)</span></td>
-            <td><span class="pill pill-amber">20.9x – 21.5x costlier</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #f87171;">Claude Opus 5.5 Max</strong></td>
-            <td><code>$15.00</code> / <code>$75.00</code></td>
-            <td><strong style="color: #fca5a5; font-size: 9.5pt;">$8.55 USD</strong> <span style="color:#94a3b8;">($8.5500)</span></td>
-            <td><strong style="color: #fca5a5; font-size: 9.5pt;">$31.09 USD</strong> <span style="color:#94a3b8;">($31.0875)</span></td>
-            <td><span class="pill pill-red">104.4x – 107.5x costlier</span></td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="slide-body" style="justify-content: flex-start;">
+      <!-- Top Executive KPI Hero Strip -->
+      <div class="finops-kpi-strip">
+        <div class="finops-kpi-card finops-kpi-green">
+          <div>
+            <div style="font-size:6.5pt; color:#6ee7b7; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Standard Audit (3.8 Flash)</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#34d399; line-height:1.1;">$0.43 <span style="font-size:8.5pt; font-weight:600; color:#a7f3d0;">USD</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;">Batch/Flex Tier: <strong style="color:#6ee7b7;">$0.21 USD</strong></div>
+          </div>
+          <span class="pill pill-green" style="font-size:6.2pt;">1.0x BASE</span>
+        </div>
 
-      <div class="grid-3" style="margin-top: 10px;">
-        <div class="card">
-          <div class="card-title" style="color:#34d399; font-size:9pt;">Real Telemetry Basis (Firestore)</div>
-          <p class="card-text" style="font-size:7.6pt;">
-            • <strong>Standard Audit</strong> (<code>MULTI-2026-0507</code> / <code>1250</code>): Avg <code>368,827</code> input + <code>39,812</code> output tokens.<br>
-            • <strong>Full 10-PDF ZIP Audit</strong> (<code>MULTI-2026-0437</code> / <code>8983</code>): Avg <code>1,638,410</code> input + <code>86,495</code> output tokens across 12 batch calls (~136K context/call).
-          </p>
+        <div class="finops-kpi-card finops-kpi-sky">
+          <div>
+            <div style="font-size:6.5pt; color:#7dd3fc; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">10-PDF Suite Audit (3.8 Flash)</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#38bdf8; line-height:1.1;">$1.55 <span style="font-size:8.5pt; font-weight:600; color:#bae6fd;">USD</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;">1.64M In + 86.5K Out (<strong style="color:#7dd3fc;">$0.78 Batch</strong>)</div>
+          </div>
+          <span class="pill pill-blue" style="font-size:6.2pt;">12 BATCHES</span>
         </div>
-        <div class="card">
-          <div class="card-title" style="color:#60a5fa; font-size:9pt;">Annual FinOps @ 1,000 Audits/Yr</div>
-          <p class="card-text" style="font-size:7.6pt;">
-            • <strong>Gemini 3.8 Flash:</strong> <strong>$298 / year</strong> (Full ZIP) or <strong>$80 / yr</strong> (Std)<br>
-            • <strong>Gemini 3.1 Pro:</strong> <strong>$2,915 / year</strong><br>
-            • <strong>Gemini 4.0 Argon:</strong> <strong>$4,318 / year</strong>
-          </p>
+
+        <div class="finops-kpi-card finops-kpi-amber">
+          <div>
+            <div style="font-size:6.5pt; color:#fcd34d; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Cost Advantage vs. Opus 5.5</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#fbbf24; line-height:1.1;">20.0x <span style="font-size:8.5pt; font-weight:600; color:#fde68a;">Cheaper</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;"><strong style="color:#fcd34d;">40.0x</strong> vs Batch • <strong style="color:#fcd34d;">6.7x</strong> vs Std Opus</div>
+          </div>
+          <span class="pill pill-amber" style="font-size:6.2pt;">VERIFIED</span>
         </div>
-        <div class="card">
-          <div class="card-title" style="color:#f87171; font-size:9pt;">Competitor Spend @ 1,000 Audits/Yr</div>
-          <p class="card-text" style="font-size:7.6pt;">
-            • <strong>Claude Fable 5.1 Medium:</strong> <strong>$6,218 / year</strong> (21x higher)<br>
-            • <strong>Claude Opus 5.5 Max:</strong> <strong>$31,088 / year</strong> (104x higher)<br>
-            • <strong>Savings with Gemini 3.8 Flash:</strong> <strong>&gt;99% cost reduction</strong>.
-          </p>
+
+        <div class="finops-kpi-card finops-kpi-purple">
+          <div>
+            <div style="font-size:6.5pt; color:#d8b4fe; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Monthly OpEx Savings (1K Audits)</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#c084fc; line-height:1.1;">95.0% <span style="font-size:8.5pt; font-weight:600; color:#e9d5ff;">Saved</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;"><strong style="color:#e9d5ff;">$428/mo</strong> vs. $8,550/mo (Opus Max)</div>
+          </div>
+          <span class="pill pill-purple" style="font-size:6.2pt;">-$8,122/MO</span>
+        </div>
+      </div>
+
+      <!-- Main Visual Charts Grid -->
+      <div class="finops-main-grid">
+        <!-- LEFT PANEL: Horizontal Dual-Workload Bar Chart -->
+        <div class="card" style="padding: 9px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <div>
+              <div class="card-title" style="font-size:9.5pt; margin-bottom:1px; color:#f8fafc;">Per-Audit Cost & Multiplier Benchmark (USD)</div>
+              <div style="font-size:6.7pt; color:#94a3b8;">Dual-Bar Comparison: Standard Audit (370K In / 40K Out) vs. Full 10-PDF Suite (1.64M In / 86.5K Out)</div>
+            </div>
+            <div style="display:flex; gap:8px; font-size:6.4pt; font-weight:700;">
+              <span style="display:flex; align-items:center; gap:4px; color:#e2e8f0;"><span style="width:9px; height:9px; border-radius:2px; background:#34d399; display:inline-block;"></span>Standard Audit</span>
+              <span style="display:flex; align-items:center; gap:4px; color:#94a3b8;"><span style="width:9px; height:9px; border-radius:2px; background:rgba(56,189,248,0.45); border:1px solid #38bdf8; display:inline-block;"></span>10-PDF Bundle</span>
+            </div>
+          </div>
+
+          <!-- Row 1: Gemini 3.8 Flash -->
+          <div class="hbar-row hbar-row-active">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#34d399; font-size:8.5pt;">Gemini 3.8 Flash</strong>
+                <span class="pill pill-green" style="font-size:5.8pt; padding:1px 6px;">DEFAULT ENGINE</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#a7f3d0;">$0.75 In / $3.75 Out</span>
+              </div>
+              <span class="pill pill-green" style="font-size:6.3pt;">1.0x Baseline</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 6.5%; background: linear-gradient(90deg, #059669, #34d399); box-shadow: 0 0 8px #10b981;"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 11.5%; background: rgba(52, 211, 153, 0.45); border-right: 2px solid #34d399;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#6ee7b7;">Std: $0.43 <span style="font-size:6.2pt; color:#a7f3d0;">(Batch $0.21)</span></div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#a7f3d0;">$1.55</strong> ($0.78)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Gemini 4.0 Argon -->
+          <div class="hbar-row">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#38bdf8; font-size:8.3pt;">Gemini 4.0 Argon</strong>
+                <span class="pill pill-blue" style="font-size:5.8pt; padding:1px 6px;">FRONTIER</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#94a3b8;">$2.00 In / $10.00 Out</span>
+              </div>
+              <span class="pill pill-blue" style="font-size:6.3pt;">2.67x vs Flash</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 15.5%; background: linear-gradient(90deg, #0284c7, #38bdf8);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 24.5%; background: rgba(56, 189, 248, 0.4); border-right: 2px solid #38bdf8;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#7dd3fc;">Std: $1.14 USD</div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#bae6fd;">$4.15 USD</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Gemini 3.1 Pro -->
+          <div class="hbar-row">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#60a5fa; font-size:8.3pt;">Gemini 3.1 Pro</strong>
+                <span class="pill pill-blue" style="font-size:5.8pt; padding:1px 6px;">DEEP REASONING</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#94a3b8;">$2.00 In / $12.00 Out</span>
+              </div>
+              <span class="pill pill-blue" style="font-size:6.3pt;">2.78x – 2.85x</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 17%; background: linear-gradient(90deg, #2563eb, #60a5fa);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 26%; background: rgba(96, 165, 250, 0.4); border-right: 2px solid #60a5fa;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#93c5fd;">Std: $1.22 USD</div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#bfdbfe;">$4.32 USD</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 4: Claude Fable 5.1 Medium -->
+          <div class="hbar-row">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#fcd34d; font-size:8.3pt;">Claude Fable 5.1 Medium</strong>
+                <span class="pill pill-amber" style="font-size:5.8pt; padding:1px 6px;">EXTERNAL</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#94a3b8;">$3.00 In / $15.00 Out</span>
+              </div>
+              <span class="pill pill-amber" style="font-size:6.3pt;">4.0x (8.0x vs Batch)</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 24%; background: linear-gradient(90deg, #d97706, #fbbf24);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 36%; background: rgba(251, 191, 36, 0.4); border-right: 2px solid #fbbf24;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#fde68a;">Std: $1.71 USD</div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#fef08a;">$6.22 USD</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 5: Claude Opus 5.5 Max -->
+          <div class="hbar-row" style="margin-bottom:0; border-color: rgba(239,68,68,0.35); background: rgba(127,29,29,0.14);">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#f87171; font-size:8.3pt;">Claude Opus 5.5 Max</strong>
+                <span class="pill pill-red" style="font-size:5.8pt; padding:1px 6px;">MAX TIER</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#fca5a5;">$15.00 / $75.00 <span style="color:#94a3b8;">(Std: $5/$25)</span></span>
+              </div>
+              <span class="pill pill-red" style="font-size:6.3pt;">20.0x (40x Batch / 6.7x Std)</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 68%; background: linear-gradient(90deg, #dc2626, #f87171);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 100%; background: rgba(248, 113, 113, 0.5); border-right: 2px solid #ef4444;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#fca5a5;">Std: $8.55 <span style="font-size:6.2pt; color:#cbd5e1;">(Std $2.85)</span></div>
+                <div style="font-size:6.8pt; color:#fca5a5;">10-PDF: <strong>$31.09</strong> ($10.36)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Vertical Column Chart + Firestore Telemetry Breakdown -->
+        <div style="display:flex; flex-direction:column; gap:10px; justify-content:space-between;">
+          <!-- Top Right Card: Vertical Column Chart (Monthly Spend @ 1,000 Audits) -->
+          <div class="card" style="padding: 9px 12px; flex: 1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="card-title" style="font-size:9.2pt; margin-bottom:1px; color:#f8fafc;">Monthly Run-Rate @ 1,000 Audits / Mo</div>
+                <div style="font-size:6.6pt; color:#94a3b8;">Total monthly cloud inference bill for 1,000 standard dual-standard audits</div>
+              </div>
+              <span class="pill pill-green" style="font-size:6pt;">SAVE $8,122 / MO</span>
+            </div>
+
+            <div class="vbar-chart">
+              <!-- Col 1: 3.8 Flash Batch -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#6ee7b7;">$214</div>
+                <div class="vbar-pillar" style="height: 8%; min-height: 7px; background: linear-gradient(180deg, #34d399, #059669); box-shadow: 0 0 8px rgba(16,185,129,0.5);"></div>
+                <div class="vbar-lbl" style="color:#6ee7b7;">3.8 Flash<br><span style="font-size:5.6pt; color:#94a3b8;">(Batch)</span></div>
+              </div>
+              <!-- Col 2: 3.8 Flash Std -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#34d399;">$428</div>
+                <div class="vbar-pillar" style="height: 14%; min-height: 12px; background: linear-gradient(180deg, #10b981, #047857); box-shadow: 0 0 8px rgba(16,185,129,0.4);"></div>
+                <div class="vbar-lbl" style="color:#34d399;">3.8 Flash<br><span style="font-size:5.6pt; color:#94a3b8;">(Std)</span></div>
+              </div>
+              <!-- Col 3: 4.0 Argon -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#7dd3fc;">$1,140</div>
+                <div class="vbar-pillar" style="height: 27%; background: linear-gradient(180deg, #38bdf8, #0284c7);"></div>
+                <div class="vbar-lbl">4.0 Argon<br><span style="font-size:5.6pt; color:#94a3b8;">(2.67x)</span></div>
+              </div>
+              <!-- Col 4: 3.1 Pro -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#93c5fd;">$1,220</div>
+                <div class="vbar-pillar" style="height: 30%; background: linear-gradient(180deg, #60a5fa, #2563eb);"></div>
+                <div class="vbar-lbl">3.1 Pro<br><span style="font-size:5.6pt; color:#94a3b8;">(2.85x)</span></div>
+              </div>
+              <!-- Col 5: Fable 5.1 -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#fde68a;">$1,710</div>
+                <div class="vbar-pillar" style="height: 40%; background: linear-gradient(180deg, #fbbf24, #d97706);"></div>
+                <div class="vbar-lbl">Fable 5.1<br><span style="font-size:5.6pt; color:#94a3b8;">(4.0x)</span></div>
+              </div>
+              <!-- Col 6: Opus 5.5 Std -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#fdba74;">$2,850</div>
+                <div class="vbar-pillar" style="height: 56%; background: linear-gradient(180deg, #fb923c, #ea580c);"></div>
+                <div class="vbar-lbl">Opus 5.5<br><span style="font-size:5.6pt; color:#94a3b8;">(Std 6.7x)</span></div>
+              </div>
+              <!-- Col 7: Opus 5.5 Max -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#fca5a5;">$8,550</div>
+                <div class="vbar-pillar" style="height: 92%; background: linear-gradient(180deg, #f87171, #b91c1c); box-shadow: 0 0 10px rgba(239,68,68,0.4);"></div>
+                <div class="vbar-lbl" style="color:#fca5a5;">Opus Max<br><span style="font-size:5.6pt; color:#fca5a5;">(20.0x)</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Right Card: Firestore Token Telemetry Composition -->
+          <div class="card card-emerald" style="padding: 9px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <div class="card-title" style="font-size:8.8pt; margin-bottom:0; color:#6ee7b7;">Production Token Telemetry (Cloud Firestore)</div>
+              <span style="font-family:'Roboto Mono',monospace; font-size:6.2pt; color:#a7f3d0;">15 Map-Reduce Calls / Audit</span>
+            </div>
+
+            <!-- Profile A Segmented Bar -->
+            <div style="margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between; font-size:6.7pt; margin-bottom:2px;">
+                <span style="color:#e2e8f0; font-weight:700;">Profile A: Standard Architecture Audit (408.6K tok)</span>
+                <span style="font-family:'Roboto Mono',monospace; color:#6ee7b7;">90.3% In / 9.7% Out</span>
+              </div>
+              <div style="display:flex; height:8px; border-radius:999px; overflow:hidden; background:#1e293b;">
+                <div style="width:90.3%; background:linear-gradient(90deg, #059669, #34d399);"></div>
+                <div style="width:9.7%; background:#f59e0b;"></div>
+              </div>
+              <div style="font-size:6.2pt; color:#94a3b8; margin-top:2px;">
+                Audits <code>MULTI-2026-0507</code> & <code>1250</code>: Avg <code>368,827</code> Input + <code>39,812</code> Output tokens
+              </div>
+            </div>
+
+            <!-- Profile B Segmented Bar -->
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:6.7pt; margin-bottom:2px;">
+                <span style="color:#e2e8f0; font-weight:700;">Profile B: Full 10-PDF Suite Audit (1.725M tok)</span>
+                <span style="font-family:'Roboto Mono',monospace; color:#38bdf8;">95.0% In / 5.0% Out</span>
+              </div>
+              <div style="display:flex; height:8px; border-radius:999px; overflow:hidden; background:#1e293b;">
+                <div style="width:95.0%; background:linear-gradient(90deg, #0284c7, #38bdf8);"></div>
+                <div style="width:5.0%; background:#f59e0b;"></div>
+              </div>
+              <div style="font-size:6.2pt; color:#94a3b8; margin-top:2px;">
+                Audits <code>MULTI-2026-0437</code> & <code>8983</code>: Avg <code>1,638,410</code> Input + <code>86,495</code> Output (~136K ctx/batch)
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise • Unit Economics & Model Cost Benchmark</span>
+      <span>AegisAI Enterprise • Unit Economics & Model Cost Benchmark (Official 2026 Pricing)</span>
       <span>Telemetry Source: Cloud Firestore (aegis-ai-db) Audits MULTI-2026-0437, 8983, 0507 & 1250</span>
     </div>
   </div>
@@ -661,26 +984,26 @@ html_en = f"""<!DOCTYPE html>
     </div>
 
     <div class="title-block">
-      <span class="slide-category">Engineering ROI & Development Cost Breakdown</span>
-      <h2 class="slide-title">How Much Money We Spent Creating AegisAI: $19.41 USD Total</h2>
-      <p class="slide-subtitle">Complete accounting of all AI token consumption and Google Cloud infrastructure from initial AI Studio PoC to Enterprise RC.</p>
+      <span class="slide-category">Engineering ROI &amp; Multi-Model Lifecycle Breakdown (80% Flash • 10% Argon • 5% Pro • 5% Opus)</span>
+      <h2 class="slide-title">How Much Money We Spent Creating AegisAI: $215.24 USD Total</h2>
+      <p class="slide-subtitle">Right-sized multi-model engineering across AI Studio PoC, System Architecture, Bulk Full-Stack Construction, Frontier Hardening &amp; Adversarial QA.</p>
     </div>
 
     <div class="slide-body">
       <div class="grid-4" style="margin-bottom: 10px;">
         <div class="card stat-box card-emerald">
-          <div class="stat-number" style="color: #34d399;">$19.41</div>
-          <div class="stat-label"><strong>Total Money Spent</strong> creating AegisAI (AI Tokens + GCP Infra)</div>
+          <div class="stat-number" style="color: #34d399;">$215.24</div>
+          <div class="stat-label"><strong>Total Money Spent</strong> creating AegisAI ($319.80 w/ full agentic loops)</div>
         </div>
 
         <div class="card stat-box">
           <div class="stat-number" style="color: #38bdf8;">~71.0M</div>
-          <div class="stat-label">Total Input Tokens across AI Studio, Antigravity (171+ prompts) & Self-Audits</div>
+          <div class="stat-label">Total Input Tokens (<strong>80% Flash</strong> for $77.18 • 10% Argon • 5% Pro • 5% Opus)</div>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #a78bfa;">$1,928</div>
-          <div class="stat-label">What the exact same token volume would have cost on <strong>Claude Opus 5.5 Max</strong></div>
+          <div class="stat-number" style="color: #a78bfa;">$1,931</div>
+          <div class="stat-label">What the exact same token volume costs if run <strong>100% on Claude Opus 5.5 Max</strong></div>
         </div>
 
         <div class="card stat-box">
@@ -692,46 +1015,53 @@ html_en = f"""<!DOCTYPE html>
       <table class="slide-table card" style="padding: 0;">
         <thead>
           <tr>
-            <th style="width: 25%;">Development Phase</th>
-            <th style="width: 24%;">Platform & Model Used</th>
-            <th style="width: 23%;">Volume / Activity</th>
-            <th style="width: 14%;">Actual Spend</th>
-            <th style="width: 14%;">If Run on Opus 5.5</th>
+            <th style="width: 24%;">Development Phase &amp; Role</th>
+            <th style="width: 24%;">Model &amp; Token Share</th>
+            <th style="width: 24%;">Engineering Scope &amp; Token Volume</th>
+            <th style="width: 14%;">Actual Spend (2026)</th>
+            <th style="width: 14%;">If 100% Opus 5.5</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>1. Proof of Concept (PoC)</strong></td>
-            <td>Google AI Studio (<code>Gemini 3.8–3.6 Flash</code>)</td>
-            <td>~45 iterations • ~4.2M In / ~0.9M Out tokens</td>
-            <td><strong style="color:#6ee7b7;">$1.17 USD</strong></td>
+            <td><strong>1. Rapid PoC &amp; Schema Validation</strong></td>
+            <td>AI Studio • <code>Gemini 3.6 Flash</code> (~6%)</td>
+            <td>~45 PoC iterations, JSON schema &amp; PDF tests • 4.20M In / 0.90M Out</td>
+            <td><strong style="color:#6ee7b7;">$6.53 USD</strong></td>
             <td>$130.50 USD</td>
           </tr>
           <tr>
-            <td><strong>2. Core Full-Stack & Manuals (Phases 1–7)</strong></td>
-            <td>Google Antigravity (<code>Gemini 3.8 Flash</code>)</td>
-            <td>171 logged prompts + 16 PDFs • ~38.0M In / ~6.5M Out</td>
-            <td><strong style="color:#6ee7b7;">$9.60 USD</strong></td>
-            <td>$1,057.50 USD</td>
+            <td><strong>2. System Architecture &amp; Blueprint</strong></td>
+            <td>Antigravity • <code>Gemini 3.1 Pro</code> (<strong>5%</strong>)</td>
+            <td>Zero-Trust topology, 12-batch Map-Reduce, 265 controls • 3.55M In / 0.58M Out</td>
+            <td><strong style="color:#6ee7b7;">$14.06 USD</strong></td>
+            <td>$96.45 USD</td>
           </tr>
           <tr>
-            <td><strong>3. Cloud Hardening & OWASP/ISO Fixes</strong></td>
-            <td>Google Antigravity (<code>Gemini 3.8 Flash</code>)</td>
-            <td>Argolis IAP, 308 rules tests, 35 controls • ~24.0M In / ~3.8M Out</td>
-            <td><strong style="color:#6ee7b7;">$5.88 USD</strong></td>
-            <td>$645.00 USD</td>
+            <td><strong>3. Bulk Build, Manuals &amp; Audits</strong></td>
+            <td>Antigravity + Vertex • <code>Gemini 3.8 Flash</code> (<strong>74%</strong>)</td>
+            <td>171 prompts, 17 PDFs ($65.85) + Live Self-Audits ($4.80) • 52.60M In / 8.32M Out</td>
+            <td><strong style="color:#6ee7b7;">$70.65 USD</strong></td>
+            <td>$1,412.70 USD</td>
           </tr>
           <tr>
-            <td><strong>4. Live Self-Audits & QA Test Harnesses</strong></td>
-            <td>Vertex AI (<code>Gemini 3.8 / 3.1 Flash</code>)</td>
-            <td><code>MULTI-2026-0437</code>, <code>8983</code>, <code>0507</code>, <code>1250</code> • ~4.8M In / ~0.32M Out</td>
-            <td><strong style="color:#6ee7b7;">$0.91 USD</strong></td>
-            <td>$96.00 USD</td>
+            <td><strong>4. Frontier Hardening &amp; Visuals</strong></td>
+            <td>Antigravity • <code>Gemini 4.0 Argon</code> (<strong>10%</strong>)</td>
+            <td>Keyless Vertex ADC, Cloud IAP, 308 rules tests, 4K diagrams • 7.10M In / 1.15M Out</td>
+            <td><strong style="color:#6ee7b7;">$25.70 USD</strong></td>
+            <td>$192.90 USD</td>
           </tr>
           <tr>
-            <td><strong>5. Google Cloud Infrastructure</strong></td>
-            <td>Cloud Build, Cloud Run, Firestore, Secret Mgr</td>
-            <td>9 container builds, scale-to-zero runtime, <code>aegis-ai-db</code></td>
+            <td><strong>5. Adversarial Bugfixing &amp; QA</strong></td>
+            <td>Antigravity • <code>Claude Opus 5.5 Max</code> (<strong>5%</strong>)</td>
+            <td>Red-team code review, timing-safe auth, SSRF/DNS fixes • 3.55M In / 0.58M Out</td>
+            <td><strong style="color:#6ee7b7;">$96.45 USD</strong></td>
+            <td>$96.45 USD</td>
+          </tr>
+          <tr>
+            <td><strong>6. Google Cloud Serverless Infra</strong></td>
+            <td>Cloud Build (9x), Cloud Run, Firestore, IAP</td>
+            <td>9 container builds, scale-to-zero runtime, <code>aegis-ai-db</code> • <strong>Total: $215.24 USD</strong></td>
             <td><strong style="color:#6ee7b7;">$1.85 USD</strong></td>
             <td>$1.85 USD</td>
           </tr>
@@ -740,8 +1070,8 @@ html_en = f"""<!DOCTYPE html>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise • Total Cost of Development (TCO)</span>
-      <span>99.0% Savings vs. Claude Opus 5.5 Max • 99.98% Savings vs. Traditional Software Staffing</span>
+      <span>AegisAI Enterprise • Multi-Model Development TCO ($215.24 Direct / $319.80 Full Agentic Loops)</span>
+      <span>88.9% Savings vs. 100% Claude Opus 5.5 Max ($1,930.85) • 99.77% Savings vs. Traditional Staffing</span>
     </div>
   </div>
 
@@ -1115,10 +1445,10 @@ html_en = f"""<!DOCTYPE html>
 
       <div class="card" style="margin-top: 14px; background: rgba(30, 41, 59, 0.5); border-color: rgba(59, 130, 246, 0.4);">
         <div class="card-title" style="color: #ffffff; font-size: 10pt;">
-          <span>🎯</span> Conclusion: Enterprise AI Assurance Built for $19.41, Auditing for $0.08–$0.30
+          <span>🎯</span> Conclusion: Enterprise AI Assurance Built for $215.24 Multi-Model, Auditing for $0.43–$1.55 (Batch: $0.21)
         </div>
         <p class="card-text" style="font-size: 8.5pt;">
-          By combining <strong>Google AI Studio</strong>, <strong>Google Antigravity</strong>, and <strong>Vertex AI Gemini 3.8 Flash</strong>, AegisAI proves that world-class OWASP AI-SVS & ISO/IEC 42001 assurance can be built and operated at <strong>&gt;99% lower cost</strong> than legacy frontier alternatives.
+          By combining <strong>Gemini 3.6 &amp; 3.8 Flash (80%)</strong> for rapid PoC and bulk construction with <strong>Gemini 3.1 Pro (5%)</strong> for architecture and <strong>Gemini 4.0 Argon (10%) + Claude Opus 5.5 Max (5%)</strong> for deep hardening &amp; QA, AegisAI was built at <strong>88.9% lower cost than all-Opus ($1,931)</strong> and <strong>99.77% lower cost than traditional staffing (~$95k)</strong>.
         </p>
       </div>
     </div>
@@ -1160,16 +1490,16 @@ html_es = f"""<!DOCTYPE html>
         Aseguramiento, Auto-Auditoría y<br><span>Economía FinOps en GenAI</span>
       </h1>
       <p class="cover-desc-big">
-        Cómo <strong>AegisAI Enterprise</strong> fue prototipado en <strong>Google AI Studio (Gemini 3.8 a 3.6 Flash)</strong>, desarrollado en <strong>Google Antigravity (Gemini 3.8 Flash)</strong>, auto-auditado bajo <strong>OWASP AI-SVS v1.0 e ISO/IEC 42001:2023</strong> (68.9% ➔ 97.8%), y presentado como Release Candidate ante <strong>Farmacias del Ahorro</strong>, <strong>Asociación Mexicana de Franquicias</strong> y <strong>Grupo Coppel</strong>—con una inversión total de creación de <strong>$19.41 USD</strong>.
+        Cómo <strong>AegisAI Enterprise</strong> fue prototipado en <strong>Google AI Studio (Gemini 3.6 Flash)</strong>, diseñado con <strong>Gemini 3.1 Pro (5%)</strong>, construido a escala en <strong>Google Antigravity (Gemini 3.8 Flash — 80% combinado en Flash)</strong>, auto-auditado (68.9% ➔ 97.8%), endurecido y verificado en QA con <strong>Gemini 4.0 Argon (10%)</strong> y <strong>Claude Opus 5.5 Max (5%)</strong>, y presentado como Release Candidate ante <strong>Farmacias del Ahorro</strong>, <strong>Asociación Mexicana de Franquicias</strong> y <strong>Grupo Coppel</strong>—con una inversión total de <strong>$215.24 USD</strong> ($319.80 c/ bucles agénticos).
       </p>
 
       <div class="tech-badges-row">
-        <span class="pill pill-blue">1. PoC en AI Studio (Gemini 3.8–3.6 Flash)</span>
-        <span class="pill pill-blue">2. Ingeniería en Antigravity (3.8 Flash)</span>
-        <span class="pill pill-green">3. Auto-Auditoría: 68.9% ➔ 97.8%</span>
+        <span class="pill pill-blue">1. PoC en AI Studio (Gemini 3.6 Flash)</span>
+        <span class="pill pill-blue">2. Arq. (3.1 Pro 5%) + Construcción (3.8 Flash 74%)</span>
+        <span class="pill pill-green">3. Hardening y QA (4.0 Argon 10% + Opus 5.5 5%)</span>
         <span class="pill pill-purple">4. RC: Farmacias del Ahorro • AMF • Coppel</span>
-        <span class="pill pill-amber">5. Costo por Auditoría: $0.08–$0.30 vs $8.55–$31.09</span>
-        <span class="pill pill-green">6. Costo Total de Creación: $19.41 USD</span>
+        <span class="pill pill-amber">5. Costo por Auditoría: $0.43–$1.55 (Batch: $0.21) vs $8.55–$31.09</span>
+        <span class="pill pill-green">6. Costo Total de Creación: $215.24 USD</span>
       </div>
     </div>
 
@@ -1191,40 +1521,39 @@ html_es = f"""<!DOCTYPE html>
     </div>
 
     <div class="title-block">
-      <span class="slide-category">Ciclo de Vida de Ingeniería de Extremo a Extremo</span>
+      <span class="slide-category">Ciclo de Vida de Ingeniería Multi-Modelo de Extremo a Extremo</span>
       <h2 class="slide-title">Cómo Construimos, Auto-Auditamos y Validamos AegisAI</h2>
-      <p class="slide-subtitle">Un recorrido de ingeniería agéntica en cuatro etapas desde la prueba de concepto hasta el Release Candidate empresarial.</p>
+      <p class="slide-subtitle">Un recorrido de ingeniería multi-modelo en cuatro etapas (80% Flash • 10% Argon • 5% 3.1 Pro • 5% Opus 5.5 Max).</p>
     </div>
 
     <div class="slide-body">
       <div class="grid-2" style="gap: 12px;">
         <div class="card card-highlight">
-          <div class="pill pill-blue" style="margin-bottom: 6px;">Fase 1 • Prueba de Concepto (PoC)</div>
-          <div class="card-title" style="color: #38bdf8;">1. Prototipado en Google AI Studio (Gemini 3.8 a 3.6 Flash)</div>
+          <div class="pill pill-blue" style="margin-bottom: 6px;">Fase 1 • Prueba de Concepto (~6% Tokens)</div>
+          <div class="card-title" style="color: #38bdf8;">1. Prototipado en Google AI Studio (Gemini 3.6 Flash — $6.53)</div>
           <p class="card-text">
-            • Se construyó la Prueba de Concepto inicial en <strong>Google AI Studio</strong> utilizando <strong>Gemini 3.8 Flash</strong> con conmutación dinámica a <strong>Gemini 3.6 Flash</strong>.<br>
-            • Se validó la generación estructurada bajo JSON Schema, el razonamiento normativo multi-capítulo y la interfaz inicial en React.<br>
-            • Se demostró que los modelos Flash con temperatura <code>0.0</code> evalúan controles complejos en segundos.
+            • Se construyó la Prueba de Concepto inicial en <strong>Google AI Studio</strong> utilizando <strong>Gemini 3.6 Flash</strong> (~45 iteraciones, 4.20M In / 0.90M Out tokens @ tarifa oficial $0.75/$3.75).<br>
+            • Se validó la generación estructurada bajo JSON Schema, la ingesta multimodal de PDFs/diagramas y la interfaz inicial en React.<br>
+            • Demostró que los modelos Flash con temperatura <code>0.0</code> evalúan controles complejos en segundos.
           </p>
         </div>
 
         <div class="card card-highlight">
-          <div class="pill pill-blue" style="margin-bottom: 6px;">Fase 2 • Ingeniería Full-Stack</div>
-          <div class="card-title" style="color: #60a5fa;">2. Migración a Google Antigravity (Desarrollado con 3.8 Flash)</div>
+          <div class="pill pill-blue" style="margin-bottom: 6px;">Fase 2 • Arquitectura (5%) y Construcción (74%)</div>
+          <div class="card-title" style="color: #60a5fa;">2. Arquitectura en 3.1 Pro ($14.06) y Build en 3.8 Flash ($70.65)</div>
           <p class="card-text">
-            • Se migró la base de código a <strong>Google Antigravity (AGY)</strong> operando con <strong>Gemini 3.8 Flash</strong>.<br>
-            • Se ejecutaron más de <strong>171 prompts de ingeniería conversacional</strong> en 7 fases para construir el backend Express/TypeScript, el motor Map-Reduce, el GCP Live Scanner, la persistencia en Firestore y los 16 manuales PDF bilingües.<br>
-            • Desplegado en Google Cloud Run detrás de Identity-Aware Proxy (IAP).
+            • <strong>Arquitectura (Gemini 3.1 Pro, 5%):</strong> Diseño de topología Zero-Trust de 4 capas, motor Map-Reduce de 12 lotes, taxonomía de 265 controles y aislamiento Firestore (3.55M In / 0.58M Out @ $2.00/$12.00).<br>
+            • <strong>Construcción Masiva (Gemini 3.8 Flash, 74%):</strong> Más de <strong>171 prompts</strong> en <strong>Google Antigravity</strong> construyendo Express/React 19, GCP Live Scanner, 17 manuales PDF ($65.85) y auto-auditorías en vivo ($4.80). Familia Flash = <strong>80% de tokens por $77.18</strong> ($38.59 Batch).
           </p>
         </div>
 
         <div class="card card-emerald">
-          <div class="pill pill-green" style="margin-bottom: 6px;">Fase 3 • Dogfooding y Endurecimiento</div>
-          <div class="card-title" style="color: #34d399;">3. Auto-Auditoría del Código y Documentación contra AegisAI</div>
+          <div class="pill pill-green" style="margin-bottom: 6px;">Fase 3 • Auto-Auditoría, Hardening (10%) y QA (5%)</div>
+          <div class="card-title" style="color: #34d399;">3. Auto-Auditado (68.9%➔97.8%) + Endurecido en Argon y Opus 5.5</div>
           <p class="card-text">
-            • Con el prototipo funcional en Cloud Run, cargamos <strong>el propio código y paquete de 10 PDFs de AegisAI (<code>Originaldocs.zip</code>)</strong> dentro de la misma aplicación para auditarla contra <strong>OWASP AI-SVS v1.0 e ISO/IEC 42001:2023</strong>.<br>
-            • La auto-auditoría base (<code>MULTI-2026-0437</code>) obtuvo <strong>68.9%</strong> y detectó 35 brechas (6 Fallidos, 29 Falta Evidencia).<br>
-            • Corregimos documentación y aplicación, logrando <strong>97.8%</strong> en re-auditoría (<code>MULTI-2026-8983</code>, <strong>100% ISO 42001</strong>, 0 fallos).
+            • La auto-auditoría base (<code>MULTI-2026-0437</code>) sobre <code>Originaldocs.zip</code> obtuvo <strong>68.9%</strong> (35 brechas).<br>
+            • <strong>Gemini 4.0 Argon (10%, $25.70):</strong> Vertex AI ADC sin llaves, perímetro Cloud IAP, 308 pruebas Firestore y diagramas 4K/8K (7.10M In / 1.15M Out @ $2.00/$10.00).<br>
+            • <strong>Claude Opus 5.5 Max (5%, $96.45):</strong> Revisión red-team adversarial, auth en tiempo constante, filtros SSRF/DNS y QA ➔ <strong>97.8%</strong> (<code>MULTI-2026-8983</code>, 0 fallos).
           </p>
         </div>
 
@@ -1243,8 +1572,8 @@ html_es = f"""<!DOCTYPE html>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise • Evolución del Producto en 4 Etapas</span>
-      <span>AI Studio (3.8–3.6 Flash) ➔ Antigravity (3.8 Flash) ➔ Auto-Auditoría ➔ Release Candidate</span>
+      <span>AegisAI Enterprise • Evolución Multi-Modelo en 4 Etapas</span>
+      <span>3.6 Flash (PoC) ➔ 3.1 Pro (Arq.) + 3.8 Flash (Build) ➔ 4.0 Argon + Opus 5.5 Max (Hardening y QA) ➔ RC</span>
     </div>
   </div>
 
@@ -1356,7 +1685,7 @@ html_es = f"""<!DOCTYPE html>
             • <strong>Enfoque del Caso de Uso:</strong> Estandarización de gobernanza de IA, chatbots comerciales y publicidad automatizada en redes de franquicias.<br>
             • <strong>Capacidades Clave Demostradas:</strong><br>
             &nbsp;&nbsp;– Cumplimiento <strong>LFPC (Profeco 2026)</strong>: prevención de patrones oscuros y retracto comercial de 5 días (Art. 56).<br>
-            &nbsp;&nbsp;– <strong>Motor BYOF:</strong> Marcos normativos propios para franquicias con auditorías Flash de ultra bajo costo (<code>$0.08 USD</code>).
+            &nbsp;&nbsp;– <strong>Motor BYOF:</strong> Marcos normativos propios para franquicias con auditorías Flash de bajo costo (<code>$0.43 USD</code> estándar o <code>$0.21 USD</code> en Batch).
           </p>
         </div>
 
@@ -1396,91 +1725,299 @@ html_es = f"""<!DOCTYPE html>
       <span class="slide-num">05 / 12</span>
     </div>
 
-    <div class="title-block">
+    <div class="title-block" style="margin-bottom: 5px;">
       <span class="slide-category">Análisis FinOps: Costo por Auditoría Completa OWASP AI-SVS + ISO/IEC 42001</span>
-      <h2 class="slide-title">Gemini (3.8 Flash, 3.1 Pro, 4.0 Argon) vs. Claude (Fable 5.1, Opus 5.5)</h2>
-      <p class="slide-subtitle">Calculado con telemetría real de tokens en Firestore a través de las 12 llamadas Map-Reduce por auditoría dual completa.</p>
+      <h2 class="slide-title">Gemini (3.8 Flash, 4.0 Argon, 3.1 Pro) vs. Claude (Fable 5.1, Opus 5.5)</h2>
+      <p class="slide-subtitle">Calculado con telemetría real de tokens en Firestore bajo Tarifas Oficiales 2026 por auditoría dual completa.</p>
     </div>
 
-    <div class="slide-body">
-      <table class="slide-table card" style="padding: 0;">
-        <thead>
-          <tr>
-            <th style="width: 21%;">Modelo de IA</th>
-            <th style="width: 17%;">Tarifa API<br><span style="font-weight:400; font-size:7pt; color:#94a3b8;">(Entrada / Salida por 1M tok)</span></th>
-            <th style="width: 21%;">Auditoría Estándar<br><span style="font-weight:400; font-size:7pt; color:#94a3b8;">(370K In + 40K Out tok)</span></th>
-            <th style="width: 23%;">Auditoría Bundle 10 PDFs<br><span style="font-weight:400; font-size:7pt; color:#94a3b8;">(1.64M In + 86.5K Out tok)</span></th>
-            <th style="width: 18%;">Multiplicador vs.<br>Gemini 3.8 Flash</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong style="color: #34d399;">Gemini 3.8 Flash</strong> <span class="pill pill-green">Producción</span></td>
-            <td><code>$0.15</code> / <code>$0.60</code></td>
-            <td><strong style="color: #6ee7b7; font-size: 9.5pt;">$0.08 USD</strong> <span style="color:#94a3b8;">($0.0795)</span></td>
-            <td><strong style="color: #6ee7b7; font-size: 9.5pt;">$0.30 USD</strong> <span style="color:#94a3b8;">($0.2979)</span></td>
-            <td><span class="pill pill-green">1.0x (Base)</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #60a5fa;">Gemini 3.1 Pro</strong></td>
-            <td><code>$1.25</code> / <code>$10.00</code></td>
-            <td><strong style="color: #93c5fd; font-size: 9.5pt;">$0.86 USD</strong> <span style="color:#94a3b8;">($0.8625)</span></td>
-            <td><strong style="color: #93c5fd; font-size: 9.5pt;">$2.92 USD</strong> <span style="color:#94a3b8;">($2.9150)</span></td>
-            <td><span class="pill pill-blue">9.8x – 10.8x</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #38bdf8;">Gemini 4.0 Argon</strong> <span class="pill pill-blue">Frontier</span></td>
-            <td><code>$2.00</code> / <code>$12.00</code></td>
-            <td><strong style="color: #bae6fd; font-size: 9.5pt;">$1.22 USD</strong> <span style="color:#94a3b8;">($1.2200)</span></td>
-            <td><strong style="color: #bae6fd; font-size: 9.5pt;">$4.32 USD</strong> <span style="color:#94a3b8;">($4.3180)</span></td>
-            <td><span class="pill pill-blue">14.5x – 15.3x</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #fcd34d;">Claude Fable 5.1 Medium</strong></td>
-            <td><code>$3.00</code> / <code>$15.00</code></td>
-            <td><strong style="color: #fde68a; font-size: 9.5pt;">$1.71 USD</strong> <span style="color:#94a3b8;">($1.7100)</span></td>
-            <td><strong style="color: #fde68a; font-size: 9.5pt;">$6.22 USD</strong> <span style="color:#94a3b8;">($6.2175)</span></td>
-            <td><span class="pill pill-amber">20.9x – 21.5x más caro</span></td>
-          </tr>
-          <tr>
-            <td><strong style="color: #f87171;">Claude Opus 5.5 Max</strong></td>
-            <td><code>$15.00</code> / <code>$75.00</code></td>
-            <td><strong style="color: #fca5a5; font-size: 9.5pt;">$8.55 USD</strong> <span style="color:#94a3b8;">($8.5500)</span></td>
-            <td><strong style="color: #fca5a5; font-size: 9.5pt;">$31.09 USD</strong> <span style="color:#94a3b8;">($31.0875)</span></td>
-            <td><span class="pill pill-red">104.4x – 107.5x más caro</span></td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="slide-body" style="justify-content: flex-start;">
+      <!-- Top Executive KPI Hero Strip -->
+      <div class="finops-kpi-strip">
+        <div class="finops-kpi-card finops-kpi-green">
+          <div>
+            <div style="font-size:6.5pt; color:#6ee7b7; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Auditoría Estándar (3.8 Flash)</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#34d399; line-height:1.1;">$0.43 <span style="font-size:8.5pt; font-weight:600; color:#a7f3d0;">USD</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;">Nivel Batch/Flex: <strong style="color:#6ee7b7;">$0.21 USD</strong></div>
+          </div>
+          <span class="pill pill-green" style="font-size:6.2pt;">1.0x BASE</span>
+        </div>
 
-      <div class="grid-3" style="margin-top: 10px;">
-        <div class="card">
-          <div class="card-title" style="color:#34d399; font-size:9pt;">Base de Telemetría Real (Firestore)</div>
-          <p class="card-text" style="font-size:7.6pt;">
-            • <strong>Auditoría Estándar</strong> (<code>MULTI-2026-0507</code> / <code>1250</code>): Promedio <code>368,827</code> tokens entrada + <code>39,812</code> salida.<br>
-            • <strong>Auditoría ZIP 10 PDFs</strong> (<code>MULTI-2026-0437</code> / <code>8983</code>): Promedio <code>1,638,410</code> entrada + <code>86,495</code> salida en 12 lotes (~136K contexto/lote).
-          </p>
+        <div class="finops-kpi-card finops-kpi-sky">
+          <div>
+            <div style="font-size:6.5pt; color:#7dd3fc; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Suite 10 PDFs (3.8 Flash)</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#38bdf8; line-height:1.1;">$1.55 <span style="font-size:8.5pt; font-weight:600; color:#bae6fd;">USD</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;">1.64M In + 86.5K Out (<strong style="color:#7dd3fc;">$0.78 Batch</strong>)</div>
+          </div>
+          <span class="pill pill-blue" style="font-size:6.2pt;">12 LOTES</span>
         </div>
-        <div class="card">
-          <div class="card-title" style="color:#60a5fa; font-size:9pt;">Costo Anual @ 1,000 Auditorías/Año</div>
-          <p class="card-text" style="font-size:7.6pt;">
-            • <strong>Gemini 3.8 Flash:</strong> <strong>$298 / año</strong> (ZIP) o <strong>$80 / año</strong> (Estándar)<br>
-            • <strong>Gemini 3.1 Pro:</strong> <strong>$2,915 / año</strong><br>
-            • <strong>Gemini 4.0 Argon:</strong> <strong>$4,318 / año</strong>
-          </p>
+
+        <div class="finops-kpi-card finops-kpi-amber">
+          <div>
+            <div style="font-size:6.5pt; color:#fcd34d; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Ventaja vs. Opus 5.5 Max</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#fbbf24; line-height:1.1;">20.0x <span style="font-size:8.5pt; font-weight:600; color:#fde68a;">Menor</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;"><strong style="color:#fcd34d;">40.0x</strong> vs Batch • <strong style="color:#fcd34d;">6.7x</strong> vs Opus Est.</div>
+          </div>
+          <span class="pill pill-amber" style="font-size:6.2pt;">VERIFICADO</span>
         </div>
-        <div class="card">
-          <div class="card-title" style="color:#f87171; font-size:9pt;">Gasto Competidor @ 1,000 Auditorías/Año</div>
-          <p class="card-text" style="font-size:7.6pt;">
-            • <strong>Claude Fable 5.1 Medium:</strong> <strong>$6,218 / año</strong> (21x mayor)<br>
-            • <strong>Claude Opus 5.5 Max:</strong> <strong>$31,088 / año</strong> (104x mayor)<br>
-            • <strong>Ahorro con Gemini 3.8 Flash:</strong> <strong>&gt;99% de reducción</strong>.
-          </p>
+
+        <div class="finops-kpi-card finops-kpi-purple">
+          <div>
+            <div style="font-size:6.5pt; color:#d8b4fe; font-weight:700; text-transform:uppercase; letter-spacing:0.6px;">Ahorro OpEx Mensual (1K Aud.)</div>
+            <div style="font-family:'Google Sans',sans-serif; font-size:17pt; font-weight:800; color:#c084fc; line-height:1.1;">95.0% <span style="font-size:8.5pt; font-weight:600; color:#e9d5ff;">Ahorro</span></div>
+            <div style="font-size:6.5pt; color:#94a3b8;"><strong style="color:#e9d5ff;">$428/mes</strong> vs. $8,550/mes (Opus Max)</div>
+          </div>
+          <span class="pill pill-purple" style="font-size:6.2pt;">-$8,122/MES</span>
+        </div>
+      </div>
+
+      <!-- Main Visual Charts Grid -->
+      <div class="finops-main-grid">
+        <!-- LEFT PANEL: Horizontal Dual-Workload Bar Chart -->
+        <div class="card" style="padding: 9px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <div>
+              <div class="card-title" style="font-size:9.5pt; margin-bottom:1px; color:#f8fafc;">Benchmark de Costo por Auditoría y Multiplicador (USD)</div>
+              <div style="font-size:6.7pt; color:#94a3b8;">Gráfica Dual: Auditoría Estándar (370K In / 40K Out) vs. Suite 10 PDFs (1.64M In / 86.5K Out)</div>
+            </div>
+            <div style="display:flex; gap:8px; font-size:6.4pt; font-weight:700;">
+              <span style="display:flex; align-items:center; gap:4px; color:#e2e8f0;"><span style="width:9px; height:9px; border-radius:2px; background:#34d399; display:inline-block;"></span>Aud. Estándar</span>
+              <span style="display:flex; align-items:center; gap:4px; color:#94a3b8;"><span style="width:9px; height:9px; border-radius:2px; background:rgba(56,189,248,0.45); border:1px solid #38bdf8; display:inline-block;"></span>Suite 10 PDFs</span>
+            </div>
+          </div>
+
+          <!-- Row 1: Gemini 3.8 Flash -->
+          <div class="hbar-row hbar-row-active">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#34d399; font-size:8.5pt;">Gemini 3.8 Flash</strong>
+                <span class="pill pill-green" style="font-size:5.8pt; padding:1px 6px;">MOTOR BASE</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#a7f3d0;">$0.75 In / $3.75 Out</span>
+              </div>
+              <span class="pill pill-green" style="font-size:6.3pt;">1.0x Base</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 6.5%; background: linear-gradient(90deg, #059669, #34d399); box-shadow: 0 0 8px #10b981;"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 11.5%; background: rgba(52, 211, 153, 0.45); border-right: 2px solid #34d399;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#6ee7b7;">Est: $0.43 <span style="font-size:6.2pt; color:#a7f3d0;">(Batch $0.21)</span></div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#a7f3d0;">$1.55</strong> ($0.78)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Gemini 4.0 Argon -->
+          <div class="hbar-row">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#38bdf8; font-size:8.3pt;">Gemini 4.0 Argon</strong>
+                <span class="pill pill-blue" style="font-size:5.8pt; padding:1px 6px;">FRONTIER</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#94a3b8;">$2.00 In / $10.00 Out</span>
+              </div>
+              <span class="pill pill-blue" style="font-size:6.3pt;">2.67x vs Flash</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 15.5%; background: linear-gradient(90deg, #0284c7, #38bdf8);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 24.5%; background: rgba(56, 189, 248, 0.4); border-right: 2px solid #38bdf8;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#7dd3fc;">Est: $1.14 USD</div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#bae6fd;">$4.15 USD</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Gemini 3.1 Pro -->
+          <div class="hbar-row">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#60a5fa; font-size:8.3pt;">Gemini 3.1 Pro</strong>
+                <span class="pill pill-blue" style="font-size:5.8pt; padding:1px 6px;">RAZONAMIENTO</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#94a3b8;">$2.00 In / $12.00 Out</span>
+              </div>
+              <span class="pill pill-blue" style="font-size:6.3pt;">2.78x – 2.85x</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 17%; background: linear-gradient(90deg, #2563eb, #60a5fa);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 26%; background: rgba(96, 165, 250, 0.4); border-right: 2px solid #60a5fa;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#93c5fd;">Est: $1.22 USD</div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#bfdbfe;">$4.32 USD</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 4: Claude Fable 5.1 Medium -->
+          <div class="hbar-row">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#fcd34d; font-size:8.3pt;">Claude Fable 5.1 Medium</strong>
+                <span class="pill pill-amber" style="font-size:5.8pt; padding:1px 6px;">EXTERNO</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#94a3b8;">$3.00 In / $15.00 Out</span>
+              </div>
+              <span class="pill pill-amber" style="font-size:6.3pt;">4.0x (8.0x vs Batch)</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 24%; background: linear-gradient(90deg, #d97706, #fbbf24);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 36%; background: rgba(251, 191, 36, 0.4); border-right: 2px solid #fbbf24;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#fde68a;">Est: $1.71 USD</div>
+                <div style="font-size:6.8pt; color:#94a3b8;">10-PDF: <strong style="color:#fef08a;">$6.22 USD</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 5: Claude Opus 5.5 Max -->
+          <div class="hbar-row" style="margin-bottom:0; border-color: rgba(239,68,68,0.35); background: rgba(127,29,29,0.14);">
+            <div class="hbar-top">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:#f87171; font-size:8.3pt;">Claude Opus 5.5 Max</strong>
+                <span class="pill pill-red" style="font-size:5.8pt; padding:1px 6px;">NIVEL MAX</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:6.5pt; color:#fca5a5;">$15.00 / $75.00 <span style="color:#94a3b8;">(Est: $5/$25)</span></span>
+              </div>
+              <span class="pill pill-red" style="font-size:6.3pt;">20.0x (40x Batch / 6.7x Est)</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 158px; align-items:center; gap:8px;">
+              <div>
+                <div class="hbar-track">
+                  <div class="hbar-fill" style="width: 68%; background: linear-gradient(90deg, #dc2626, #f87171);"></div>
+                </div>
+                <div class="hbar-track" style="height:6.5px; margin-bottom:0;">
+                  <div class="hbar-fill" style="width: 100%; background: rgba(248, 113, 113, 0.5); border-right: 2px solid #ef4444;"></div>
+                </div>
+              </div>
+              <div style="text-align:right; font-family:'Roboto Mono',monospace; line-height:1.25;">
+                <div style="font-size:7.6pt; font-weight:700; color:#fca5a5;">Est: $8.55 <span style="font-size:6.2pt; color:#cbd5e1;">(Est $2.85)</span></div>
+                <div style="font-size:6.8pt; color:#fca5a5;">10-PDF: <strong>$31.09</strong> ($10.36)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Vertical Column Chart + Firestore Telemetry Breakdown -->
+        <div style="display:flex; flex-direction:column; gap:10px; justify-content:space-between;">
+          <!-- Top Right Card: Vertical Column Chart (Monthly Spend @ 1,000 Audits) -->
+          <div class="card" style="padding: 9px 12px; flex: 1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="card-title" style="font-size:9.2pt; margin-bottom:1px; color:#f8fafc;">Gasto Mensual @ 1,000 Auditorías / Mes</div>
+                <div style="font-size:6.6pt; color:#94a3b8;">Factura mensual de inferencia por 1,000 auditorías estándar multi-norma</div>
+              </div>
+              <span class="pill pill-green" style="font-size:6pt;">AHORRA $8,122 / MES</span>
+            </div>
+
+            <div class="vbar-chart">
+              <!-- Col 1: 3.8 Flash Batch -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#6ee7b7;">$214</div>
+                <div class="vbar-pillar" style="height: 8%; min-height: 7px; background: linear-gradient(180deg, #34d399, #059669); box-shadow: 0 0 8px rgba(16,185,129,0.5);"></div>
+                <div class="vbar-lbl" style="color:#6ee7b7;">3.8 Flash<br><span style="font-size:5.6pt; color:#94a3b8;">(Batch)</span></div>
+              </div>
+              <!-- Col 2: 3.8 Flash Std -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#34d399;">$428</div>
+                <div class="vbar-pillar" style="height: 14%; min-height: 12px; background: linear-gradient(180deg, #10b981, #047857); box-shadow: 0 0 8px rgba(16,185,129,0.4);"></div>
+                <div class="vbar-lbl" style="color:#34d399;">3.8 Flash<br><span style="font-size:5.6pt; color:#94a3b8;">(Est.)</span></div>
+              </div>
+              <!-- Col 3: 4.0 Argon -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#7dd3fc;">$1,140</div>
+                <div class="vbar-pillar" style="height: 27%; background: linear-gradient(180deg, #38bdf8, #0284c7);"></div>
+                <div class="vbar-lbl">4.0 Argon<br><span style="font-size:5.6pt; color:#94a3b8;">(2.67x)</span></div>
+              </div>
+              <!-- Col 4: 3.1 Pro -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#93c5fd;">$1,220</div>
+                <div class="vbar-pillar" style="height: 30%; background: linear-gradient(180deg, #60a5fa, #2563eb);"></div>
+                <div class="vbar-lbl">3.1 Pro<br><span style="font-size:5.6pt; color:#94a3b8;">(2.85x)</span></div>
+              </div>
+              <!-- Col 5: Fable 5.1 -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#fde68a;">$1,710</div>
+                <div class="vbar-pillar" style="height: 40%; background: linear-gradient(180deg, #fbbf24, #d97706);"></div>
+                <div class="vbar-lbl">Fable 5.1<br><span style="font-size:5.6pt; color:#94a3b8;">(4.0x)</span></div>
+              </div>
+              <!-- Col 6: Opus 5.5 Std -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#fdba74;">$2,850</div>
+                <div class="vbar-pillar" style="height: 56%; background: linear-gradient(180deg, #fb923c, #ea580c);"></div>
+                <div class="vbar-lbl">Opus 5.5<br><span style="font-size:5.6pt; color:#94a3b8;">(Est 6.7x)</span></div>
+              </div>
+              <!-- Col 7: Opus 5.5 Max -->
+              <div class="vbar-col">
+                <div class="vbar-val" style="color:#fca5a5;">$8,550</div>
+                <div class="vbar-pillar" style="height: 92%; background: linear-gradient(180deg, #f87171, #b91c1c); box-shadow: 0 0 10px rgba(239,68,68,0.4);"></div>
+                <div class="vbar-lbl" style="color:#fca5a5;">Opus Max<br><span style="font-size:5.6pt; color:#fca5a5;">(20.0x)</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Right Card: Firestore Token Telemetry Composition -->
+          <div class="card card-emerald" style="padding: 9px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <div class="card-title" style="font-size:8.8pt; margin-bottom:0; color:#6ee7b7;">Telemetría Real de Tokens (Cloud Firestore)</div>
+              <span style="font-family:'Roboto Mono',monospace; font-size:6.2pt; color:#a7f3d0;">15 Llamadas Map-Reduce / Aud.</span>
+            </div>
+
+            <!-- Profile A Segmented Bar -->
+            <div style="margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between; font-size:6.7pt; margin-bottom:2px;">
+                <span style="color:#e2e8f0; font-weight:700;">Perfil A: Auditoría Estándar de Arquitectura (408.6K tok)</span>
+                <span style="font-family:'Roboto Mono',monospace; color:#6ee7b7;">90.3% In / 9.7% Out</span>
+              </div>
+              <div style="display:flex; height:8px; border-radius:999px; overflow:hidden; background:#1e293b;">
+                <div style="width:90.3%; background:linear-gradient(90deg, #059669, #34d399);"></div>
+                <div style="width:9.7%; background:#f59e0b;"></div>
+              </div>
+              <div style="font-size:6.2pt; color:#94a3b8; margin-top:2px;">
+                Auditorías <code>MULTI-2026-0507</code> y <code>1250</code>: Promedio <code>368,827</code> Entrada + <code>39,812</code> Salida
+              </div>
+            </div>
+
+            <!-- Profile B Segmented Bar -->
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:6.7pt; margin-bottom:2px;">
+                <span style="color:#e2e8f0; font-weight:700;">Perfil B: Suite Completa 10 PDFs (1.725M tok)</span>
+                <span style="font-family:'Roboto Mono',monospace; color:#38bdf8;">95.0% In / 5.0% Out</span>
+              </div>
+              <div style="display:flex; height:8px; border-radius:999px; overflow:hidden; background:#1e293b;">
+                <div style="width:95.0%; background:linear-gradient(90deg, #0284c7, #38bdf8);"></div>
+                <div style="width:5.0%; background:#f59e0b;"></div>
+              </div>
+              <div style="font-size:6.2pt; color:#94a3b8; margin-top:2px;">
+                Auditorías <code>MULTI-2026-0437</code> y <code>8983</code>: Promedio <code>1,638,410</code> Entrada + <code>86,495</code> Salida (~136K ctx/lote)
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise • Economía Unitaria y Comparativa de Modelos</span>
+      <span>AegisAI Enterprise • Economía Unitaria y Comparativa de Modelos (Tarifas Oficiales 2026)</span>
       <span>Fuente de Telemetría: Cloud Firestore (aegis-ai-db) Auditorías MULTI-2026-0437, 8983, 0507 y 1250</span>
     </div>
   </div>
@@ -1496,26 +2033,26 @@ html_es = f"""<!DOCTYPE html>
     </div>
 
     <div class="title-block">
-      <span class="slide-category">ROI de Ingeniería y Desglose de Inversión</span>
-      <h2 class="slide-title">Cuánto Dinero Gastamos Creando AegisAI: $19.41 USD en Total</h2>
-      <p class="slide-subtitle">Contabilidad completa de consumo de tokens de IA e infraestructura Google Cloud desde el PoC en AI Studio hasta el Release Candidate.</p>
+      <span class="slide-category">ROI de Ingeniería y Desglose Multi-Modelo (80% Flash • 10% Argon • 5% Pro • 5% Opus)</span>
+      <h2 class="slide-title">Cuánto Dinero Gastamos Creando AegisAI: $215.24 USD en Total</h2>
+      <p class="slide-subtitle">Ingeniería multi-modelo optimizada entre PoC en AI Studio, Arquitectura de Sistema, Construcción Full-Stack, Hardening y QA Adversarial.</p>
     </div>
 
     <div class="slide-body">
       <div class="grid-4" style="margin-bottom: 10px;">
         <div class="card stat-box card-emerald">
-          <div class="stat-number" style="color: #34d399;">$19.41</div>
-          <div class="stat-label"><strong>Inversión Total Realizada</strong> para crear AegisAI (Tokens IA + GCP)</div>
+          <div class="stat-number" style="color: #34d399;">$215.24</div>
+          <div class="stat-label"><strong>Inversión Total Realizada</strong> creando AegisAI ($319.80 c/ bucles agénticos)</div>
         </div>
 
         <div class="card stat-box">
           <div class="stat-number" style="color: #38bdf8;">~71.0M</div>
-          <div class="stat-label">Tokens de Entrada Totales en AI Studio, Antigravity (171+ prompts) y Auditorías</div>
+          <div class="stat-label">Tokens de Entrada Totales (<strong>80% Flash</strong> por $77.18 • 10% Argon • 5% Pro • 5% Opus)</div>
         </div>
 
         <div class="card stat-box">
-          <div class="stat-number" style="color: #a78bfa;">$1,928</div>
-          <div class="stat-label">Lo que habría costado el mismo volumen de tokens en <strong>Claude Opus 5.5 Max</strong></div>
+          <div class="stat-number" style="color: #a78bfa;">$1,931</div>
+          <div class="stat-label">Lo que cuesta el mismo volumen si se ejecuta <strong>100% en Claude Opus 5.5 Max</strong></div>
         </div>
 
         <div class="card stat-box">
@@ -1527,46 +2064,53 @@ html_es = f"""<!DOCTYPE html>
       <table class="slide-table card" style="padding: 0;">
         <thead>
           <tr>
-            <th style="width: 25%;">Fase de Desarrollo</th>
-            <th style="width: 24%;">Plataforma y Modelo</th>
-            <th style="width: 23%;">Volumen / Actividad</th>
-            <th style="width: 14%;">Gasto Real</th>
-            <th style="width: 14%;">En Opus 5.5 Max</th>
+            <th style="width: 24%;">Fase y Rol en el Ciclo</th>
+            <th style="width: 24%;">Modelo y Participación</th>
+            <th style="width: 24%;">Alcance de Ingeniería y Tokens</th>
+            <th style="width: 14%;">Gasto Real (2026)</th>
+            <th style="width: 14%;">Si 100% Opus 5.5</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>1. Prueba de Concepto (PoC)</strong></td>
-            <td>Google AI Studio (<code>Gemini 3.8–3.6 Flash</code>)</td>
-            <td>~45 iteraciones • ~4.2M In / ~0.9M Out tokens</td>
-            <td><strong style="color:#6ee7b7;">$1.17 USD</strong></td>
+            <td><strong>1. PoC Rápido y Esquemas JSON</strong></td>
+            <td>AI Studio • <code>Gemini 3.6 Flash</code> (~6%)</td>
+            <td>~45 iteraciones PoC, JSON schema y PDFs • 4.20M In / 0.90M Out</td>
+            <td><strong style="color:#6ee7b7;">$6.53 USD</strong></td>
             <td>$130.50 USD</td>
           </tr>
           <tr>
-            <td><strong>2. Desarrollo Full-Stack y Manuales (Fases 1–7)</strong></td>
-            <td>Google Antigravity (<code>Gemini 3.8 Flash</code>)</td>
-            <td>171 prompts registrados + 16 PDFs • ~38.0M In / ~6.5M Out</td>
-            <td><strong style="color:#6ee7b7;">$9.60 USD</strong></td>
-            <td>$1,057.50 USD</td>
+            <td><strong>2. Arquitectura y Diseño Base</strong></td>
+            <td>Antigravity • <code>Gemini 3.1 Pro</code> (<strong>5%</strong>)</td>
+            <td>Topología Zero-Trust, Map-Reduce 12 lotes, 265 controles • 3.55M In / 0.58M Out</td>
+            <td><strong style="color:#6ee7b7;">$14.06 USD</strong></td>
+            <td>$96.45 USD</td>
           </tr>
           <tr>
-            <td><strong>3. Hardening Cloud y Remediación OWASP/ISO</strong></td>
-            <td>Google Antigravity (<code>Gemini 3.8 Flash</code>)</td>
-            <td>Argolis IAP, 308 tests reglas, 35 controles • ~24.0M In / ~3.8M Out</td>
-            <td><strong style="color:#6ee7b7;">$5.88 USD</strong></td>
-            <td>$645.00 USD</td>
+            <td><strong>3. Construcción, Manuales y Auditorías</strong></td>
+            <td>Antigravity + Vertex • <code>Gemini 3.8 Flash</code> (<strong>74%</strong>)</td>
+            <td>171 prompts, 17 PDFs ($65.85) + Auto-Auditorías ($4.80) • 52.60M In / 8.32M Out</td>
+            <td><strong style="color:#6ee7b7;">$70.65 USD</strong></td>
+            <td>$1,412.70 USD</td>
           </tr>
           <tr>
-            <td><strong>4. Auto-Auditorías en Vivo y Suites QA</strong></td>
-            <td>Vertex AI (<code>Gemini 3.8 / 3.1 Flash</code>)</td>
-            <td><code>MULTI-2026-0437</code>, <code>8983</code>, <code>0507</code>, <code>1250</code> • ~4.8M In / ~0.32M Out</td>
-            <td><strong style="color:#6ee7b7;">$0.91 USD</strong></td>
-            <td>$96.00 USD</td>
+            <td><strong>4. Hardening Profundo y Diagramas</strong></td>
+            <td>Antigravity • <code>Gemini 4.0 Argon</code> (<strong>10%</strong>)</td>
+            <td>Vertex ADC sin llaves, Cloud IAP, 308 tests Firestore, 4K • 7.10M In / 1.15M Out</td>
+            <td><strong style="color:#6ee7b7;">$25.70 USD</strong></td>
+            <td>$192.90 USD</td>
           </tr>
           <tr>
-            <td><strong>5. Infraestructura Google Cloud</strong></td>
-            <td>Cloud Build, Cloud Run, Firestore, Secret Mgr</td>
-            <td>9 builds de contenedor, Cloud Run scale-to-zero, <code>aegis-ai-db</code></td>
+            <td><strong>5. Bugfixing Adversarial y QA</strong></td>
+            <td>Antigravity • <code>Claude Opus 5.5 Max</code> (<strong>5%</strong>)</td>
+            <td>Red-team cruzado, auth tiempo constante, filtros SSRF/DNS • 3.55M In / 0.58M Out</td>
+            <td><strong style="color:#6ee7b7;">$96.45 USD</strong></td>
+            <td>$96.45 USD</td>
+          </tr>
+          <tr>
+            <td><strong>6. Infraestructura Serverless GCP</strong></td>
+            <td>Cloud Build (9x), Cloud Run, Firestore, IAP</td>
+            <td>9 builds de contenedor, Cloud Run scale-to-zero, <code>aegis-ai-db</code> • <strong>Total: $215.24 USD</strong></td>
             <td><strong style="color:#6ee7b7;">$1.85 USD</strong></td>
             <td>$1.85 USD</td>
           </tr>
@@ -1575,8 +2119,8 @@ html_es = f"""<!DOCTYPE html>
     </div>
 
     <div class="slide-footer">
-      <span>AegisAI Enterprise • Costo Total de Creación (TCO)</span>
-      <span>99.0% de Ahorro vs. Claude Opus 5.5 Max • 99.98% de Ahorro vs. Desarrollo Tradicional</span>
+      <span>AegisAI Enterprise • Costo Total Multi-Modelo ($215.24 Directo / $319.80 c/ Bucles Agénticos)</span>
+      <span>88.9% de Ahorro vs. 100% Claude Opus 5.5 Max ($1,930.85) • 99.77% de Ahorro vs. Desarrollo Tradicional</span>
     </div>
   </div>
 
@@ -1950,10 +2494,10 @@ html_es = f"""<!DOCTYPE html>
 
       <div class="card" style="margin-top: 14px; background: rgba(30, 41, 59, 0.5); border-color: rgba(59, 130, 246, 0.4);">
         <div class="card-title" style="color: #ffffff; font-size: 10pt;">
-          <span>🎯</span> Conclusión: Aseguramiento Empresarial Construido por $19.41 USD, Auditando por $0.08–$0.30 USD
+          <span>🎯</span> Conclusión: Aseguramiento Empresarial Construido por $215.24 USD Multi-Modelo, Auditando por $0.43–$1.55 USD (Batch: $0.21)
         </div>
         <p class="card-text" style="font-size: 8.5pt;">
-          Combinando <strong>Google AI Studio</strong>, <strong>Google Antigravity</strong> y <strong>Vertex AI Gemini 3.8 Flash</strong>, AegisAI demuestra que el aseguramiento OWASP AI-SVS e ISO/IEC 42001 de clase mundial puede construirse y operarse a un costo <strong>&gt;99% menor</strong> que las alternativas tradicionales.
+          Combinando <strong>Gemini 3.6 y 3.8 Flash (80%)</strong> para el PoC y la construcción masiva con <strong>Gemini 3.1 Pro (5%)</strong> en arquitectura y <strong>Gemini 4.0 Argon (10%) + Claude Opus 5.5 Max (5%)</strong> para hardening profundo y QA, AegisAI se construyó con un <strong>88.9% de ahorro frente a 100% Opus ($1,931)</strong> y un <strong>99.77% de ahorro frente al desarrollo tradicional (~$95k)</strong>.
         </p>
       </div>
     </div>

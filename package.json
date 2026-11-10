@@ -10,10 +10,12 @@
     "dev": "tsx server.ts",
     "lint": "tsc --noEmit",
     "start": "node dist/server.cjs",
+    "test:persistence": "npx tsx scripts/test_audit_persistence.mjs",
     "test:security": "node scripts/run_owasp_ai_security_tests.mjs",
     "test:integration": "node scripts/run_integration_verification_tests.mjs",
     "test:llm": "node scripts/test_llm_providers.mjs",
     "test:gcp": "node scripts/test_gcp_live_scanner.mjs",
+    "test:all": "npm run lint && npm run test:persistence && npm run test:security && npm run test:integration",
     "docs:pdf": "node scripts/generate_all_manuals_pdf.mjs"
   },
   "dependencies": {

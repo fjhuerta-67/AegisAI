@@ -685,7 +685,7 @@ def ai_platform() -> str:
     out += box("d-gemini", 2714, 432, 340, 348,
                hdr(G("vertexai", 38), "Vertex AI · Gemini", "Gemini Enterprise Agent Platform", live())
                + ul(["Primary <code>gemini-3.8-flash</code> · global endpoint",
-                     "Fallbacks <code>3.1-flash-lite</code> → <code>3.5-flash-lite</code> → <code>3.7-flash</code> → … → <code>3.1-pro-preview</code>",
+                     "Fallbacks <code>3.7-flash</code> → <code>3.6-flash</code> → <code>3.5-flash-lite</code> → <code>4-argon</code> → <code>3.1-pro-preview</code>",
                      "Keyless IAM: <code>aegis-runner-sa</code> holds <code>roles/aiplatform.user</code>",
                      "Structured JSON output · deterministic decoding (temp 0, topK 1)",
                      "Enterprise data governance: prompts and outputs are not used for training"], "b sm", "#9334E6")

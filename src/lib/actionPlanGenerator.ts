@@ -11,8 +11,9 @@ export interface ActionItem {
 export function extractActionItems(audit: AuditReport): ActionItem[] {
   const items: ActionItem[] = [];
   
-  audit.chapters.forEach(ch => {
-    ch.puntosProbados.forEach(p => {
+  (audit.chapters || []).forEach(ch => {
+    const puntos: PuntoProbado[] = ch.puntosProbados || (ch as any).evaluatedPoints || (ch as any).controls || [];
+    puntos.forEach(p => {
       if (p.status !== 'Aprobado') {
         const impact = (p.riskImpact || '').toLowerCase();
         let weight = 2;
@@ -22,8 +23,8 @@ export function extractActionItems(audit: AuditReport): ActionItem[] {
           weight = 3;
         }
         items.push({
-          chapterId: ch.chapterId,
-          chapterName: ch.chapterName,
+          chapterId: ch.chapterId || (ch as any).id || '',
+          chapterName: ch.chapterName || (ch as any).title || (ch as any).name || '',
           punto: p,
           priorityWeight: weight
         });

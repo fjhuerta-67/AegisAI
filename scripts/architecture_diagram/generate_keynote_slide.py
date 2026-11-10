@@ -41,41 +41,30 @@ MUTED  = "#5F6368"
 def pillar(id_, x, y, w, h, stage_num, title, subtitle, bg, border, tc):
     return f"""
 <div id="{id_}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px;
-  background:{bg};border:3px solid {border};border-radius:32px;overflow:hidden;box-shadow:0 8px 36px rgba(0,0,0,0.06);">
-  <div style="position:absolute;top:28px;left:32px;right:32px;display:flex;align-items:center;justify-content:space-between;">
+  background:{bg};border:3.5px solid {border};border-radius:36px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06);">
+  <div style="position:absolute;top:34px;left:34px;right:34px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
     <div>
-      <div style="font-size:16px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:{tc};">PILLAR {stage_num}</div>
-      <div style="font-size:30px;font-weight:900;color:{TEXT1};margin-top:4px;letter-spacing:-0.5px;">{title}</div>
-      <div style="font-size:18px;color:{MUTED};margin-top:4px;font-weight:700;">{subtitle}</div>
+      <div style="font-size:18px;font-weight:900;letter-spacing:3.5px;text-transform:uppercase;color:{tc};">PILLAR {stage_num}</div>
+      <div style="font-size:34px;font-weight:900;color:{TEXT1};margin-top:6px;letter-spacing:-0.6px;line-height:1.15;">{title}</div>
+      <div style="font-size:21px;color:{MUTED};margin-top:8px;font-weight:700;">{subtitle}</div>
     </div>
-    <div style="width:54px;height:54px;border-radius:16px;background:white;border:3px solid {border};
-      display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:{tc};box-shadow:0 4px 14px rgba(0,0,0,0.1);">{stage_num}</div>
+    <div style="width:62px;height:62px;border-radius:18px;background:white;border:3px solid {border};flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:{tc};box-shadow:0 4px 14px rgba(0,0,0,0.1);">{stage_num}</div>
   </div>
 </div>"""
 
-def keynote_card(id_, x, y, w, h, icon, headline, bullets, badge, bc=BLUE, bbg=LBLUE, icon_bg=LBLUE):
-    bullets_html = "".join(f"""
-      <div style="display:flex;align-items:center;gap:12px;margin-top:14px;">
-        <div style="width:10px;height:10px;border-radius:50%;background:{bc};flex-shrink:0;"></div>
-        <div style="font-size:20px;font-weight:700;color:{TEXT2};">{b}</div>
-      </div>""" for b in bullets)
-
+def keynote_card(id_, x, y, w, h, icon, headline, badge, bc=BLUE, bbg=LBLUE, icon_bg=LBLUE):
     return f"""
 <div id="{id_}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px;
-  background:white;border-radius:24px;border:2.5px solid {BORDER};
-  box-shadow:0 6px 24px rgba(0,0,0,0.07);padding:32px 34px;display:flex;flex-direction:column;justify-content:space-between;">
-  <div>
-    <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">
-      <div style="width:72px;height:72px;border-radius:20px;background:{icon_bg};display:flex;align-items:center;justify-content:center;font-size:40px;flex-shrink:0;">{icon}</div>
-      <div>
-        <div style="font-size:27px;font-weight:900;color:{TEXT1};line-height:1.2;letter-spacing:-0.3px;">{headline}</div>
-      </div>
-    </div>
-    <div style="margin-top:12px;">{bullets_html}</div>
+  background:white;border-radius:28px;border:3px solid {BORDER};
+  box-shadow:0 8px 28px rgba(0,0,0,0.07);padding:38px 36px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-grow:1;gap:24px;width:100%;">
+    <div style="width:104px;height:104px;border-radius:28px;background:{icon_bg};display:flex;align-items:center;justify-content:center;font-size:56px;box-shadow:0 4px 16px rgba(0,0,0,0.06);">{icon}</div>
+    <div style="font-size:34px;font-weight:900;color:{TEXT1};line-height:1.2;letter-spacing:-0.5px;max-width:500px;">{headline}</div>
   </div>
-  <div style="display:flex;align-items:center;justify-content:space-between;border-top:2px solid #F1F3F4;padding-top:18px;margin-top:16px;">
-    <span style="display:inline-block;background:{bbg};color:{bc};font-size:16px;font-weight:900;padding:8px 18px;border-radius:24px;letter-spacing:0.5px;">{badge}</span>
-    <span style="font-size:16px;font-weight:800;color:{GREEN};display:flex;align-items:center;gap:6px;">✓ Verified in Code</span>
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;border-top:2.5px solid #F1F3F4;padding-top:20px;margin-top:12px;">
+    <span style="display:inline-block;background:{bbg};color:{bc};font-size:18px;font-weight:900;padding:10px 22px;border-radius:28px;letter-spacing:0.5px;">{badge}</span>
+    <span style="font-size:18px;font-weight:800;color:{GREEN};display:flex;align-items:center;gap:6px;">✓ Verified in Code</span>
   </div>
 </div>"""
 
@@ -132,95 +121,47 @@ def build_html():
     p3 = pillar("p3", X3, TOP, W_COL, ZH, "3", "Google Vertex AI", "Model Armor &amp; Gemini", LORANGE, "#FFB74D", ORANGE)
     p4 = pillar("p4", X4, TOP, W_COL, ZH, "4", "Sovereign Storage &amp; Trail", "nam5 Multi-Region DB", LBROWN, "#FFD54F", AMBER)
 
-    # 2 SPACIOUS HERO CARDS PER PILLAR (Card Width = 567px, Height = 450px each!)
+    # 2 SPACIOUS HERO CARDS PER PILLAR (Card Width = 567px, Height = 410px each!)
     CW = 567
     CX1, CX2, CX3, CX4 = X1 + 24, X2 + 24, X3 + 24, X4 + 24
-    CY1 = TOP + 130
-    CY2 = CY1 + 450 + 36 # TOP + 616
-    CH = 450
+    CY1 = TOP + 180
+    CY2 = CY1 + 410 + 36 # TOP + 626
+    CH = 410
 
     # ── PILLAR 1: ZERO-TRUST PERIMETER ───────────────────────────────────────
     c1a = keynote_card("c1a", CX1, CY1, CW, CH, "🔒",
                        "Cloud IAP &amp; Google Auth",
-                       [
-                           "Strict Corporate Domain Allowlist",
-                           "Zero Public Backend Access",
-                           "Google OAuth 2.0 Identity Tokens",
-                           "Keyless Admin via Secret Manager"
-                       ],
                        "Zero Trust Perimeter", bc=BLUE, bbg=LBLUE, icon_bg=LBLUE)
 
     c1b = keynote_card("c1b", CX1, CY2, CW, CH, "🛡️",
                        "Anti-Denial-of-Wallet (DoW)",
-                       [
-                           "Built-In 30 Req / 15 Min Rolling Quota",
-                           "Active Concurrency &amp; Token Limiter",
-                           "Blocks Budget Exploitation Attacks",
-                           "Native Cloud Run Serverless Defense"
-                       ],
                        "Anti-DoW Guardrails", bc=ORANGE, bbg=LORANGE, icon_bg=LORANGE)
 
     # ── PILLAR 2: AEGISAI SERVERLESS CORE ────────────────────────────────────
     c2a = keynote_card("c2a", CX2, CY1, CW, CH, "🧠",
                        "Audit Intelligence Engine",
-                       [
-                           "Automated Architecture Blueprints Scoring",
-                           "ISO/IEC 42001 &amp; OWASP AISVS Mapping",
-                           "Verbatim Technical Evidence Extraction",
-                           "100% Serverless Cloud Run (Zero Idle Cost)"
-                       ],
                        "Core Audit Engine", bc=BLUE, bbg=LBLUE, icon_bg=LBLUE)
 
     c2b = keynote_card("c2b", CX2, CY2, CW, CH, "🔍",
                        "AI-Focused GCP Scanner",
-                       [
-                           "Audits Training Bucket IAM Permissions",
-                           "CMEK Encryption Checks on Vector DBs",
-                           "Deep AI Workload Audit (Beyond SCC)",
-                           "Real-Time SSE Streaming to Dashboard"
-                       ],
                        "AI-Specific Posture", bc=TEAL, bbg=LTEAL, icon_bg=LTEAL)
 
     # ── PILLAR 3: GOOGLE VERTEX AI & GUARDRAILS ──────────────────────────────
     c3a = keynote_card("c3a", CX3, CY1, CW, CH, "🛡️",
                        "Google Model Armor Firewall",
-                       [
-                           "Real-Time Inline Prompt-Injection Filter",
-                           "Blocks Jailbreak &amp; Toxic Payloads",
-                           "Sub-15ms Latency Overhead",
-                           "Active Defense Before Model Invocation"
-                       ],
                        "Active AI Guardrail", bc=RED, bbg=LRED, icon_bg=LRED)
 
     c3b = keynote_card("c3b", CX3, CY2, CW, CH, "✨",
                        "Gemini Multimodal Reasoning",
-                       [
-                           "Flagship Gemini Multimodal Reasoning",
-                           "Supports Any Gemini Model (3.8 / Pro)",
-                           "Ambient ADC Access (Zero Stored Keys)",
-                           "Commercial Terms: Zero Data Training"
-                       ],
                        "Enterprise Vertex AI", bc=ORANGE, bbg=LORANGE, icon_bg=LORANGE)
 
     # ── PILLAR 4: SOVEREIGN STORAGE & AUDIT TRAIL ────────────────────────────
     c4a = keynote_card("c4a", CX4, CY1, CW, CH, "🌍",
                        "Firestore nam5 Multi-Region",
-                       [
-                           "Authoritative Geo-Redundant US Storage",
-                           "Fully Encrypted At-Rest &amp; In-Transit",
-                           "Database-Tier Security Rules Enforced",
-                           "High-Availability Multi-Region SLA"
-                       ],
                        "nam5 Sovereign DB", bc=AMBER, bbg=LBROWN, icon_bg=LBROWN)
 
     c4b = keynote_card("c4b", CX4, CY2, CW, CH, "🚨",
                        "Security Alerts &amp; Audit Vault",
-                       [
-                           "Immutable Audit Reports Collection",
-                           "Live Log of Intercepted Prompt Attacks",
-                           "Tamper-Evident Cloud Logging Stream",
-                           "Exportable to Enterprise SIEM / SOC"
-                       ],
                        "Immutable Evidence", bc=PURPLE, bbg=LPURP, icon_bg=LPURP)
 
     # ── 2. TOP HERO FLOW RIBBON ──────────────────────────────────────────────
@@ -251,9 +192,9 @@ def build_html():
     defs = svg_defs(BLUE, GREEN, ORANGE, RED, AMBER, PURPLE, TEAL)
 
     # Gaps between pillars: x = 725, 1400, 2075
-    a1 = arr(695, TOP + 350, 755, TOP + 350, BLUE)
-    a2 = arr(1370, TOP + 350, 1430, TOP + 350, RED)
-    a3 = arr(2045, TOP + 350, 2105, TOP + 350, AMBER)
+    a1 = arr(695, TOP + 385, 755, TOP + 385, BLUE)
+    a2 = arr(1370, TOP + 385, 1430, TOP + 385, RED)
+    a3 = arr(2045, TOP + 385, 2105, TOP + 385, AMBER)
 
     ret_y = BOT - 48
     ret_arrow = f"""
@@ -269,9 +210,9 @@ def build_html():
 </svg>"""
 
     step_badges = "".join([
-        step_badge("①", 725,  TOP + 350, "Authorized Ingress", BLUE),
-        step_badge("②", 1400, TOP + 350, "Sanitized AI Call", RED),
-        step_badge("③", 2075, TOP + 350, "Store Evidence", AMBER),
+        step_badge("①", 725,  TOP + 385, "Authorized Ingress", BLUE),
+        step_badge("②", 1400, TOP + 385, "Sanitized AI Call", RED),
+        step_badge("③", 2075, TOP + 385, "Store Evidence", AMBER),
     ])
 
     # ── 4. BOTTOM COMPLIANCE & SOVEREIGNTY FOOTER ────────────────────────────

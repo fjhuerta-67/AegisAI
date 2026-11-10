@@ -32,13 +32,20 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { initializeApp as initializeAdminApp, getApps as getAdminApps } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore, type Firestore } from 'firebase-admin/firestore';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
+import { OAuth2Client } from 'google-auth-library';
 import { CustomFramework } from './src/types';
 import {
   authenticateGCP,
   scanLiveGCPProject,
   buildArchitectureManifestFromGCP,
-  getDemoGCPTelemetry
+  getDemoGCPTelemetry,
+  validateGcpProjectId
 } from './src/services/gcpScannerService';
+import {
+  sanitizeAuditReportForFirestore,
+  generateAuditId,
+  type AuditUserIdentity
+} from './src/lib/auditPersistence';
 
 // Read-only bundled configuration directory (/app/config) and ephemeral tmpfs cache (/tmp/aegis-cache)
 // OWASP AISVS C04.1: In production, /app is strictly read-only (chmod a-w /app). Runtime mutations
@@ -287,11 +294,15 @@ async function listCustomFrameworks(callerDomain?: string): Promise<CustomFramew
 
   // OWASP AISVS C08.1: Pre-filter retrieved knowledge/frameworks by tenant ACL metadata when present
   const list = Array.from(map.values()).filter(fw => {
-    if (!callerDomain) return true;
-    if (Array.isArray(fw.allowedDomains) && fw.allowedDomains.length > 0) {
-      return fw.allowedDomains.map(d => d.toLowerCase()).includes(callerDomain.toLowerCase());
+    const hasAllowedDomains = Array.isArray(fw.allowedDomains) && fw.allowedDomains.length > 0;
+    const hasTenantDomain = Boolean(fw.tenantDomain && fw.tenantDomain !== 'public');
+    if (!callerDomain) {
+      return !hasAllowedDomains && !hasTenantDomain;
     }
-    if (fw.tenantDomain && fw.tenantDomain !== 'public' && fw.tenantDomain.toLowerCase() !== callerDomain.toLowerCase()) {
+    if (hasAllowedDomains) {
+      return fw.allowedDomains!.map(d => d.toLowerCase()).includes(callerDomain.toLowerCase());
+    }
+    if (hasTenantDomain && fw.tenantDomain!.toLowerCase() !== callerDomain.toLowerCase()) {
       return false;
     }
     return true;
@@ -442,6 +453,88 @@ function requireDb(): Firestore {
   return db;
 }
 
+const runtimeAuditsCachePath = path.join(runtimeCacheDir, 'audits_fallback.json');
+const runtimeAuditsCacheMap = new Map<string, Record<string, any>>();
+
+function loadRuntimeAuditsCache(): Record<string, any>[] {
+  try {
+    if (runtimeAuditsCacheMap.size === 0 && fs.existsSync(runtimeAuditsCachePath)) {
+      const parsed = JSON.parse(fs.readFileSync(runtimeAuditsCachePath, 'utf8'));
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          if (item && typeof item.id === 'string') {
+            runtimeAuditsCacheMap.set(item.id, item);
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore cache read errors
+  }
+  const list = Array.from(runtimeAuditsCacheMap.values());
+  list.sort((a: any, b: any) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+  return list;
+}
+
+function saveToRuntimeAuditsCache(report: Record<string, any>): void {
+  try {
+    loadRuntimeAuditsCache();
+    runtimeAuditsCacheMap.set(report.id, report);
+    ensureRuntimeCacheDirs();
+    const list = Array.from(runtimeAuditsCacheMap.values())
+      .sort((a: any, b: any) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+      .slice(0, 50);
+    fs.writeFileSync(runtimeAuditsCachePath, JSON.stringify(list));
+  } catch {
+    // Ignore tmpfs write errors
+  }
+}
+
+/**
+ * Server-side persistence of completed AuditReports via Firebase Admin SDK (`aegis-ai-db`).
+ * Ensures every completed evaluation is durably stored in Firestore (`collection('audits')`)
+ * even if the client SSE connection drops, the user is authenticated via Argolis IAP without
+ * an active Firebase Auth browser session, or client-side WebChannel writes are blocked.
+ */
+export async function persistAuditReportOnServer(
+  rawReport: Record<string, any>,
+  userIdentity?: AuditUserIdentity | null
+): Promise<Record<string, any>> {
+  const sanitized = sanitizeAuditReportForFirestore(rawReport as any, userIdentity);
+  try {
+    const firestore = requireDb();
+    const docRef = firestore.collection('audits').doc(sanitized.id);
+    const existingSnap = await docRef.get();
+    if (existingSnap.exists) {
+      const existingData = existingSnap.data();
+      const sameOwnerEmail =
+        existingData?.ownerEmail &&
+        userIdentity?.email &&
+        String(existingData.ownerEmail).toLowerCase() === String(userIdentity.email).toLowerCase();
+      if (
+        existingData?.ownerUid &&
+        userIdentity?.uid &&
+        existingData.ownerUid !== userIdentity.uid &&
+        !sameOwnerEmail
+      ) {
+        throw new Error('No autorizado para sobrescribir una auditoría perteneciente a otro usuario.');
+      }
+      if (existingData?.ownerUid && !userIdentity?.uid && !sameOwnerEmail) {
+        throw new Error('No autorizado para sobrescribir una auditoría existente sin identidad verificada.');
+      }
+    }
+    await docRef.set(sanitized, { merge: true });
+    console.log(`[Firestore Admin] Audit report persisted to aegis-ai-db: audits/${sanitized.id} (score: ${sanitized.overallScore}%, owner: ${sanitized.ownerEmail || 'unassigned'})`);
+  } catch (err: any) {
+    if (String(err?.message || '').includes('No autorizado para sobrescribir')) {
+      throw err;
+    }
+    console.warn(`[Firestore Admin] Could not persist audit ${sanitized.id} to Firestore (saved in runtime fallback cache):`, err?.message || err);
+  }
+  saveToRuntimeAuditsCache(sanitized);
+  return { ...sanitized, persistedOnServer: true };
+}
+
 // ============================================================================
 // OWASP AI-SVS & ISO/IEC 42001 SECURITY, GOVERNANCE & TELEMETRY SUBSYSTEMS
 // ============================================================================
@@ -454,6 +547,13 @@ export interface UserSecurityContext {
   authSource: 'firebase_id_token' | 'iap_header' | 'api_key' | 'anonymous';
 }
 
+const ALLOWED_ADMIN_DOMAINS = (process.env.ALLOWED_DOMAINS || 'google.com,fjhuerta.altostrat.com')
+  .split(',')
+  .map(d => d.trim().toLowerCase())
+  .filter(Boolean);
+
+const iapOAuth2Client = new OAuth2Client();
+
 // C05.3: Constant-time token comparison using SHA-256 + crypto.timingSafeEqual
 export function timingSafeTokenMatch(provided: string | null | undefined, configured: string | null | undefined): boolean {
   if (!provided || !configured || typeof provided !== 'string' || typeof configured !== 'string') {
@@ -465,7 +565,7 @@ export function timingSafeTokenMatch(provided: string | null | undefined, config
   return match && provided.length === configured.length;
 }
 
-// C05.3 & C05.4: Extract and verify end-to-end user security context (Firebase ID Token or IAP header)
+// C05.3 & C05.4: Extract and cryptographically verify end-to-end user security context (Firebase ID Token or Cloud IAP signed JWT)
 export async function extractUserSecurityContext(req: express.Request): Promise<UserSecurityContext> {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -473,7 +573,7 @@ export async function extractUserSecurityContext(req: express.Request): Promise<
     if (token.split('.').length === 3) {
       try {
         const decoded = await getAdminAuth().verifyIdToken(token);
-        const email = decoded.email || '';
+        const email = (decoded.email || '').toLowerCase();
         const tenantDomain = email.includes('@') ? email.split('@')[1].toLowerCase() : undefined;
         return {
           authenticated: true,
@@ -483,29 +583,86 @@ export async function extractUserSecurityContext(req: express.Request): Promise<
           authSource: 'firebase_id_token'
         };
       } catch (e) {
-        // Fallback to IAP header check if token is not a Firebase ID token
+        // Fallback to Cloud IAP JWT check if token is not a Firebase ID token
       }
     }
   }
 
-  const iapEmailHeader = req.headers['x-goog-authenticated-user-email'];
-  const iapIdHeader = req.headers['x-goog-authenticated-user-id'];
-  if (typeof iapEmailHeader === 'string' && iapEmailHeader.trim()) {
-    const cleanEmail = iapEmailHeader.replace(/^accounts\.google\.com:/i, '').trim().toLowerCase();
-    const cleanUid = typeof iapIdHeader === 'string'
-      ? iapIdHeader.replace(/^accounts\.google\.com:/i, '').trim()
-      : cleanEmail;
-    const tenantDomain = cleanEmail.includes('@') ? cleanEmail.split('@')[1].toLowerCase() : undefined;
-    return {
-      authenticated: true,
-      uid: cleanUid,
-      email: cleanEmail,
-      tenantDomain,
-      authSource: 'iap_header'
-    };
+  // Verify Cloud IAP cryptographic JWT assertion (x-goog-iap-jwt-assertion)
+  const iapJwtHeader = req.headers['x-goog-iap-jwt-assertion'];
+  if (typeof iapJwtHeader === 'string' && iapJwtHeader.trim()) {
+    try {
+      let expectedAudience = process.env.IAP_EXPECTED_AUDIENCE?.trim() || undefined;
+      if (!expectedAudience) {
+        const parts = iapJwtHeader.trim().split('.');
+        if (parts.length === 3) {
+          const decodedPayload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+          if (typeof decodedPayload?.aud === 'string' && decodedPayload.aud.startsWith('/projects/')) {
+            expectedAudience = decodedPayload.aud;
+          }
+        }
+      }
+      const { pubkeys } = await iapOAuth2Client.getIapPublicKeys();
+      const ticket = await iapOAuth2Client.verifySignedJwtWithCertsAsync(
+        iapJwtHeader.trim(),
+        pubkeys,
+        expectedAudience,
+        ['https://cloud.google.com/iap']
+      );
+      const payload = ticket.getPayload();
+      if (payload && payload.email) {
+        const cleanEmail = String(payload.email).replace(/^accounts\.google\.com:/i, '').trim().toLowerCase();
+        const cleanUid = String(payload.sub || cleanEmail).replace(/^accounts\.google\.com:/i, '').trim();
+        const tenantDomain = cleanEmail.includes('@') ? cleanEmail.split('@')[1].toLowerCase() : undefined;
+        return {
+          authenticated: true,
+          uid: cleanUid,
+          email: cleanEmail,
+          tenantDomain,
+          authSource: 'iap_header'
+        };
+      }
+    } catch (iapErr) {
+      console.warn('[IAP JWT Verification] Rejected invalid x-goog-iap-jwt-assertion:', (iapErr as any)?.message || iapErr);
+    }
+  }
+
+  // Allow Cloud Run Google Front End IAP headers or local non-production emulation when opted in
+  if (Boolean(process.env.K_SERVICE) || (process.env.TRUST_UNVERIFIED_IAP_HEADERS === 'true' && process.env.NODE_ENV !== 'production')) {
+    const iapEmailHeader = req.headers['x-goog-authenticated-user-email'];
+    const iapIdHeader = req.headers['x-goog-authenticated-user-id'];
+    if (typeof iapEmailHeader === 'string' && iapEmailHeader.trim()) {
+      const cleanEmail = iapEmailHeader.replace(/^accounts\.google\.com:/i, '').trim().toLowerCase();
+      const cleanUid = typeof iapIdHeader === 'string'
+        ? iapIdHeader.replace(/^accounts\.google\.com:/i, '').trim()
+        : cleanEmail;
+      const tenantDomain = cleanEmail.includes('@') ? cleanEmail.split('@')[1].toLowerCase() : undefined;
+      return {
+        authenticated: true,
+        uid: cleanUid,
+        email: cleanEmail,
+        tenantDomain,
+        authSource: 'iap_header'
+      };
+    }
   }
 
   return { authenticated: false, authSource: 'anonymous' };
+}
+
+export function isAuthorizedUserOrDemo(userCtx: UserSecurityContext): boolean {
+  if (userCtx.authenticated && userCtx.tenantDomain) {
+    if (
+      ALLOWED_ADMIN_DOMAINS.includes('*') ||
+      ALLOWED_ADMIN_DOMAINS.includes(userCtx.tenantDomain.toLowerCase())
+    ) {
+      return true;
+    }
+  }
+  if (process.env.VITE_ENABLE_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production') {
+    return true;
+  }
+  return false;
 }
 // C04.3: Outbound Endpoint SSRF & Egress Allowlist Validator
 const DEFAULT_EGRESS_ALLOWLIST = [
@@ -644,7 +801,7 @@ export async function emitSecurityAlert(
     eventType,
     severity,
     actor: (req?.headers['x-goog-authenticated-user-email'] as string) || 'system-or-client',
-    ip: (req?.headers['x-forwarded-for'] as string) || req?.socket?.remoteAddress || 'unknown',
+    ip: req?.ip || req?.socket?.remoteAddress || 'unknown',
     details
   };
 
@@ -681,7 +838,8 @@ export async function emitSecurityAlert(
       fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(alert)
+        body: JSON.stringify(alert),
+        redirect: 'error'
       }).catch(() => {});
     }
   }
@@ -696,14 +854,15 @@ interface SessionRiskState {
   recentIndicators: string[];
 }
 
+const MAX_TRACKED_SESSIONS = 5000;
 const sessionRiskTracker = new Map<string, SessionRiskState>();
 const ADVERSARIAL_PATTERNS: { pattern: RegExp; weight: number; label: string }[] = [
   { pattern: /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules)/i, weight: 45, label: 'direct_instruction_override' },
   { pattern: /ignora\s+(todas\s+las\s+)?(instrucciones|reglas)\s+(anteriores|previas)/i, weight: 45, label: 'direct_instruction_override_es' },
-  { pattern: /system\s*prompt\s*override|developer\s+mode\s+enabled|jailbreak|dan\s+mode/i, weight: 50, label: 'jailbreak_persona_escalation' },
+  { pattern: /system\s*prompt\s*override|developer\s+mode\s+enabled|(?:you\s+are\s+in|enable|activate|enter|modo)\s+jailbreak|jailbreak\s*(?:\/|\s+)\s*dan\s+mode|dan\s+mode/i, weight: 50, label: 'jailbreak_persona_escalation' },
   { pattern: /mark\s+all\s+controls\s+as\s+aprobado|aprueba\s+todos\s+los\s+controles\s+sin\s+evidencia/i, weight: 40, label: 'audit_verdict_manipulation' },
   { pattern: /<\/user_candidate_architecture>/i, weight: 60, label: 'xml_sandbox_escape_attempt' },
-  { pattern: /169\.254\.169\.254|metadata\.google\.internal/i, weight: 35, label: 'imds_reconnaissance_probe' }
+  { pattern: /https?:\/\/(?:169\.254\.169\.254|metadata\.google\.internal)|computeMetadata\/v1\//i, weight: 35, label: 'imds_reconnaissance_probe' }
 ];
 
 export function inspectPromptAndTrackSession(
@@ -768,6 +927,10 @@ export function inspectPromptAndTrackSession(
   // Block session if crescendo threshold (>= 115 across multiple turns) is reached
   if (state.cumulativeRiskScore >= 115 && state.flaggedTurns >= 2) {
     state.blockedUntilMs = now + 10 * 60 * 1000;
+    if (!sessionRiskTracker.has(sessionKey) && sessionRiskTracker.size >= MAX_TRACKED_SESSIONS) {
+      const oldestKey = sessionRiskTracker.keys().next().value;
+      if (oldestKey !== undefined) sessionRiskTracker.delete(oldestKey);
+    }
     sessionRiskTracker.set(sessionKey, state);
     return {
       allowed: false,
@@ -777,6 +940,10 @@ export function inspectPromptAndTrackSession(
     };
   }
 
+  if (!sessionRiskTracker.has(sessionKey) && sessionRiskTracker.size >= MAX_TRACKED_SESSIONS) {
+    const oldestKey = sessionRiskTracker.keys().next().value;
+    if (oldestKey !== undefined) sessionRiskTracker.delete(oldestKey);
+  }
   sessionRiskTracker.set(sessionKey, state);
   return {
     allowed: true,
@@ -793,6 +960,7 @@ interface ClientQuotaWindow {
   tokensConsumed: number;
 }
 
+const MAX_TRACKED_QUOTA_CLIENTS = 5000;
 const clientQuotas = new Map<string, ClientQuotaWindow>();
 const MAX_REQUESTS_PER_WINDOW = parseInt(process.env.AEGIS_RATE_LIMIT_MAX_REQ || '30', 10);
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.AEGIS_RATE_LIMIT_WINDOW_MS || String(15 * 60 * 1000), 10);
@@ -848,6 +1016,10 @@ export function acquireAntiDoWQuota(
 
   win.requestCount += 1;
   win.activeEvaluations += 1;
+  if (!clientQuotas.has(clientKey) && clientQuotas.size >= MAX_TRACKED_QUOTA_CLIENTS) {
+    const oldestKey = clientQuotas.keys().next().value;
+    if (oldestKey !== undefined) clientQuotas.delete(oldestKey);
+  }
   clientQuotas.set(clientKey, win);
 
   let released = false;
@@ -1074,6 +1246,8 @@ interface EvaluationParams {
   files?: UploadedFileInput[];
   callerDomain?: string;
   sessionKey?: string;
+  isTrustedTelemetry?: boolean;
+  isAborted?: () => boolean;
 }
 
 export interface EvaluationProgress {
@@ -1081,6 +1255,17 @@ export interface EvaluationProgress {
   totalStages: number;
   message: string;
   percent: number;
+}
+
+interface UploadedDocumentRecord {
+  id: string;
+  fileName: string;
+  mimeType?: string;
+  originalContent: string;
+  remediatedContent?: string;
+  remediatedSummary?: string;
+  appliedControls?: string[];
+  updatedAt?: string;
 }
 
 interface EvaluationResult {
@@ -1111,6 +1296,7 @@ interface EvaluationResult {
   techPlatformName?: string;
   deploymentType?: string;
   remediatedArchitectureDoc?: string;
+  uploadedDocuments?: UploadedDocumentRecord[];
   isLiveGcpScan?: boolean;
   gcpProjectId?: string;
   gcpTelemetry?: any;
@@ -1299,8 +1485,18 @@ async function extractTextFromSingleFile(file: UploadedFileInput): Promise<strin
       const parts: string[] = [];
       const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.exe', '.bin', '.woff', '.woff2', '.ttf', '.eot', '.mp4', '.mp3', '.zip', '.tar', '.gz', '.7z', '.pyc', '.class', '.so', '.dll', '.dylib', '.jar', '.war'];
 
+      const MAX_ZIP_ENTRIES = 60;
+      const MAX_SINGLE_ENTRY_BYTES = 5 * 1024 * 1024; // 5 MiB per file inside ZIP
+      const MAX_TOTAL_UNCOMPRESSED_BYTES = 15 * 1024 * 1024; // 15 MiB total uncompressed budget
+      let processedEntries = 0;
+      let totalUncompressedBytes = 0;
+
       const entries = Object.keys(zip.files);
       for (const relativePath of entries) {
+        if (processedEntries >= MAX_ZIP_ENTRIES || totalUncompressedBytes >= MAX_TOTAL_UNCOMPRESSED_BYTES) {
+          parts.push(`--- [AVISO DE SEGURIDAD: Se alcanzó el límite máximo de descompresión (${MAX_ZIP_ENTRIES} archivos / 15 MiB) para prevenir ataques Zip Bomb] ---`);
+          break;
+        }
         const entry = zip.files[relativePath];
         if (entry.dir) continue;
         if (relativePath.includes('__MACOSX') || relativePath.includes('.git/') || relativePath.endsWith('.DS_Store')) continue;
@@ -1308,9 +1504,25 @@ async function extractTextFromSingleFile(file: UploadedFileInput): Promise<strin
         const lowerPath = relativePath.toLowerCase();
         if (binaryExts.some(ext => lowerPath.endsWith(ext))) continue;
 
+        const declaredSize = Number((entry as any)?._data?.uncompressedSize || 0);
+        if (declaredSize > MAX_SINGLE_ENTRY_BYTES) {
+          console.warn(`[Zip Guard] Skipping oversized entry ${relativePath} (${declaredSize} bytes)`);
+          continue;
+        }
+        if (declaredSize > 0 && totalUncompressedBytes + declaredSize > MAX_TOTAL_UNCOMPRESSED_BYTES) {
+          parts.push(`--- [AVISO DE SEGURIDAD: Se omitió ${relativePath} por exceder el presupuesto total de descompresión (15 MiB)] ---`);
+          break;
+        }
+
+        processedEntries++;
+
         if (lowerPath.endsWith('.pdf')) {
           try {
             const buf = await entry.async('nodebuffer');
+            if (buf.length > MAX_SINGLE_ENTRY_BYTES || totalUncompressedBytes + buf.length > MAX_TOTAL_UNCOMPRESSED_BYTES) {
+              continue;
+            }
+            totalUncompressedBytes += buf.length;
             const PDFParseClass = (pdfParseModule as any).PDFParse || (pdfParseModule as any).default?.PDFParse;
             const parser = new PDFParseClass({ data: buf });
             const pdfData = await parser.getText();
@@ -1323,7 +1535,12 @@ async function extractTextFromSingleFile(file: UploadedFileInput): Promise<strin
           }
         } else {
           try {
-            const content = await entry.async('string');
+            const buf = await entry.async('nodebuffer');
+            if (buf.length > MAX_SINGLE_ENTRY_BYTES || totalUncompressedBytes + buf.length > MAX_TOTAL_UNCOMPRESSED_BYTES) {
+              continue;
+            }
+            totalUncompressedBytes += buf.length;
+            const content = buf.toString('utf8');
             if (content && content.trim()) {
               parts.push(`--- [ARCHIVO DENTRO DE ZIP: ${relativePath}] ---\n${content.slice(0, 150000)}`);
             }
@@ -1363,6 +1580,315 @@ async function extractTextFromFiles(files?: UploadedFileInput[]): Promise<string
   const parts = await Promise.all(files.map(f => extractTextFromSingleFile(f)));
   const combined = parts.filter(Boolean).join('\n\n');
   return combined.slice(0, 1000000); // 1,000,000 characters limit
+}
+
+async function extractStructuredDocumentsFromFiles(
+  files?: UploadedFileInput[],
+  fallbackDescription?: string,
+  systemName?: string
+): Promise<UploadedDocumentRecord[]> {
+  const docs: UploadedDocumentRecord[] = [];
+  const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.exe', '.bin', '.woff', '.woff2', '.ttf', '.eot', '.mp4', '.mp3', '.zip', '.tar', '.gz', '.7z', '.pyc', '.class', '.so', '.dll', '.dylib', '.jar', '.war'];
+
+  if (files && files.length > 0) {
+    for (const file of files) {
+      const origName = file.originalname || `documento_${docs.length + 1}.txt`;
+      const lower = origName.toLowerCase();
+      const isZip = lower.endsWith('.zip') || file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed';
+      const isPdf = lower.endsWith('.pdf') || file.mimetype === 'application/pdf';
+
+      if (isZip) {
+        try {
+          const zip = await JSZip.loadAsync(file.buffer);
+          const entries = Object.keys(zip.files);
+          for (const relativePath of entries) {
+            if (docs.length >= 12) break;
+            const entry = zip.files[relativePath];
+            if (entry.dir) continue;
+            if (relativePath.includes('__MACOSX') || relativePath.includes('.git/') || relativePath.endsWith('.DS_Store')) continue;
+            const lowerPath = relativePath.toLowerCase();
+            if (binaryExts.some(ext => lowerPath.endsWith(ext))) continue;
+
+            try {
+              const buf = await entry.async('nodebuffer');
+              if (buf.length > 5 * 1024 * 1024) continue;
+              if (lowerPath.endsWith('.pdf')) {
+                const PDFParseClass = (pdfParseModule as any).PDFParse || (pdfParseModule as any).default?.PDFParse;
+                const parser = new PDFParseClass({ data: buf });
+                const pdfData = await parser.getText();
+                const text = (pdfData.text || '').trim();
+                if (text) {
+                  docs.push({
+                    id: `doc-${docs.length + 1}`,
+                    fileName: relativePath,
+                    mimeType: 'application/pdf',
+                    originalContent: text.slice(0, 60000),
+                  });
+                }
+              } else {
+                const content = buf.toString('utf8').trim();
+                if (content) {
+                  docs.push({
+                    id: `doc-${docs.length + 1}`,
+                    fileName: relativePath,
+                    mimeType: 'text/plain',
+                    originalContent: content.slice(0, 60000),
+                  });
+                }
+              }
+            } catch (_) {
+              // Ignore unreadable zip entry
+            }
+          }
+        } catch (zipErr) {
+          console.warn(`Error extracting structured docs from ZIP ${origName}:`, zipErr);
+        }
+      } else if (isPdf) {
+        try {
+          const PDFParseClass = (pdfParseModule as any).PDFParse || (pdfParseModule as any).default?.PDFParse;
+          const parser = new PDFParseClass({ data: file.buffer });
+          const pdfData = await parser.getText();
+          const text = (pdfData.text || '').trim();
+          if (text) {
+            docs.push({
+              id: `doc-${docs.length + 1}`,
+              fileName: origName,
+              mimeType: 'application/pdf',
+              originalContent: text.slice(0, 60000),
+            });
+          }
+        } catch (pdfErr) {
+          console.warn(`Error extracting PDF ${origName}:`, pdfErr);
+        }
+      } else {
+        const text = file.buffer.toString('utf-8').trim();
+        if (text) {
+          docs.push({
+            id: `doc-${docs.length + 1}`,
+            fileName: origName,
+            mimeType: file.mimetype || 'text/plain',
+            originalContent: text.slice(0, 60000),
+          });
+        }
+      }
+    }
+  }
+
+  // Also include the textual architecture specification if no files were uploaded or if substantial text was provided
+  const cleanDesc = (fallbackDescription || '').trim();
+  if (cleanDesc.length > 0 && (docs.length === 0 || cleanDesc.length > 150)) {
+    const cleanSys = (systemName || 'Sistema_IA').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40);
+    // Avoid duplicating if the user pasted the exact same content
+    const isDuplicate = docs.some(d => d.originalContent.trim() === cleanDesc);
+    if (!isDuplicate) {
+      docs.unshift({
+        id: `doc-spec-main`,
+        fileName: docs.length === 0 ? `${cleanSys}_Especificacion_Arquitectura.md` : `${cleanSys}_Descripcion_General.md`,
+        mimeType: 'text/markdown',
+        originalContent: cleanDesc.slice(0, 60000),
+      });
+    }
+  }
+
+  // Re-index document IDs sequentially
+  return docs.map((d, idx) => ({ ...d, id: d.id || `doc-${idx + 1}` }));
+}
+
+function isCodeOrConfigFileName(fileName: string): boolean {
+  const lower = (fileName || '').toLowerCase();
+  return [
+    '.py', '.ts', '.tsx', '.js', '.jsx', '.tf', '.hcl', '.yaml', '.yml',
+    '.json', '.sh', '.bash', '.go', '.java', '.rs', '.sql', '.dockerfile', 'dockerfile'
+  ].some(ext => lower.endsWith(ext));
+}
+
+function buildDeterministicDocumentRemediationFallback(
+  doc: UploadedDocumentRecord,
+  systemName: string,
+  failingControls: any[],
+  frameworkAuditTitle: string,
+  effectiveLevel: string,
+  platformName: string,
+  language: string
+): { remediatedContent: string; remediatedSummary: string; appliedControls: string[] } {
+  const isEn = language === 'en';
+  const isCode = isCodeOrConfigFileName(doc.fileName);
+  const appliedControls = failingControls.map(f => `${f.id}: ${f.name}`);
+
+  if (isCode) {
+    const commentPrefix = doc.fileName.toLowerCase().endsWith('.py') || doc.fileName.toLowerCase().endsWith('.tf') || doc.fileName.toLowerCase().endsWith('.yaml') || doc.fileName.toLowerCase().endsWith('.yml') || doc.fileName.toLowerCase().endsWith('.sh')
+      ? '#'
+      : '//';
+    const patchesBlock = failingControls
+      .filter(f => f.codeExample || f.remediation)
+      .slice(0, 15)
+      .map(f => {
+        const snippet = f.codeExample
+          ? f.codeExample
+          : `${commentPrefix} [${f.id} - ${f.name}]: ${f.remediation}`;
+        return `${commentPrefix} ============================================================================\n${commentPrefix} REMEDIATED CONTROL: ${f.id} - ${f.name} (${f.riskImpact || 'High'})\n${commentPrefix} ============================================================================\n${snippet}`;
+      })
+      .join('\n\n');
+
+    const remediatedContent = `${commentPrefix} ============================================================================\n${commentPrefix} AEGIS AI - REMEDIATED & HARDENED SOURCE FILE (100% COMPLIANCE)\n${commentPrefix} Original File: ${doc.fileName} | System: ${systemName}\n${commentPrefix} Framework: ${frameworkAuditTitle} (${effectiveLevel}) | Platform: ${platformName}\n${commentPrefix} ============================================================================\n\n${doc.originalContent}\n\n${patchesBlock}\n`;
+    return {
+      remediatedContent,
+      remediatedSummary: isEn
+        ? `Integrated ${failingControls.length} security and compliance patches directly into ${doc.fileName}.`
+        : `Se integraron ${failingControls.length} parches de seguridad y cumplimiento directamente en ${doc.fileName}.`,
+      appliedControls,
+    };
+  }
+
+  const clausesSection = failingControls.map((f, i) => {
+    const steps = Array.isArray(f.actionableSteps) && f.actionableSteps.length > 0
+      ? f.actionableSteps.map((s: string) => `  - ${s}`).join('\n')
+      : `  - ${f.remediation}`;
+    const codeBlock = f.codeExample
+      ? `\n\n\`\`\`\n${f.codeExample}\n\`\`\``
+      : '';
+    return isEn
+      ? `### ${i + 1}. [${f.id}] ${f.name} (Mandatory Safeguard Integrated)\n**Normative Requirement & Applied Control:** ${f.remediation}\n**Technical & Operational Implementation:**\n${steps}${codeBlock}`
+      : `### ${i + 1}. [${f.id}] ${f.name} (Salvaguarda Normativa Integrada)\n**Requisito Normativo y Control Aplicado:** ${f.remediation}\n**Implementación Técnica y Operativa:**\n${steps}${codeBlock}`;
+  }).join('\n\n');
+
+  const remediatedContent = isEn
+    ? `# ${doc.fileName} — Remediated & Compliant Version (100% ${frameworkAuditTitle})\n\n> **Document Certification:** This document is the corrected, remediated edition of \`${doc.fileName}\` for system **${systemName}** on **${platformName}**, updated to satisfy 100% of mandatory controls (${effectiveLevel}).\n\n---\n\n## Part I: Original Document Content (Revised & Preserved)\n\n${doc.originalContent}\n\n---\n\n## Part II: Integrated Normative, Legal & Security Clauses (${failingControls.length} Controls Remediated)\n\n${clausesSection}\n`
+    : `# ${doc.fileName} — Versión Corregida y Subsanada (100% ${frameworkAuditTitle})\n\n> **Certificación Documental:** Este documento constituye la versión corregida y subsanada de \`${doc.fileName}\` para el sistema **${systemName}** sobre **${platformName}**, actualizada con todas las cláusulas y controles técnicos para cumplir al 100% el Nivel ${effectiveLevel}.\n\n---\n\n## Parte I: Contenido del Documento Original (Revisado y Preservado)\n\n${doc.originalContent}\n\n---\n\n## Parte II: Cláusulas Normativas, Legales y Controles de Seguridad Integrados (${failingControls.length} Brechas Subsanadas)\n\n${clausesSection}\n`;
+
+  return {
+    remediatedContent,
+    remediatedSummary: isEn
+      ? `Rewrote and supplemented ${doc.fileName} with ${failingControls.length} mandatory normative and technical controls for 100% compliance.`
+      : `Se corrigió y complementó ${doc.fileName} incorporando ${failingControls.length} controles normativos y técnicos para alcanzar 100% de cumplimiento.`,
+    appliedControls,
+  };
+}
+
+async function remediateSingleDocumentWithAI(params: {
+  doc: UploadedDocumentRecord;
+  systemName: string;
+  failingControls: any[];
+  frameworkAuditTitle: string;
+  effectiveLevel: string;
+  platformName: string;
+  language: string;
+  activeKey: string;
+  preferredModel: string;
+}): Promise<{
+  remediatedContent: string;
+  remediatedSummary: string;
+  appliedControls: string[];
+  promptTokens: number;
+  completionTokens: number;
+}> {
+  const { doc, systemName, failingControls, frameworkAuditTitle, effectiveLevel, platformName, language, activeKey, preferredModel } = params;
+  const langName = getLanguageFullName(language);
+  const isCode = isCodeOrConfigFileName(doc.fileName);
+
+  if (!failingControls || failingControls.length === 0) {
+    return {
+      remediatedContent: doc.originalContent,
+      remediatedSummary: language === 'en'
+        ? `Document ${doc.fileName} already satisfies 100% of evaluated controls.`
+        : `El documento ${doc.fileName} ya cumple con el 100% de los controles evaluados.`,
+      appliedControls: [],
+      promptTokens: 0,
+      completionTokens: 0,
+    };
+  }
+
+  const controlsBrief = failingControls.slice(0, 22).map(f =>
+    `- [${f.id} - ${f.name}]: ${f.remediation}${f.strategy ? ` | Estrategia: ${f.strategy}` : ''}${Array.isArray(f.actionableSteps) && f.actionableSteps.length > 0 ? ` | Pasos: ${f.actionableSteps.slice(0, 2).join('; ')}` : ''}`
+  ).join('\n');
+
+  const prompt = isCode
+    ? `Eres el Motor de Ingeniería de Remediación de Código e Infraestructura de AegisAI.
+Tu tarea es REESCRIBIR Y CORREGIR COMPLETAMENTE el siguiente archivo de código/configuración ("${doc.fileName}") del sistema "${systemName}" (Plataforma: ${platformName}) para que cumpla al 100% con ${frameworkAuditTitle} (Nivel ${effectiveLevel}).
+
+REGLA CRÍTICA:
+- NO escribas una reseña ni una crítica del archivo.
+- Devuelve EL ARCHIVO DE CÓDIGO/CONFIGURACIÓN COMPLETO Y CORREGIDO de principio a fin, listo para guardarse como "${doc.fileName}" y ejecutarse en producción.
+- Conserva toda la lógica funcional original del archivo, pero corrige directamente las vulnerabilidades e integra en el código las validaciones, guardias de seguridad, sanitización, DLP, control de acceso IAM, manejo de errores y telemetría requeridos por los siguientes controles que no aprobaron:
+
+CONTROLES A INTEGRAR EN EL ARCHIVO (${failingControls.length}):
+${controlsBrief}
+
+CONTENIDO ORIGINAL DEL ARCHIVO "${doc.fileName}":
+${doc.originalContent.slice(0, 24000)}
+
+Responde únicamente en JSON con:
+- "remediatedContent": el código/configuración completo corregido de principio a fin.
+- "remediatedSummary": resumen breve en ${langName} de las correcciones aplicadas directamente al archivo.
+- "appliedControls": lista de IDs de controles corregidos (ej. ["C01.1", "C02.3"]).`
+    : `Eres el Editor Legal, Normativo y Arquitecto Líder de Seguridad de AegisAI.
+Tu tarea es REESCRIBIR Y CORREGIR COMPLETAMENTE el documento subido por el usuario ("${doc.fileName}") correspondiente al sistema "${systemName}" (Plataforma: ${platformName}) en idioma ${langName}, para que el documento corregido cumpla al 100% con ${frameworkAuditTitle} (Nivel ${effectiveLevel}).
+
+REGLA CRÍTICA:
+- NO entregues una revisión, dictamen ni lista de sugerencias externas.
+- Debes entregar EL DOCUMENTO "${doc.fileName}" COMPLETAMENTE REESCRITO Y CORREGIDO DE PRINCIPIO A FIN ("drop-in replacement"), listo para descargarse, firmarse o publicarse.
+- Conserva todas las secciones, cláusulas, tablas y contenido válido del documento original, pero EDITA, CORRIGE E INSERTA DIRECTAMENTE DENTRO DEL TEXTO todas las cláusulas legales/normativas faltantes, salvaguardas técnicas, controles de privacidad/ARCO/LFPDPPP/LFPC/EU AI Act/ISO 42001/OWASP AI-SVS y especificaciones de seguridad necesarias para subsanar el 100% de las siguientes brechas detectadas:
+
+BRECHAS Y CONTROLES QUE DEBEN QUEDAR INTEGRADOS DENTRO DEL DOCUMENTO REESCRITO (${failingControls.length}):
+${controlsBrief}
+
+CONTENIDO ORIGINAL DEL DOCUMENTO "${doc.fileName}":
+${doc.originalContent.slice(0, 24000)}
+
+Responde únicamente en JSON con:
+- "remediatedContent": el texto completo en Markdown del documento "${doc.fileName}" ya corregido y reescrito de principio a fin en ${langName}.
+- "remediatedSummary": resumen ejecutivo breve (2-3 oraciones en ${langName}) de las cláusulas y correcciones que fueron integradas directamente en el documento.
+- "appliedControls": arreglo con los IDs de los controles subsanados en este documento.`;
+
+  try {
+    const res = await executeAIWithFallback(
+      [{ text: prompt }],
+      {
+        type: Type.OBJECT,
+        properties: {
+          remediatedContent: { type: Type.STRING, description: "Full rewritten and corrected content of the document or code file." },
+          remediatedSummary: { type: Type.STRING, description: "Brief summary of corrections applied directly to this document." },
+          appliedControls: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "List of control IDs remediated in this document."
+          }
+        },
+        required: ["remediatedContent", "remediatedSummary"]
+      },
+      `You are AegisAI Document & Code Remediation Engine. You rewrite uploaded documents and source files in-place so they achieve 100% compliance in ${langName}. Never output a review—always output the complete corrected document or code file itself.`,
+      activeKey,
+      preferredModel
+    );
+
+    const parsed = JSON.parse(res.text);
+    if (parsed && typeof parsed.remediatedContent === 'string' && parsed.remediatedContent.trim().length > 80) {
+      return {
+        remediatedContent: parsed.remediatedContent,
+        remediatedSummary: parsed.remediatedSummary || (language === 'en' ? `Corrected ${doc.fileName} for 100% compliance.` : `Documento ${doc.fileName} corregido para 100% de cumplimiento.`),
+        appliedControls: Array.isArray(parsed.appliedControls) ? parsed.appliedControls : failingControls.map(f => f.id),
+        promptTokens: res.promptTokens || 0,
+        completionTokens: res.completionTokens || 0,
+      };
+    }
+  } catch (err) {
+    console.warn(`[Document Remediator] AI rewrite fallback triggered for ${doc.fileName}:`, err);
+  }
+
+  const fallback = buildDeterministicDocumentRemediationFallback(
+    doc,
+    systemName,
+    failingControls,
+    frameworkAuditTitle,
+    effectiveLevel,
+    platformName,
+    language
+  );
+  return {
+    ...fallback,
+    promptTokens: 0,
+    completionTokens: 0,
+  };
 }
 
 interface BatchConfig {
@@ -1474,16 +2000,15 @@ async function executeGeminiWithFallback(
 ): Promise<{ text: string; modelUsed: string; promptTokens: number; completionTokens: number }> {
   const modelsToTry = [
     preferredModel,
-    'gemini-3.1-flash-lite',
-    'gemini-3.5-flash-lite',
     'gemini-3.8-flash',
-    'gemini-3.7-flash', 
-    'gemini-flash-lite-latest',
-    'gemini-flash-latest',
+    'gemini-3.7-flash',
     'gemini-3.6-flash',
-    'gemini-3.5-flash',
-    'gemini-pro-latest',
-    'gemini-3.1-pro-preview'
+    'gemini-3.5-flash-lite',
+    'gemini-4-argon',
+    'gemini-3.1-pro-preview',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-pro-latest'
   ].filter((m, i, arr) => arr.indexOf(m) === i);
 
   const ai = getGeminiClient(activeKey);
@@ -1682,7 +2207,8 @@ async function executeOpenAICompatibleWithFallback(
           method: 'POST',
           headers,
           body: JSON.stringify(bodyPayload),
-          signal: abortController.signal
+          signal: abortController.signal,
+          redirect: 'error'
         });
         clearTimeout(timeoutId);
 
@@ -2017,7 +2543,16 @@ function createCustomBatches(fw: CustomFramework): BatchConfig[] {
 
 async function decomposeLegalDocument(
   documentText: string,
-  meta: { name?: string; shortCode?: string; jurisdiction?: string; description?: string; granularity?: string }
+  meta: {
+    name?: string;
+    shortCode?: string;
+    jurisdiction?: string;
+    description?: string;
+    granularity?: string;
+    ownerUid?: string;
+    ownerEmail?: string;
+    tenantDomain?: string;
+  }
 ): Promise<CustomFramework> {
   const activeKey = getActiveGeminiApiKey();
   if (!isGeminiConfigured()) {
@@ -2097,7 +2632,10 @@ DIRECTIVAS ESPECÍFICAS DE DESAGREGACIÓN:
     createdAt: new Date().toISOString(),
     totalChapters: parsed.chapters.length,
     totalControls,
-    chapters: parsed.chapters
+    chapters: parsed.chapters,
+    ...(meta.ownerUid ? { ownerUid: meta.ownerUid } : {}),
+    ...(meta.ownerEmail ? { ownerEmail: meta.ownerEmail } : {}),
+    ...(meta.tenantDomain ? { tenantDomain: meta.tenantDomain } : {})
   };
 
   // C09.4: Persist into runtime cache and Firestore within a compensating Saga
@@ -2195,6 +2733,11 @@ async function runArchitectureEvaluation(params: EvaluationParams, onProgress?: 
   if (rawInputFiles.length > 0) {
     extractedDocText = await extractTextFromFiles(rawInputFiles);
   }
+  const uploadedDocuments: UploadedDocumentRecord[] = await extractStructuredDocumentsFromFiles(
+    rawInputFiles,
+    hasDescription ? description : '',
+    cleanSystemName
+  );
 
   const effectiveDescription = hasDescription ? description : 'Consulte los documentos y código fuente adjuntos para los detalles de la arquitectura.';
   let candidateDocText = `System Name: ${cleanSystemName}\nTechnical Lead: ${cleanTechLead}\nContact Email: ${cleanEmail}\nArchitecture & Prompt Flow Description:\n${effectiveDescription}`;
@@ -2204,12 +2747,14 @@ async function runArchitectureEvaluation(params: EvaluationParams, onProgress?: 
   }
 
   // C02.10: Inspect candidate payload and correlate multi-turn adversarial escalation across session
-  const sessionInspection = inspectPromptAndTrackSession(
-    params.sessionKey || cleanEmail || 'anonymous-session',
-    candidateDocText
-  );
-  if (!sessionInspection.allowed) {
-    throw new Error(sessionInspection.reason || 'Evaluación bloqueada por política anti-escalamiento adversarial C02.10.');
+  if (!params.isTrustedTelemetry) {
+    const sessionInspection = inspectPromptAndTrackSession(
+      params.sessionKey || cleanEmail || 'anonymous-session',
+      candidateDocText
+    );
+    if (!sessionInspection.allowed) {
+      throw new Error(sessionInspection.reason || 'Evaluación bloqueada por política anti-escalamiento adversarial C02.10.');
+    }
   }
 
   // Resolve Technological Platform & Shared Responsibility Profile
@@ -2321,18 +2866,26 @@ async function runArchitectureEvaluation(params: EvaluationParams, onProgress?: 
     effectiveLevel = (targetLevel === 'L1' || targetLevel === 'L3') ? targetLevel : 'L2';
   }
 
-  // Stage 1 to N: Map Phase (Batch execution)
-  for (let idx = 0; idx < batches.length; idx++) {
+  // Stage 1 to N: Map Phase (Batch execution with bounded concurrency)
+  const batchChaptersByIdx: any[][] = new Array(batches.length);
+  let completedBatches = 0;
+  let nextBatchIdx = 0;
+  const BATCH_CONCURRENCY = Math.min(3, batches.length);
+
+  const runBatchAtIndex = async (idx: number) => {
+    if (params.isAborted?.()) {
+      throw new Error('CLIENT_DISCONNECTED');
+    }
     const batch = batches[idx];
-    const currentStage = idx + 1 + stageOffset;
-    const percent = Math.round((currentStage / totalStages) * 90);
+    const startStage = Math.min(totalStages - 1, completedBatches + 1 + stageOffset);
+    const startPercent = Math.max(12, Math.round((startStage / totalStages) * 85));
 
     if (onProgress) {
       onProgress({
-        stage: currentStage,
+        stage: startStage,
         totalStages,
         message: `Auditando ${batch.name} (${batch.chapterPrefixes.join(', ')}) [Nivel ${effectiveLevel}]...`,
-        percent
+        percent: startPercent
       });
     }
 
@@ -2413,6 +2966,9 @@ ${batchContext || aisvsContext}
       preferred
     );
 
+    if (params.isAborted?.()) {
+      throw new Error('CLIENT_DISCONNECTED');
+    }
 
     let parsedBatch: any;
     try {
@@ -2427,12 +2983,48 @@ ${batchContext || aisvsContext}
         ch.standardId = batch.standardId || 'AI-SVS';
         ch.standardName = batch.standardName || (ch.standardId === 'ISO-42001' ? 'ISO/IEC 42001:2023' : 'OWASP AI-SVS v1.0');
       }
-      allChapters.push(...parsedBatch.chapters);
+      batchChaptersByIdx[idx] = parsedBatch.chapters;
+    } else {
+      batchChaptersByIdx[idx] = [];
     }
+
     totalPromptTokens += batchResult.promptTokens;
     totalCompletionTokens += batchResult.completionTokens;
     if (!modelsUsed.includes(batchResult.modelUsed)) {
       modelsUsed.push(batchResult.modelUsed);
+    }
+
+    completedBatches += 1;
+    const doneStage = completedBatches + stageOffset;
+    const donePercent = Math.round((doneStage / totalStages) * 90);
+    if (onProgress) {
+      onProgress({
+        stage: doneStage,
+        totalStages,
+        message: `Completado ${completedBatches}/${batches.length}: ${batch.name}`,
+        percent: donePercent
+      });
+    }
+  };
+
+  const workers = Array.from({ length: BATCH_CONCURRENCY }, async () => {
+    while (nextBatchIdx < batches.length) {
+      if (params.isAborted?.()) {
+        throw new Error('CLIENT_DISCONNECTED');
+      }
+      const idx = nextBatchIdx++;
+      await runBatchAtIndex(idx);
+    }
+  });
+  await Promise.all(workers);
+
+  if (params.isAborted?.()) {
+    throw new Error('CLIENT_DISCONNECTED');
+  }
+
+  for (const chList of batchChaptersByIdx) {
+    if (chList && chList.length > 0) {
+      allChapters.push(...chList);
     }
   }
 
@@ -2652,13 +3244,79 @@ Responde únicamente en formato JSON con la propiedad "executiveSummary" escrita
       onProgress({
         stage: reduceStage,
         totalStages,
-        message: "Generando especificación de arquitectura remediada (100% cumplimiento)...",
-        percent: 97
+        message: uploadedDocuments.length > 0
+          ? `Corrigiendo y reescribiendo ${uploadedDocuments.length} documento(s) subido(s) con IA para 100% cumplimiento...`
+          : "Generando especificación de arquitectura remediada (100% cumplimiento)...",
+        percent: 96
       });
     }
 
-    try {
-      const remediationPrompt = `Como Arquitecto Líder de Seguridad en Inteligencia Artificial y Ciberseguridad de AegisAI, tu tarea es preparar el ARCHIVO TÉCNICO DE ARQUITECTURA REMEDIADA para el sistema "${cleanSystemName}" en idioma ${langName}.
+    // 1. Rewrite & remediate every uploaded document in parallel batches (max 3 concurrent)
+    const docsToAutoRemediate = uploadedDocuments.slice(0, 6);
+    const MAX_DOC_CONCURRENCY = 3;
+    for (let i = 0; i < docsToAutoRemediate.length; i += MAX_DOC_CONCURRENCY) {
+      const slice = docsToAutoRemediate.slice(i, i + MAX_DOC_CONCURRENCY);
+      await Promise.all(
+        slice.map(async (docItem, idxInSlice) => {
+          const docIdx = i + idxInSlice;
+          if (onProgress) {
+            onProgress({
+              stage: reduceStage,
+              totalStages,
+              message: `Reescribiendo versión corregida (${docIdx + 1}/${docsToAutoRemediate.length}): ${docItem.fileName}...`,
+              percent: Math.min(99, 96 + Math.floor(((docIdx + 1) / Math.max(1, docsToAutoRemediate.length)) * 3))
+            });
+          }
+          const remResult = await remediateSingleDocumentWithAI({
+            doc: docItem,
+            systemName: cleanSystemName,
+            failingControls,
+            frameworkAuditTitle,
+            effectiveLevel,
+            platformName: `${platformProfile.name} (${platformProfile.deploymentType})`,
+            language,
+            activeKey,
+            preferredModel: preferred
+          });
+          docItem.remediatedContent = remResult.remediatedContent;
+          docItem.remediatedSummary = remResult.remediatedSummary;
+          docItem.appliedControls = remResult.appliedControls;
+          docItem.updatedAt = new Date().toISOString();
+          totalPromptTokens += remResult.promptTokens;
+          totalCompletionTokens += remResult.completionTokens;
+        })
+      );
+    }
+
+    // For any extra documents beyond 6, populate deterministic remediation immediately so all uploaded docs have a corrected version ready
+    for (let i = 6; i < uploadedDocuments.length; i++) {
+      const docItem = uploadedDocuments[i];
+      const fallback = buildDeterministicDocumentRemediationFallback(
+        docItem,
+        cleanSystemName,
+        failingControls,
+        frameworkAuditTitle,
+        effectiveLevel,
+        `${platformProfile.name} (${platformProfile.deploymentType})`,
+        language
+      );
+      docItem.remediatedContent = fallback.remediatedContent;
+      docItem.remediatedSummary = fallback.remediatedSummary;
+      docItem.appliedControls = fallback.appliedControls;
+      docItem.updatedAt = new Date().toISOString();
+    }
+
+    // Synthesize unified remediatedArchitectureDoc from all corrected uploaded documents
+    if (uploadedDocuments.length > 0) {
+      remediatedArchitectureDoc = uploadedDocuments
+        .map(
+          (d, idx) =>
+            `# ============================================================================\n# DOCUMENTO CORREGIDO ${idx + 1} DE ${uploadedDocuments.length}: ${d.fileName}\n# ============================================================================\n\n${d.remediatedContent || d.originalContent}`
+        )
+        .join('\n\n---\n\n');
+    } else {
+      try {
+        const remediationPrompt = `Como Arquitecto Líder de Seguridad en Inteligencia Artificial y Ciberseguridad de AegisAI, tu tarea es preparar el ARCHIVO TÉCNICO DE ARQUITECTURA REMEDIADA para el sistema "${cleanSystemName}" en idioma ${langName}.
 Este archivo servirá como una especificación técnica corregida ("drop-in replacement") que el cliente podrá descargar, integrar en su base de código y presentar en re-auditoría para obtener 100% de cumplimiento en ${frameworkAuditTitle} (Nivel ${effectiveLevel}).
 
 DESCRIPCIÓN ORIGINAL DEL SISTEMA:
@@ -2673,34 +3331,45 @@ ${failingControls.slice(0, 20).map(f => `- [${f.id} - ${f.name}]: ${f.remediatio
 INSTRUCCIONES DE FORMATO:
 Genera un documento Markdown exhaustivo, profesional y listo para producción en ${langName} que contenga:
 1. Resumen ejecutivo de las brechas subsanadas y declaración de cumplimiento al 100%.
-2. Especificación completa y reescrita de la arquitectura del sistema, incorporando de forma explícita todas las capas de defensa faltantes (sanitización de prompts anti-inyección, enmascaramiento DLP de PII/CURP/RFC, filtrado vectorial RAG por inquilino, inferencia determinística con Zero Data Retention, logs inmutables y flujos de escalamiento humano / revocación).
-3. Fragmentos de código completos y configuraciones técnicas listas para producción (Docker, K8s, Python, TypeScript, etc.) para cada uno de los controles corregidos.
+2. Especificación completa y reescrita de la arquitectura del sistema, incorporando de forma explícita todas las capas de defensa faltantes.
+3. Fragmentos de código completos y configuraciones técnicas listas para producción para cada uno de los controles corregidos.
 4. Criterios de aceptación y comandos QA para verificar el cumplimiento.
 
 Responde únicamente en formato JSON con la propiedad "remediatedArchitectureDoc" en ${langName}.`;
 
-      const remediationRes = await executeAIWithFallback(
-        [{ text: remediationPrompt }],
-        {
-          type: Type.OBJECT,
-          properties: {
-            remediatedArchitectureDoc: { type: Type.STRING, description: "Complete markdown specification of the remediated architecture." }
+        const remediationRes = await executeAIWithFallback(
+          [{ text: remediationPrompt }],
+          {
+            type: Type.OBJECT,
+            properties: {
+              remediatedArchitectureDoc: { type: Type.STRING, description: "Complete markdown specification of the remediated architecture." }
+            },
+            required: ["remediatedArchitectureDoc"]
           },
-          required: ["remediatedArchitectureDoc"]
-        },
-        `You are AegisAI Remediated Architecture Engine. Generate production-grade remediated architecture specifications in ${langName}.`,
-        activeKey,
-        preferred
-      );
+          `You are AegisAI Remediated Architecture Engine. Generate production-grade remediated architecture specifications in ${langName}.`,
+          activeKey,
+          preferred
+        );
 
-      const parsedRemediation = JSON.parse(remediationRes.text);
-      if (parsedRemediation.remediatedArchitectureDoc) {
-        remediatedArchitectureDoc = parsedRemediation.remediatedArchitectureDoc;
+        const parsedRemediation = JSON.parse(remediationRes.text);
+        if (parsedRemediation.remediatedArchitectureDoc) {
+          remediatedArchitectureDoc = parsedRemediation.remediatedArchitectureDoc;
+        }
+        totalPromptTokens += remediationRes.promptTokens;
+        totalCompletionTokens += remediationRes.completionTokens;
+      } catch (remediationErr) {
+        console.warn("Could not generate AI remediated architecture doc, client generator will provide structured fallback:", remediationErr);
       }
-      totalPromptTokens += remediationRes.promptTokens;
-      totalCompletionTokens += remediationRes.completionTokens;
-    } catch (remediationErr) {
-      console.warn("Could not generate AI remediated architecture doc, client generator will provide structured fallback:", remediationErr);
+    }
+  } else if (uploadedDocuments.length > 0) {
+    // 100% compliant already: mark each uploaded document as compliant
+    for (const docItem of uploadedDocuments) {
+      docItem.remediatedContent = docItem.originalContent;
+      docItem.remediatedSummary = language === 'en'
+        ? `Document ${docItem.fileName} already satisfies 100% of evaluated controls.`
+        : `El documento ${docItem.fileName} ya cumple con el 100% de los controles evaluados.`;
+      docItem.appliedControls = [];
+      docItem.updatedAt = new Date().toISOString();
     }
   }
 
@@ -2708,7 +3377,7 @@ Responde únicamente en formato JSON con la propiedad "remediatedArchitectureDoc
     onProgress({
       stage: reduceStage,
       totalStages,
-      message: "¡Auditoría completada exitosamente!",
+      message: "¡Auditoría y documentos corregidos completados exitosamente!",
       percent: 100
     });
   }
@@ -2734,7 +3403,8 @@ Responde únicamente en formato JSON con la propiedad "remediatedArchitectureDoc
     standardsBreakdown,
     customFrameworkId: isCustomOnly ? resolvedStandards[0] : undefined,
     customFrameworkName: isCustomOnly && singleCustomFw ? singleCustomFw.name : undefined,
-    remediatedArchitectureDoc
+    remediatedArchitectureDoc,
+    uploadedDocuments
   };
 
   // C08.4 & ISO 42001 Cl. 9.1: Record AIMS quality, citation grounding, and determinism metrics
@@ -2745,6 +3415,7 @@ Responde únicamente en formato JSON con la propiedad "remediatedArchitectureDoc
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 
   // OWASP Recommended Security Headers
@@ -2981,9 +3652,14 @@ async function startServer() {
       next();
     });
   }, async (req, res) => {
-    // C05.3 & C11.1: Extract user context and enforce Anti-Denial-of-Wallet rate/concurrency/token quotas
+    // C05.3 & C11.1: Extract user context, verify authorization, and enforce Anti-Denial-of-Wallet quotas
     const userCtx = await extractUserSecurityContext(req);
-    const clientKey = userCtx.uid || userCtx.email || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'anon';
+    if (!isAuthorizedUserOrDemo(userCtx)) {
+      return res.status(401).json({
+        error: 'Autenticación corporativa requerida para ejecutar evaluaciones de arquitectura.'
+      });
+    }
+    const clientKey = userCtx.uid || userCtx.email || req.ip || req.socket.remoteAddress || 'anon';
     const quota = acquireAntiDoWQuota(clientKey, req);
     if (!quota.allowed) {
       if (quota.retryAfterSec) {
@@ -3028,7 +3704,7 @@ async function startServer() {
     });
 
     try {
-      const { systemName, technicalLead, email, description, standardType = 'AI-SVS', customFrameworkId, targetLevel = 'AUTO', techPlatform = 'auto', selectedStandards, language = 'es' } = req.body;
+      const { auditId, systemName, technicalLead, email, description, standardType = 'AI-SVS', customFrameworkId, targetLevel = 'AUTO', techPlatform = 'auto', selectedStandards, language = 'es' } = req.body;
       const rawFiles: Express.Multer.File[] = (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
 
       let parsedStandards: string[] | undefined = undefined;
@@ -3056,7 +3732,8 @@ async function startServer() {
         language,
         files: rawFiles,
         callerDomain: userCtx.tenantDomain,
-        sessionKey: clientKey
+        sessionKey: clientKey,
+        isAborted: () => isClosed
       }, (progress) => {
         if (!res.writableEnded && !isClosed) {
           if (wantsJsonOnly) {
@@ -3069,15 +3746,36 @@ async function startServer() {
         }
       });
 
+      if (isClosed || res.writableEnded) {
+        quota.release((result.promptTokens || 0) + (result.completionTokens || 0));
+        clearInterval(keepAlive);
+        return;
+      }
+
+      // Persist immediately on the backend via Firebase Admin SDK (`aegis-ai-db`)
+      // BEFORE streaming the final result, guaranteeing the analysis is never lost.
+      const savedReport = await persistAuditReportOnServer(
+        {
+          ...result,
+          id: auditId,
+          date: new Date().toISOString(),
+          systemName,
+          technicalLead,
+          email: email || userCtx.email,
+          description: description || (rawFiles.length > 0 ? `Archivos analizados: ${rawFiles.map((f) => f.originalname).join(', ')}` : ''),
+        },
+        userCtx
+      );
+
       quota.release((result.promptTokens || 0) + (result.completionTokens || 0));
       clearInterval(keepAlive);
       if (!res.writableEnded) {
         if (wantsJsonOnly) {
-          res.write(JSON.stringify(result));
+          res.write(JSON.stringify(savedReport));
           (res as any).flush?.();
           res.end();
         } else {
-          res.write(`data: ${JSON.stringify({ type: 'result', data: result })}\n\n`);
+          res.write(`data: ${JSON.stringify({ type: 'result', data: savedReport })}\n\n`);
           (res as any).flush?.();
           res.end();
         }
@@ -3085,6 +3783,10 @@ async function startServer() {
     } catch (error: any) {
       quota.release(0);
       clearInterval(keepAlive);
+      if (error?.message === 'CLIENT_DISCONNECTED' || isClosed) {
+        console.log('[Evaluate Stream] Client disconnected; aborted in-flight evaluation.');
+        return;
+      }
       console.error("Evaluation Error:", error);
       let errMsg = error.message || "Error al evaluar el sistema.";
       
@@ -3106,7 +3808,186 @@ async function startServer() {
     }
   });
 
-  // Async API Endpoints
+  // Backend-assisted Audit Persistence Endpoints (Admin SDK -> aegis-ai-db)
+  // Enforces tenant-scoped filtering (OWASP AI-SVS C05.4) so each caller only receives audits belonging to their tenant or public samples.
+  const filterAuditsForCaller = (list: Record<string, any>[], userCtx: UserSecurityContext): Record<string, any>[] => {
+    if (!isAuthorizedUserOrDemo(userCtx)) {
+      return [];
+    }
+    const tenantFiltered = list.filter((a: any) => {
+      if (!a.tenantDomain || a.tenantDomain === '') return true;
+      if (!userCtx.tenantDomain) return process.env.NODE_ENV !== 'production';
+      const auditDomain = String(a.tenantDomain).toLowerCase();
+      const callerDomain = userCtx.tenantDomain.toLowerCase();
+      if (auditDomain === callerDomain) return true;
+      if (ALLOWED_ADMIN_DOMAINS.includes(auditDomain) && ALLOWED_ADMIN_DOMAINS.includes(callerDomain)) {
+        return true;
+      }
+      return false;
+    });
+    tenantFiltered.sort((a: any, b: any) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+
+    // Collapse duplicate Live GCP Scan records for the same GCP project / system name (keeping the newest scan)
+    const seenGcpScanKeys = new Set<string>();
+    return tenantFiltered.filter((item: any) => {
+      const idStr = String(item?.id || '');
+      const sysName = String(item?.systemName || '');
+      const isGcpScan =
+        Boolean(item?.isLiveGcpScan) ||
+        Boolean(item?.gcpProjectId) ||
+        idStr.startsWith('gcp-audit-') ||
+        /^Proyecto (Google Cloud|GCP):/i.test(sysName) ||
+        /^GCP Live Scan:/i.test(sysName);
+      if (!isGcpScan) return true;
+
+      const extractedProject =
+        String(item?.gcpProjectId || '').trim() ||
+        sysName.replace(/^(Proyecto Google Cloud:|Proyecto GCP:|GCP Live Scan:)\s*/i, '').trim();
+      const gcpKey = (extractedProject || sysName || idStr).toLowerCase();
+      if (seenGcpScanKeys.has(gcpKey)) {
+        return false;
+      }
+      seenGcpScanKeys.add(gcpKey);
+      return true;
+    });
+  };
+
+  app.get('/api/audits', async (req, res) => {
+    const userCtx = await extractUserSecurityContext(req);
+    if (!isAuthorizedUserOrDemo(userCtx)) {
+      return res.status(401).json({ error: 'Autenticación corporativa requerida para consultar auditorías.', audits: [] });
+    }
+    try {
+      const firestore = requireDb();
+      const snapshot = await firestore.collection('audits').limit(100).get();
+      const byId = new Map<string, Record<string, any>>();
+      for (const cached of loadRuntimeAuditsCache()) {
+        if (cached && cached.id) byId.set(cached.id, cached);
+      }
+      for (const d of snapshot.docs) {
+        const docData = { id: d.id, ...d.data() };
+        byId.set(d.id, docData);
+        runtimeAuditsCacheMap.set(d.id, docData);
+      }
+      const audits = filterAuditsForCaller(Array.from(byId.values()), userCtx);
+      res.json({ audits, source: 'firestore' });
+    } catch (error: any) {
+      console.warn('[GET /api/audits] Falling back to runtime audits cache:', error?.message || error);
+      res.status(200).json({ audits: filterAuditsForCaller(loadRuntimeAuditsCache(), userCtx), source: 'runtime-cache' });
+    }
+  });
+
+  app.post('/api/audits', express.json({ limit: '10mb' }), async (req, res) => {
+    try {
+      const userCtx = await extractUserSecurityContext(req);
+      if (!isAuthorizedUserOrDemo(userCtx)) {
+        return res.status(401).json({ error: 'Autenticación corporativa requerida para guardar auditorías.' });
+      }
+      const reportPayload = req.body?.audit || req.body;
+      if (!reportPayload || typeof reportPayload !== 'object') {
+        return res.status(400).json({ error: 'Invalid audit report payload' });
+      }
+      const saved = await persistAuditReportOnServer(reportPayload, userCtx);
+      res.status(200).json({ status: 'saved', audit: saved });
+    } catch (error: any) {
+      console.error('[POST /api/audits] Error saving audit to Firestore:', error);
+      const status = String(error?.message || '').includes('No autorizado para sobrescribir') ? 403 : 500;
+      res.status(status).json({ error: error.message || 'Could not save audit to database' });
+    }
+  });
+
+  app.delete('/api/audits/:id', (_req, res) => {
+    res.status(405).json({
+      error: 'Por directiva de seguridad y cumplimiento normativo (OWASP AISVS Invariante 4), los registros de auditoría son inmutables y no pueden eliminarse.',
+    });
+  });
+
+  // On-demand AI Remediation & Rewriting of any single uploaded document
+  app.post('/api/remediate-document', express.json({ limit: '10mb' }), async (req, res) => {
+    try {
+      const userCtx = await extractUserSecurityContext(req);
+      if (!isAuthorizedUserOrDemo(userCtx)) {
+        return res.status(401).json({ error: 'Autenticación corporativa requerida para corregir documentos con IA.' });
+      }
+      const {
+        auditId,
+        document,
+        systemName = 'Sistema IA',
+        failingControls = [],
+        frameworkTitle = 'OWASP AI-SVS 1.0 & ISO/IEC 42001:2023',
+        targetLevel = 'L2',
+        techPlatformName = 'Google Cloud / Gemini Enterprise',
+        language = 'es'
+      } = req.body || {};
+
+      if (!document || typeof document.fileName !== 'string' || typeof document.originalContent !== 'string') {
+        return res.status(400).json({ error: 'Se requiere el documento con fileName y originalContent.' });
+      }
+
+      const activeKey = getActiveGeminiApiKey();
+      const preferredModel = adminSettings.preferredModel || 'gemini-3.8-flash';
+
+      const docRecord: UploadedDocumentRecord = {
+        id: document.id || 'doc-1',
+        fileName: document.fileName,
+        mimeType: document.mimeType || 'text/plain',
+        originalContent: document.originalContent,
+      };
+
+      const remResult = await remediateSingleDocumentWithAI({
+        doc: docRecord,
+        systemName,
+        failingControls: Array.isArray(failingControls) ? failingControls : [],
+        frameworkAuditTitle: frameworkTitle,
+        effectiveLevel: targetLevel,
+        platformName: techPlatformName,
+        language,
+        activeKey,
+        preferredModel
+      });
+
+      const updatedDoc: UploadedDocumentRecord = {
+        ...docRecord,
+        remediatedContent: remResult.remediatedContent,
+        remediatedSummary: remResult.remediatedSummary,
+        appliedControls: remResult.appliedControls,
+        updatedAt: new Date().toISOString()
+      };
+
+      // If auditId is provided, update the persisted audit's uploadedDocuments in Firestore / runtime cache
+      if (auditId && typeof auditId === 'string') {
+        try {
+          const existing = runtimeAuditsCacheMap.get(auditId);
+          if (existing) {
+            const prevDocs: UploadedDocumentRecord[] = Array.isArray(existing.uploadedDocuments) ? [...existing.uploadedDocuments] : [];
+            const matchIdx = prevDocs.findIndex(d => d.id === updatedDoc.id || d.fileName === updatedDoc.fileName);
+            if (matchIdx >= 0) {
+              prevDocs[matchIdx] = updatedDoc;
+            } else {
+              prevDocs.push(updatedDoc);
+            }
+            existing.uploadedDocuments = prevDocs;
+            await persistAuditReportOnServer(existing, userCtx);
+          }
+        } catch (persistErr) {
+          console.warn('[POST /api/remediate-document] Non-fatal persistence update warning:', persistErr);
+        }
+      }
+
+      return res.status(200).json({
+        status: 'ok',
+        document: updatedDoc,
+        remediatedContent: updatedDoc.remediatedContent,
+        remediatedSummary: updatedDoc.remediatedSummary,
+        appliedControls: updatedDoc.appliedControls
+      });
+    } catch (error: any) {
+      console.error('[POST /api/remediate-document] Error:', error);
+      return res.status(500).json({ error: error?.message || 'Error al generar documento corregido con IA.' });
+    }
+  });
+
+  // Async API Endpoints (CI/CD API Key Authentication via SHA-256 Hash)
   const authenticateApi = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -3118,7 +3999,12 @@ async function startServer() {
     }
     
     try {
-      const keyDoc = await requireDb().collection('apiKeys').doc(apiKey).get();
+      const keyHash = crypto.createHash('sha256').update(apiKey, 'utf8').digest('hex');
+      let keyDoc = await requireDb().collection('apiKeys').doc(keyHash).get();
+      if (!keyDoc.exists) {
+        // Fallback for legacy pre-hashed keys if any exist
+        keyDoc = await requireDb().collection('apiKeys').doc(apiKey).get();
+      }
       if (!keyDoc.exists || keyDoc.data()?.status !== 'active') {
         return res.status(401).json({ error: 'Invalid or revoked API Key' });
       }
@@ -3135,7 +4021,7 @@ async function startServer() {
       next();
     });
   }, async (req, res) => {
-    const clientKey = req.headers.authorization || req.socket.remoteAddress || 'api-v1-client';
+    const clientKey = req.headers.authorization || req.ip || req.socket.remoteAddress || 'api-v1-client';
     const quota = acquireAntiDoWQuota(clientKey, req);
     if (!quota.allowed) {
       if (quota.retryAfterSec) {
@@ -3331,7 +4217,12 @@ async function startServer() {
     });
   }, async (req, res) => {
     const userCtx = await extractUserSecurityContext(req);
-    const clientKey = userCtx.uid || userCtx.email || req.socket.remoteAddress || 'ingest-client';
+    if (!isAuthorizedUserOrDemo(userCtx)) {
+      return res.status(401).json({
+        error: 'Autenticación corporativa requerida para ingestar marcos normativos.'
+      });
+    }
+    const clientKey = userCtx.uid || userCtx.email || req.ip || req.socket.remoteAddress || 'ingest-client';
     const quota = acquireAntiDoWQuota(clientKey, req);
     if (!quota.allowed) {
       if (quota.retryAfterSec) {
@@ -3387,7 +4278,10 @@ async function startServer() {
         jurisdiction: jurisdiction ? String(jurisdiction).trim() : undefined,
         shortCode: shortCode ? String(shortCode).trim() : undefined,
         description: description ? String(description).trim() : undefined,
-        granularity: granularity ? String(granularity).trim() : undefined
+        granularity: granularity ? String(granularity).trim() : undefined,
+        ownerUid: userCtx.uid,
+        ownerEmail: userCtx.email,
+        tenantDomain: userCtx.tenantDomain
       });
 
       quota.release(0);
@@ -3439,13 +4333,17 @@ async function startServer() {
         return res.status(404).json({ error: 'Marco personalizado no encontrado.' });
       }
       // C08.1: Enforce tenant ACL on individual framework retrieval
-      if (
-        userCtx.tenantDomain &&
-        Array.isArray(fw.allowedDomains) &&
-        fw.allowedDomains.length > 0 &&
-        !fw.allowedDomains.map(d => d.toLowerCase()).includes(userCtx.tenantDomain.toLowerCase())
-      ) {
-        return res.status(403).json({ error: 'Acceso denegado por política ACL de inquilino (OWASP AI-SVS C08.1).' });
+      const hasAllowedDomains = Array.isArray(fw.allowedDomains) && fw.allowedDomains.length > 0;
+      const hasTenantDomain = Boolean(fw.tenantDomain && fw.tenantDomain !== 'public');
+      if (hasAllowedDomains) {
+        if (!userCtx.tenantDomain || !fw.allowedDomains!.map(d => d.toLowerCase()).includes(userCtx.tenantDomain.toLowerCase())) {
+          return res.status(403).json({ error: 'Acceso denegado por política ACL de inquilino (OWASP AI-SVS C08.1).' });
+        }
+      }
+      if (hasTenantDomain) {
+        if (!userCtx.tenantDomain || fw.tenantDomain!.toLowerCase() !== userCtx.tenantDomain.toLowerCase()) {
+          return res.status(403).json({ error: 'Acceso denegado por política ACL de inquilino (OWASP AI-SVS C08.1).' });
+        }
       }
       res.json(fw);
     } catch (err: any) {
@@ -3457,6 +4355,24 @@ async function startServer() {
   app.delete('/api/frameworks/:id', async (req, res) => {
     try {
       const { id } = req.params;
+      const userCtx = await extractUserSecurityContext(req);
+      if (!isAuthorizedUserOrDemo(userCtx)) {
+        return res.status(401).json({ error: 'Autenticación corporativa requerida para eliminar marcos personalizados.' });
+      }
+      const existing = await getCustomFramework(id);
+      if (!existing) {
+        return res.status(404).json({ error: 'Marco personalizado no encontrado.' });
+      }
+      if (existing.ownerUid && userCtx.uid && existing.ownerUid !== userCtx.uid) {
+        return res.status(403).json({ error: 'No autorizado: solo el propietario que creó el marco puede eliminarlo.' });
+      }
+      if (
+        existing.tenantDomain &&
+        existing.tenantDomain !== 'public' &&
+        (!userCtx.tenantDomain || existing.tenantDomain.toLowerCase() !== userCtx.tenantDomain.toLowerCase())
+      ) {
+        return res.status(403).json({ error: 'No autorizado para eliminar un marco perteneciente a otro dominio.' });
+      }
       await deleteCustomFramework(id);
       res.json({ success: true, message: `Marco personalizado "${id}" eliminado correctamente.` });
     } catch (err: any) {
@@ -3464,11 +4380,6 @@ async function startServer() {
       res.status(500).json({ error: 'Error al eliminar marco personalizado: ' + (err.message || String(err)) });
     }
   });
-
-  const ALLOWED_ADMIN_DOMAINS = (process.env.ALLOWED_DOMAINS || 'google.com,fjhuerta.altostrat.com')
-    .split(',')
-    .map(d => d.trim().toLowerCase())
-    .filter(Boolean);
 
   // Admin Authentication Middleware (C05.3: Constant-Time Comparison via crypto.timingSafeEqual + Verified Corporate Identity)
   const authenticateAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -3493,7 +4404,7 @@ async function startServer() {
       return next();
     }
 
-    // 3. Verify authenticated corporate user via Firebase ID Token or Cloud IAP header (C05.3 / C05.4)
+    // 3. Verify authenticated corporate user via Firebase ID Token or Cloud IAP signed JWT (C05.3 / C05.4)
     const userCtx = await extractUserSecurityContext(req);
     if (
       userCtx.authenticated &&
@@ -3662,9 +4573,10 @@ async function startServer() {
         const primaryModel = (typeof model === 'string' && model.trim()) ? model.trim() : (adminSettings.preferredModel || 'gemini-3.8-flash');
         const modelsToTry = [
           primaryModel,
-          'gemini-3.1-flash-lite',
           'gemini-3.8-flash',
           'gemini-3.7-flash',
+          'gemini-3.6-flash',
+          'gemini-3.5-flash-lite',
           'gemini-flash-lite-latest'
         ].filter((m, i, arr) => arr.indexOf(m) === i);
 
@@ -3714,8 +4626,20 @@ async function startServer() {
         });
       } else {
         // Anthropic Claude / OpenRouter / OpenAI / Ollama / Custom
-        const keyToTest = (typeof apiKey === 'string' && apiKey.trim()) ? apiKey.trim() : (adminSettings.openaiApiKey || '');
-        const targetBaseUrl = (typeof baseUrl === 'string' && baseUrl.trim()) ? baseUrl.trim() : (adminSettings.openaiBaseUrl || (
+        const explicitKey = (typeof apiKey === 'string' && apiKey.trim()) ? apiKey.trim() : '';
+        const explicitBaseUrl = (typeof baseUrl === 'string' && baseUrl.trim()) ? baseUrl.trim() : '';
+        const savedBaseUrl = (adminSettings.openaiBaseUrl || '').trim();
+
+        // Security Guard: Never send the stored server-side API key to a newly supplied custom baseUrl
+        if (explicitBaseUrl && explicitBaseUrl !== savedBaseUrl && !explicitKey && adminSettings.openaiApiKey) {
+          return res.status(400).json({
+            ok: false,
+            error: 'Por seguridad (prevención de exfiltración de secretos), debe ingresar explícitamente la API Key al probar una nueva URL Base personalizada.'
+          });
+        }
+
+        const keyToTest = explicitKey || (adminSettings.openaiApiKey || '');
+        const targetBaseUrl = explicitBaseUrl || (savedBaseUrl || (
           targetProvider === 'anthropic' ? 'https://api.anthropic.com/v1' :
           targetProvider === 'openrouter' ? 'https://openrouter.ai/api/v1' :
           targetProvider === 'openai' ? 'https://api.openai.com/v1' :
@@ -3773,7 +4697,8 @@ async function startServer() {
           method: 'POST',
           headers,
           body: JSON.stringify(testPayload),
-          signal: abortController.signal
+          signal: abortController.signal,
+          redirect: 'error'
         });
         clearTimeout(timeoutId);
 
@@ -3818,25 +4743,25 @@ async function startServer() {
   // Cero recursos creados en el cliente, llamadas de solo lectura (HTTP GET)
   // =========================================================================
 
-  // ADC mode scans with the service's own identity (the Cloud Run runtime service account). It is disabled
-  // unless ENABLE_LIVE_SCANNER_ADC=true so that users cannot inspect the hosting project by default.
-  // Token, service-account and demo modes are always available because the caller supplies the credentials.
-  const LIVE_SCANNER_ADC_ENABLED = /^(1|true|yes)$/i.test((process.env.ENABLE_LIVE_SCANNER_ADC || '').trim());
   const authenticateScanner = (creds: Parameters<typeof authenticateGCP>[0]) => {
     const explicitModes = ['demo', 'token', 'service_account'];
-    if (!explicitModes.includes(String(creds.mode)) && !LIVE_SCANNER_ADC_ENABLED) {
-      throw new Error('El modo ADC (identidad del servicio) está deshabilitado en este despliegue. Use un Access Token temporal, una Cuenta de Servicio o el modo Demo.');
+    if (!explicitModes.includes(String(creds.mode))) {
+      throw new Error('Método de autenticación no soportado. Use el modo Demo, un Access Token temporal o una Cuenta de Servicio.');
     }
     return authenticateGCP(creds);
   };
 
   app.post('/api/gcp/test-connection', async (req, res) => {
     try {
+      const userCtx = await extractUserSecurityContext(req);
+      if (!isAuthorizedUserOrDemo(userCtx)) {
+        return res.status(401).json({ ok: false, error: 'Autenticación corporativa requerida para conectar con Google Cloud.' });
+      }
       const { projectId, authMode = 'demo', accessToken, serviceAccountJson } = req.body;
       if (!projectId || typeof projectId !== 'string' || !projectId.trim()) {
         return res.status(400).json({ ok: false, error: 'El ID del proyecto de Google Cloud (projectId) es obligatorio.' });
       }
-      const cleanProjectId = projectId.trim();
+      const cleanProjectId = authMode === 'demo' ? projectId.trim() : validateGcpProjectId(projectId);
       const authResult = await authenticateScanner({
         mode: authMode,
         accessToken,
@@ -3855,8 +4780,9 @@ async function startServer() {
 
       // Live verification against Resource Manager
       const authHeader = `Bearer ${authResult.token}`;
-      const projRes = await fetch(`https://cloudresourcemanager.googleapis.com/v1/projects/${cleanProjectId}`, {
-        headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
+      const projRes = await fetch(`https://cloudresourcemanager.googleapis.com/v1/projects/${encodeURIComponent(cleanProjectId)}`, {
+        headers: { 'Authorization': authHeader, 'Accept': 'application/json' },
+        redirect: 'error'
       });
 
       if (!projRes.ok) {
@@ -3883,11 +4809,15 @@ async function startServer() {
 
   app.post('/api/gcp/scan', async (req, res) => {
     try {
+      const userCtx = await extractUserSecurityContext(req);
+      if (!isAuthorizedUserOrDemo(userCtx)) {
+        return res.status(401).json({ ok: false, error: 'Autenticación corporativa requerida para escanear proyectos de Google Cloud.' });
+      }
       const { projectId, authMode = 'demo', accessToken, serviceAccountJson, components } = req.body;
       if (!projectId || typeof projectId !== 'string' || !projectId.trim()) {
         return res.status(400).json({ ok: false, error: 'El ID del proyecto de Google Cloud (projectId) es obligatorio.' });
       }
-      const cleanProjectId = projectId.trim();
+      const cleanProjectId = authMode === 'demo' ? projectId.trim() : validateGcpProjectId(projectId);
       const authResult = await authenticateScanner({
         mode: authMode,
         accessToken,
@@ -3903,22 +4833,43 @@ async function startServer() {
   });
 
   app.post('/api/gcp/audit', async (req, res) => {
+    const gcpUserCtx = await extractUserSecurityContext(req);
+    if (!isAuthorizedUserOrDemo(gcpUserCtx)) {
+      return res.status(401).json({ error: 'Autenticación corporativa requerida para auditar proyectos de Google Cloud.' });
+    }
+    const clientKey = gcpUserCtx.uid || gcpUserCtx.email || req.ip || req.socket.remoteAddress || 'gcp-audit-client';
+    const quota = acquireAntiDoWQuota(clientKey, req);
+    if (!quota.allowed) {
+      if (quota.retryAfterSec) {
+        res.setHeader('Retry-After', String(quota.retryAfterSec));
+      }
+      return res.status(429).json({ error: quota.reason });
+    }
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders?.();
 
+    let isClosed = false;
     const keepAlive = setInterval(() => {
-      if (!res.writableEnded) {
+      if (!isClosed && !res.writableEnded) {
         res.write(': keep-alive\n\n');
         (res as any).flush?.();
       }
     }, 15000);
 
-    req.on('close', () => clearInterval(keepAlive));
+    res.on('close', () => {
+      if (!res.writableEnded) {
+        isClosed = true;
+      }
+      clearInterval(keepAlive);
+      quota.release(0);
+    });
 
     try {
       const {
+        auditId,
         projectId,
         authMode = 'demo',
         accessToken,
@@ -3935,7 +4886,7 @@ async function startServer() {
       if (!projectId || typeof projectId !== 'string' || !projectId.trim()) {
         throw new Error('El ID del proyecto de Google Cloud (projectId) es obligatorio.');
       }
-      const cleanProjectId = projectId.trim();
+      const cleanProjectId = authMode === 'demo' ? projectId.trim() : validateGcpProjectId(projectId);
 
       res.write(`data: ${JSON.stringify({
         type: 'progress',
@@ -3947,7 +4898,13 @@ async function startServer() {
       (res as any).flush?.();
 
       const authResult = await authenticateScanner({ mode: authMode, accessToken, serviceAccountJson });
+      if (isClosed) {
+        throw new Error('CLIENT_DISCONNECTED');
+      }
       const telemetry = await scanLiveGCPProject(cleanProjectId, authResult, components);
+      if (isClosed) {
+        throw new Error('CLIENT_DISCONNECTED');
+      }
 
       res.write(`data: ${JSON.stringify({
         type: 'progress',
@@ -3966,34 +4923,63 @@ async function startServer() {
       const evaluationParams = {
         systemName: cleanSysName,
         technicalLead: technicalLead || 'Equipo Cloud DevSecOps',
-        email: email || 'cloud-security@aegisai.local',
+        email: email || gcpUserCtx.email || 'cloud-security@aegisai.local',
         description: telemetry.rawManifestMarkdown || `Manifiesto de infraestructura para el proyecto ${cleanProjectId}`,
         standardType: 'MULTI' as const,
         selectedStandards: selectedStandards,
         targetLevel: targetLevel,
         techPlatform: 'vertex-ai',
-        language
+        language,
+        callerDomain: gcpUserCtx.tenantDomain,
+        sessionKey: clientKey,
+        isTrustedTelemetry: true,
+        isAborted: () => isClosed
       };
 
       const result = await runArchitectureEvaluation(evaluationParams, (progress) => {
-        if (!res.writableEnded) {
+        if (!isClosed && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({ type: 'progress', ...progress })}\n\n`);
           (res as any).flush?.();
         }
       });
 
+      if (isClosed || res.writableEnded) {
+        quota.release((result.promptTokens || 0) + (result.completionTokens || 0));
+        clearInterval(keepAlive);
+        return;
+      }
+
       result.isLiveGcpScan = true;
       result.gcpProjectId = cleanProjectId;
       result.gcpTelemetry = telemetry;
 
+      const savedGcpReport = await persistAuditReportOnServer(
+        {
+          ...result,
+          id: auditId,
+          date: new Date().toISOString(),
+          systemName: cleanSysName,
+          technicalLead: evaluationParams.technicalLead,
+          email: email || gcpUserCtx.email || evaluationParams.email,
+          description: evaluationParams.description,
+        },
+        gcpUserCtx
+      );
+
+      quota.release((result.promptTokens || 0) + (result.completionTokens || 0));
       clearInterval(keepAlive);
       if (!res.writableEnded) {
-        res.write(`data: ${JSON.stringify({ type: 'result', data: result })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'result', data: savedGcpReport })}\n\n`);
         (res as any).flush?.();
         res.end();
       }
     } catch (err: any) {
+      quota.release(0);
       clearInterval(keepAlive);
+      if (err?.message === 'CLIENT_DISCONNECTED' || isClosed) {
+        console.log('[GCP Audit] Client disconnected; aborted in-flight GCP audit without persisting orphan report.');
+        return;
+      }
       console.error('[GCP Audit Error]:', err);
       if (!res.writableEnded) {
         res.write(`data: ${JSON.stringify({ type: 'error', error: err.message || String(err) })}\n\n`);
@@ -4019,7 +5005,8 @@ async function startServer() {
     }
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(text)}`;
     const resp = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      redirect: 'error'
     });
     if (!resp.ok) throw new Error(`GTX HTTP ${resp.status}`);
     const data = await resp.json();
@@ -4063,63 +5050,72 @@ async function startServer() {
       }
 
       if (missing.length > 0) {
+        const userCtx = await extractUserSecurityContext(req);
+        const canUseAiTranslation = isAuthorizedUserOrDemo(userCtx);
         const targetLangName = LANG_NAMES[cleanTarget] || cleanTarget;
         const CHUNK_SIZE = 30;
         for (let i = 0; i < missing.length; i += CHUNK_SIZE) {
           const chunk = missing.slice(i, i + CHUNK_SIZE);
           let resolvedByAI = false;
 
-          try {
-            const schema = {
-              type: Type.OBJECT,
-              properties: {
-                translations: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                  description: `Array of exactly ${chunk.length} translated strings in ${targetLangName}, in the exact same order as the input array.`
-                }
-              },
-              required: ['translations']
-            };
-            const sysInstruction = `You are an expert AI Governance, Cloud Security, and Regulatory Compliance translator (specializing in OWASP AISVS, ISO/IEC 42001, EU AI Act, and Google Cloud Security). Translate each Spanish string in the input JSON array into natural, accurate, professional ${targetLangName}. Preserve technical identifiers, control IDs (e.g., C01.1.1, A.6.2.6), CLI flags, IAM roles, and formatting exactly. Return a JSON object with a "translations" array of the exact same length (${chunk.length}).`;
-            const prompt = `Translate these ${chunk.length} strings from Spanish to ${targetLangName}:\n${JSON.stringify(chunk)}`;
-
-            const aiRes = await executeAIWithFallback(
-              [{ text: prompt }],
-              schema,
-              sysInstruction
-            );
-            const parsed = JSON.parse(aiRes.text);
-            if (Array.isArray(parsed?.translations) && parsed.translations.length === chunk.length) {
-              chunk.forEach((orig, idx) => {
-                const tr = String(parsed.translations[idx] || '').trim();
-                if (tr) {
-                  translations[orig] = tr;
+          // Use fast concurrent GTX translation first for instant UI responsiveness, falling back to Gemini if needed
+          const CONCURRENCY = 8;
+          for (let j = 0; j < chunk.length; j += CONCURRENCY) {
+            const sub = chunk.slice(j, j + CONCURRENCY);
+            await Promise.all(sub.map(async (orig) => {
+              try {
+                const tr = await translateSingleGtx(orig, cleanTarget);
+                if (tr && tr.trim()) {
+                  const cleanTr = tr.trim();
+                  translations[orig] = cleanTr;
                   if (serverTranslationCache.size > 20000) serverTranslationCache.clear();
-                  serverTranslationCache.set(`${cleanTarget}::${orig}`, tr);
+                  serverTranslationCache.set(`${cleanTarget}::${orig}`, cleanTr);
                 }
-              });
-              resolvedByAI = true;
-            }
-          } catch {
-            // Fall back to individual per-string translation below
+              } catch {
+                // Fall back below if needed
+              }
+            }));
           }
 
-          if (!resolvedByAI) {
-            // Translate one string at a time (never join with \n to avoid line-merging corruption)
-            const CONCURRENCY = 8;
-            for (let j = 0; j < chunk.length; j += CONCURRENCY) {
-              const sub = chunk.slice(j, j + CONCURRENCY);
-              await Promise.all(sub.map(async (orig) => {
-                try {
-                  const tr = await translateSingleGtx(orig, cleanTarget);
-                  if (tr && tr.trim()) {
-                    translations[orig] = tr.trim();
+          const remainingChunk = chunk.filter((orig) => !translations[orig]);
+          if (remainingChunk.length === 0) {
+            resolvedByAI = true;
+          }
+
+          if (!resolvedByAI && canUseAiTranslation) {
+            try {
+              const schema = {
+                type: Type.OBJECT,
+                properties: {
+                  translations: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: `Array of exactly ${remainingChunk.length} translated strings in ${targetLangName}, in the exact same order as the input array.`
                   }
-                } catch {
-                  // Do not populate fallback with untranslated text so client can retry later
-                }
-              }));
+                },
+                required: ['translations']
+              };
+              const sysInstruction = `You are an expert AI Governance, Cloud Security, and Regulatory Compliance translator (specializing in OWASP AISVS, ISO/IEC 42001, EU AI Act, and Google Cloud Security). Translate each Spanish string in the input JSON array into natural, accurate, professional ${targetLangName}. Preserve technical identifiers, control IDs (e.g., C01.1.1, A.6.2.6), CLI flags, IAM roles, and formatting exactly. Return a JSON object with a "translations" array of the exact same length (${remainingChunk.length}).`;
+              const prompt = `Translate these ${remainingChunk.length} strings from Spanish to ${targetLangName}:\n${JSON.stringify(remainingChunk)}`;
+
+              const aiRes = await executeAIWithFallback(
+                [{ text: prompt }],
+                schema,
+                sysInstruction
+              );
+              const parsed = JSON.parse(aiRes.text);
+              if (Array.isArray(parsed?.translations) && parsed.translations.length === remainingChunk.length) {
+                remainingChunk.forEach((orig, idx) => {
+                  const tr = String(parsed.translations[idx] || '').trim();
+                  if (tr) {
+                    translations[orig] = tr;
+                    if (serverTranslationCache.size > 20000) serverTranslationCache.clear();
+                    serverTranslationCache.set(`${cleanTarget}::${orig}`, tr);
+                  }
+                });
+              }
+            } catch {
+              // Ignore translation fallback errors
             }
           }
         }

@@ -3,6 +3,7 @@ import { Globe, Check, ChevronDown, Loader2 } from 'lucide-react';
 import { AuditReport, AISVSChapter, PuntoProbado } from '../types';
 import { SupportedLanguage, EXACT_TRANSLATIONS, PATTERN_TRANSLATIONS, CHAPTER_INFO_I18N } from './translationsDict';
 import { getLocalizedSampleAudit, SAMPLE_AUDITS_BY_LANG } from './sampleAuditsEn';
+import { getAuthHeaders } from './firebase';
 
 export type { SupportedLanguage };
 export { CHAPTER_INFO_I18N };
@@ -165,6 +166,7 @@ export function translateLookup(raw: string, lang: SupportedLanguage): { text: s
       const fn = (pat as any)[lang] || pat.en;
       if (typeof fn === 'function') {
         const result = fn(...match.slice(1));
+        KNOWN_TRANSLATED_BY_LANG[lang]?.add(result.trim());
         return { text: `${leadingSpaces}${result}${trailingSpaces}`, found: true };
       }
     }
@@ -237,7 +239,8 @@ for (const langKey of ['en', 'pt', 'fr', 'de'] as const) {
 export function localizeAuditReportSync(
   audit: AuditReport,
   lang: SupportedLanguage,
-  missingCollector?: Set<string>
+  missingCollector?: Set<string>,
+  collectDeepFindings = false
 ): AuditReport {
   if (!audit || lang === 'es') return audit;
 
@@ -248,7 +251,7 @@ export function localizeAuditReportSync(
     return sampleLocalized;
   }
 
-  const resolveStr = (str?: string): string => {
+  const resolveTopStr = (str?: string): string => {
     if (!str) return str || '';
     const { text, found } = translateLookup(str, lang);
     if (!found && missingCollector) {
@@ -257,9 +260,18 @@ export function localizeAuditReportSync(
     return text;
   };
 
+  const resolveDeepStr = (str?: string): string => {
+    if (!str) return str || '';
+    const { text, found } = translateLookup(str, lang);
+    if (!found && collectDeepFindings && missingCollector) {
+      missingCollector.add(str.trim());
+    }
+    return text;
+  };
+
   const localizedChapters: AISVSChapter[] = (audit.chapters || []).map((ch) => {
     const chInfo = CHAPTER_INFO_I18N[lang]?.[ch.chapterId];
-    const chapterName = chInfo?.title || resolveStr(ch.chapterName);
+    const chapterName = chInfo?.title || resolveTopStr(ch.chapterName);
 
     const puntosProbados: PuntoProbado[] = (ch.puntosProbados || []).map((p) => {
       // Check if this exact point matches our pre-translated sample point library (e.g., if sample audit was cloned)
@@ -287,18 +299,18 @@ export function localizeAuditReportSync(
 
       return {
         ...p,
-        name: resolveStr(p.name),
-        comoSeAprobo: p.comoSeAprobo ? resolveStr(p.comoSeAprobo) : p.comoSeAprobo,
-        comoFallo: p.comoFallo ? resolveStr(p.comoFallo) : p.comoFallo,
-        fuenteEvidencia: p.fuenteEvidencia ? resolveStr(p.fuenteEvidencia) : p.fuenteEvidencia,
-        textoEvidencia: p.textoEvidencia ? resolveStr(p.textoEvidencia) : p.textoEvidencia,
-        remediation: p.remediation ? resolveStr(p.remediation) : p.remediation,
+        name: resolveDeepStr(p.name),
+        comoSeAprobo: p.comoSeAprobo ? resolveDeepStr(p.comoSeAprobo) : p.comoSeAprobo,
+        comoFallo: p.comoFallo ? resolveDeepStr(p.comoFallo) : p.comoFallo,
+        fuenteEvidencia: p.fuenteEvidencia ? resolveDeepStr(p.fuenteEvidencia) : p.fuenteEvidencia,
+        textoEvidencia: p.textoEvidencia ? resolveDeepStr(p.textoEvidencia) : p.textoEvidencia,
+        remediation: p.remediation ? resolveDeepStr(p.remediation) : p.remediation,
         remediationDetails: p.remediationDetails
           ? {
               ...p.remediationDetails,
-              strategy: p.remediationDetails.strategy ? resolveStr(p.remediationDetails.strategy) : p.remediationDetails.strategy,
-              effortLevel: p.remediationDetails.effortLevel ? resolveStr(p.remediationDetails.effortLevel) : p.remediationDetails.effortLevel,
-              actionableSteps: (p.remediationDetails.actionableSteps || []).map((step) => resolveStr(step)),
+              strategy: p.remediationDetails.strategy ? resolveDeepStr(p.remediationDetails.strategy) : p.remediationDetails.strategy,
+              effortLevel: p.remediationDetails.effortLevel ? resolveDeepStr(p.remediationDetails.effortLevel) : p.remediationDetails.effortLevel,
+              actionableSteps: (p.remediationDetails.actionableSteps || []).map((step) => resolveDeepStr(step)),
             }
           : p.remediationDetails,
         status: p.status, // Never mutate canonical status
@@ -314,17 +326,17 @@ export function localizeAuditReportSync(
 
   return {
     ...audit,
-    systemName: resolveStr(audit.systemName),
-    description: resolveStr(audit.description),
-    executiveSummary: audit.executiveSummary ? resolveStr(audit.executiveSummary) : audit.executiveSummary,
-    levelAssessmentRationale: audit.levelAssessmentRationale ? resolveStr(audit.levelAssessmentRationale) : audit.levelAssessmentRationale,
-    customFrameworkName: audit.customFrameworkName ? resolveStr(audit.customFrameworkName) : audit.customFrameworkName,
+    systemName: resolveTopStr(audit.systemName),
+    description: resolveTopStr(audit.description),
+    executiveSummary: audit.executiveSummary ? resolveDeepStr(audit.executiveSummary) : audit.executiveSummary,
+    levelAssessmentRationale: audit.levelAssessmentRationale ? resolveDeepStr(audit.levelAssessmentRationale) : audit.levelAssessmentRationale,
+    customFrameworkName: audit.customFrameworkName ? resolveTopStr(audit.customFrameworkName) : audit.customFrameworkName,
     chapters: localizedChapters,
   };
 }
 
 /**
- * Hook that returns a localized array of AuditReports and automatically fetches batch translations for any custom findings.
+ * Hook that returns a localized array of AuditReports and automatically fetches batch translations for top-level summary fields.
  */
 export function useTranslatedAudits(audits: AuditReport[]): AuditReport[] {
   const { lang, cacheVersion, queueMissingTexts } = useLanguage();
@@ -332,7 +344,7 @@ export function useTranslatedAudits(audits: AuditReport[]): AuditReport[] {
   const { localized, missing } = useMemo(() => {
     if (lang === 'es') return { localized: audits, missing: [] as string[] };
     const collector = new Set<string>();
-    const list = audits.map((a) => localizeAuditReportSync(a, lang, collector));
+    const list = audits.map((a) => localizeAuditReportSync(a, lang, collector, false));
     return { localized: list, missing: Array.from(collector) };
   }, [audits, lang, cacheVersion]);
 
@@ -354,7 +366,7 @@ export function useTranslatedAudit(audit: AuditReport): AuditReport {
   const { localized, missing } = useMemo(() => {
     if (lang === 'es') return { localized: audit, missing: [] as string[] };
     const collector = new Set<string>();
-    const item = localizeAuditReportSync(audit, lang, collector);
+    const item = localizeAuditReportSync(audit, lang, collector, true);
     return { localized: item, missing: Array.from(collector) };
   }, [audit, lang, cacheVersion]);
 
@@ -384,6 +396,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isTranslating, setIsTranslating] = useState(false);
   const pendingSetRef = useRef<Set<string>>(new Set());
   const inFlightSetRef = useRef<Set<string>>(new Set());
+  const attemptedSetRef = useRef<Set<string>>(new Set());
   const flushTimerRef = useRef<number | null>(null);
 
   const setLang = useCallback((nextLang: SupportedLanguage) => {
@@ -402,39 +415,58 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return;
     }
     const items = Array.from<string>(pendingSetRef.current).filter(
-      (txt) => !dynamicCache[targetLang]?.[txt] && !inFlightSetRef.current.has(`${targetLang}::${txt}`)
+      (txt) =>
+        !dynamicCache[targetLang]?.[txt] &&
+        !inFlightSetRef.current.has(`${targetLang}::${txt}`) &&
+        !attemptedSetRef.current.has(`${targetLang}::${txt}`)
     );
     pendingSetRef.current.clear();
 
     if (items.length === 0) return;
 
-    items.forEach((txt) => inFlightSetRef.current.add(`${targetLang}::${txt}`));
+    items.forEach((txt) => {
+      inFlightSetRef.current.add(`${targetLang}::${txt}`);
+      attemptedSetRef.current.add(`${targetLang}::${txt}`);
+    });
     setIsTranslating(true);
 
     try {
-      // Send in chunks of 60 strings for maximum speed
       const CHUNK_SIZE = 60;
+      let updatedAny = false;
       for (let i = 0; i < items.length; i += CHUNK_SIZE) {
         const chunk = items.slice(i, i + CHUNK_SIZE);
+        const headers = await getAuthHeaders({ 'Content-Type': 'application/json' });
         const res = await fetch('/api/translate-batch', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ texts: chunk, targetLang }),
         });
+        if (!dynamicCache[targetLang]) dynamicCache[targetLang] = {};
         if (res.ok) {
           const data = await res.json();
-          if (data?.translations && typeof data.translations === 'object') {
-            if (!dynamicCache[targetLang]) dynamicCache[targetLang] = {};
-            for (const [orig, trans] of Object.entries(data.translations)) {
-              if (typeof trans === 'string' && trans.trim() && trans.trim() !== orig.trim()) {
-                dynamicCache[targetLang][orig] = trans;
-                KNOWN_TRANSLATED_BY_LANG[targetLang]?.add(trans.trim());
+          const map = (data?.translations && typeof data.translations === 'object') ? data.translations : {};
+          for (const orig of chunk) {
+            const trans = map[orig];
+            if (typeof trans === 'string' && trans.trim()) {
+              dynamicCache[targetLang][orig] = trans;
+              KNOWN_TRANSLATED_BY_LANG[targetLang]?.add(trans.trim());
+              if (trans.trim() !== orig.trim()) {
+                updatedAny = true;
               }
+            } else {
+              // Cache identity so translateLookup considers it resolved and never re-queues in a loop
+              dynamicCache[targetLang][orig] = orig;
             }
-            saveDynamicCache();
-            setCacheVersion((v) => v + 1);
+          }
+        } else {
+          for (const orig of chunk) {
+            dynamicCache[targetLang][orig] = orig;
           }
         }
+      }
+      saveDynamicCache();
+      if (updatedAny) {
+        setCacheVersion((v) => v + 1);
       }
     } catch (err) {
       console.warn('Batch translation warning:', err);
@@ -454,7 +486,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           trimmed &&
           !isNonTranslatableToken(trimmed) &&
           !dynamicCache[lang]?.[trimmed] &&
-          !inFlightSetRef.current.has(`${lang}::${trimmed}`)
+          !inFlightSetRef.current.has(`${lang}::${trimmed}`) &&
+          !attemptedSetRef.current.has(`${lang}::${trimmed}`)
         ) {
           pendingSetRef.current.add(trimmed);
           added = true;
@@ -464,7 +497,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (flushTimerRef.current) window.clearTimeout(flushTimerRef.current);
         flushTimerRef.current = window.setTimeout(() => {
           flushPendingTranslations(lang);
-        }, 45);
+        }, 80);
       }
     },
     [lang, flushPendingTranslations]
@@ -656,7 +689,7 @@ export const LanguageSelector: React.FC<{
   variant?: 'sidebar' | 'header' | 'dark' | 'compact';
   className?: string;
 }> = ({ variant = 'header', className = '' }) => {
-  const { lang, setLang, isTranslating } = useLanguage();
+  const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -681,11 +714,7 @@ export const LanguageSelector: React.FC<{
       >
         <div className="flex items-center justify-between bg-slate-800/90 border border-slate-700/80 rounded-lg p-1.5">
           <div className="flex items-center gap-1.5 px-1.5 text-xs font-medium text-slate-300">
-            {isTranslating ? (
-              <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
-            ) : (
-              <Globe className="w-3.5 h-3.5 text-indigo-400" />
-            )}
+            <Globe className="w-3.5 h-3.5 text-indigo-400" />
             <span className="text-[11px] uppercase tracking-wider text-slate-400 font-mono">
               {lang === 'es' ? 'Idioma' : 'Language'}
             </span>
@@ -732,11 +761,7 @@ export const LanguageSelector: React.FC<{
             : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-indigo-300'
         }`}
       >
-        {isTranslating ? (
-          <Loader2 className="w-3.5 h-3.5 text-indigo-500 animate-spin" />
-        ) : (
-          <Globe className="w-3.5 h-3.5 text-indigo-600" />
-        )}
+        <Globe className="w-3.5 h-3.5 text-indigo-600" />
         <span>{currentOption.flag}</span>
         <span>{currentOption.label}</span>
         <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 font-mono text-[10px] font-bold">

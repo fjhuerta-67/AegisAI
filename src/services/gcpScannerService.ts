@@ -1,4 +1,4 @@
-import { GoogleAuth, JWT } from 'google-auth-library';
+import { JWT } from 'google-auth-library';
 import { GCPAuthMode, GCPScanComponents, GCPScanTelemetry, GCPResourceItem } from '../types';
 
 export interface GCPAuthCredentials {
@@ -16,7 +16,7 @@ export interface GCPAuthResult {
 
 /**
  * Autentica contra Google Cloud sin persistir archivos en disco.
- * Soporta ADC (Cloud Run), Bearer Token, Service Account en memoria y Demo.
+ * Soporta Modo Demo, Bearer Token temporal y Service Account en memoria.
  */
 export async function authenticateGCP(creds: GCPAuthCredentials): Promise<GCPAuthResult> {
   if (creds.mode === 'demo') {
@@ -65,24 +65,7 @@ export async function authenticateGCP(creds: GCPAuthCredentials): Promise<GCPAut
     }
   }
 
-  // Por defecto: Application Default Credentials (ADC) o Cloud Run Metadata Server
-  try {
-    const auth = new GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/cloud-platform.read-only', 'https://www.googleapis.com/auth/cloud-platform']
-    });
-    const client = await auth.getClient();
-    const tokenRes = await client.getAccessToken();
-    if (!tokenRes.token) {
-      throw new Error('No se pudo obtener credenciales ADC de Google Cloud en el entorno.');
-    }
-    return {
-      token: tokenRes.token,
-      modeUsed: 'adc',
-      isDemo: false
-    };
-  } catch (e: any) {
-    throw new Error(`No se detectaron Application Default Credentials (ADC) activas: ${e.message}`);
-  }
+  throw new Error('Método de autenticación no soportado. Utilice Modo Demo, Token Temporal o Cuenta de Servicio JSON.');
 }
 
 /**
@@ -112,11 +95,21 @@ async function callGCPAPI(url: string, token: string): Promise<any> {
   return await res.json();
 }
 
+const GCP_PROJECT_ID_REGEX = /^[a-z][a-z0-9-]{4,28}[a-z0-9]$/;
+
+export function validateGcpProjectId(rawProjectId: unknown): string {
+  const clean = typeof rawProjectId === 'string' ? rawProjectId.trim().toLowerCase() : '';
+  if (!GCP_PROJECT_ID_REGEX.test(clean)) {
+    throw new Error('ID de proyecto de Google Cloud inválido. Debe tener entre 6 y 30 caracteres (letras minúsculas, números y guiones).');
+  }
+  return encodeURIComponent(clean);
+}
+
 /**
  * Escanea un proyecto en vivo de Google Cloud mediante sus APIs oficiales
  */
 export async function scanLiveGCPProject(
-  projectId: string,
+  rawProjectId: string,
   authResult: GCPAuthResult,
   components: GCPScanComponents = {
     iam: true,
@@ -128,8 +121,11 @@ export async function scanLiveGCPProject(
   }
 ): Promise<GCPScanTelemetry> {
   if (authResult.isDemo) {
-    return getDemoGCPTelemetry(projectId);
+    const demoProjectId = (typeof rawProjectId === 'string' && rawProjectId.trim()) ? rawProjectId.trim() : 'aegis-fintech-ai-prod';
+    return getDemoGCPTelemetry(demoProjectId);
   }
+
+  const projectId = validateGcpProjectId(rawProjectId);
 
   const token = authResult.token;
   if (!token) {

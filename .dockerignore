@@ -18,3 +18,4 @@ docs/.temp_html
 # Ajustes guardados localmente desde la UI de Administración (pueden contener claves): no se incluyen en la imagen.
 config/admin-settings.json
 scripts/argolis/config.env
+!firebase-applet-config.local.json

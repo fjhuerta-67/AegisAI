@@ -458,29 +458,29 @@ def slide_evolution_4stages(prs: Presentation, idx: int, total: int, lang: str =
     set_slide_bg(slide)
     if lang == "en":
         add_header_footer(slide, "Product Evolution", idx, total,
-                          "AegisAI Enterprise • 4-Stage Product Evolution",
-                          "AI Studio (3.8–3.6 Flash) ➔ Antigravity (3.8 Flash) ➔ Self-Audit ➔ Enterprise RC")
+                          "AegisAI Enterprise • 4-Stage Multi-Model Evolution",
+                          "3.6 Flash (PoC) ➔ 3.1 Pro (Arch) + 3.8 Flash (Build) ➔ 4.0 Argon + Opus 5.5 Max (Hardening & QA) ➔ RC")
         add_title_block(
             slide,
-            "End-to-End Engineering Lifecycle",
+            "End-to-End Multi-Model Engineering Lifecycle",
             "How We Built, Self-Audited, and Validated AegisAI",
-            "A four-stage agentic software engineering journey from rapid Proof of Concept to Enterprise Release Candidate.",
+            "A four-stage right-sized multi-model engineering journey (80% Flash • 10% Argon • 5% 3.1 Pro • 5% Opus 5.5 Max).",
         )
         cards = [
-            ("Phase 1 • Proof of Concept", "1. Prototyped in Google AI Studio (Gemini 3.8 to 3.6 Flash)", [
-                "• Built the initial Proof of Concept in Google AI Studio using Gemini 3.8 Flash with dynamic fallback to Gemini 3.6 Flash.",
-                "• Validated structured JSON Schema output generation, multi-chapter normative reasoning, and initial React UI scaffolding.",
+            ("Phase 1 • Proof of Concept (~6% Tokens)", "1. Prototyped in Google AI Studio (Gemini 3.6 Flash — $6.53)", [
+                "• Built the initial Proof of Concept in Google AI Studio using Gemini 3.6 Flash (~45 iterations, 4.20M In / 0.90M Out tokens @ official $0.75/$3.75).",
+                "• Validated structured JSON Schema output generation, multimodal PDF/diagram ingestion, and initial React UI scaffolding.",
                 "• Proved that Flash-class models with strict system instructions and temperature 0.0 evaluate complex security controls accurately.",
             ], CARD_BLUE_BG, BORDER_BLUE, TEXT_SKY, TEXT_SKY),
-            ("Phase 2 • Full-Stack Engineering", "2. Migrated to Google Antigravity (Worked Upon with 3.8 Flash)", [
-                "• Moved the repository into Google Antigravity (AGY) powered by Gemini 3.8 Flash.",
-                "• Executed 171+ conversational engineering prompts across 7 structured phases to build the Express/TypeScript backend, parallel Map-Reduce evaluator, keyless GCP Live Scanner, Firestore persistence, and 16 bilingual PDF manuals.",
-                "• Deployed to Google Cloud Run behind Identity-Aware Proxy (IAP).",
+            ("Phase 2 • Architecture (5%) & Bulk Build (74%)", "2. Architected in 3.1 Pro ($14.06) & Built in 3.8 Flash ($70.65)", [
+                "• Architecture (Gemini 3.1 Pro, 5%): Designed the 4-layer Zero-Trust topology, 12-batch Map-Reduce engine, 265-control taxonomy & Firestore security model.",
+                "• Bulk Construction (Gemini 3.8 Flash, 74%): 171+ prompts in Google Antigravity building Express/React 19, GCP Scanner, 17 PDF manuals ($65.85) & live self-audits ($4.80).",
+                "• Combined Flash family (3.6 + 3.8) handled 80% of all tokens for $77.18 USD ($38.59 Batch/Flex).",
             ], CARD_BLUE_BG, BORDER_BLUE, TEXT_BLUE, TEXT_BLUE),
-            ("Phase 3 • Dogfooding & Hardening", "3. Self-Audited Codebase & Docs Against AegisAI Itself", [
-                "• Uploaded AegisAI's own codebase and 10-PDF documentation bundle (Originaldocs.zip) into the live Cloud Run app to run a full OWASP AI-SVS v1.0 + ISO/IEC 42001:2023 audit.",
-                "• Baseline self-audit (MULTI-2026-0437) scored 68.9% and flagged 35 gaps (6 Failed, 29 Missing Evidence).",
-                "• Remediated both documentation and application, re-auditing at 97.8% (MULTI-2026-8983, 100% ISO 42001, 0 failures).",
+            ("Phase 3 • Self-Audit, Hardening (10%) & QA (5%)", "3. Self-Audited (68.9%➔97.8%) + Hardened in Argon & Opus 5.5", [
+                "• Baseline self-audit (MULTI-2026-0437) on Originaldocs.zip scored 68.9% and flagged 35 gaps (6 Failed, 29 Missing Evidence).",
+                "• Gemini 4.0 Argon (10%, $25.70): Keyless Vertex AI ADC, Cloud IAP perimeter, 308 Firestore rules unit tests & 4K/8K architecture diagrams.",
+                "• Claude Opus 5.5 Max (5%, $96.45): Adversarial red-team review, constant-time auth, SSRF/DNS rebinding fixes & QA ➔ 97.8% (MULTI-2026-8983, 0 failures).",
             ], CARD_GREEN_BG, BORDER_GREEN, TEXT_GREEN, TEXT_GREEN),
             ("Phase 4 • Enterprise Field Validation", "4. Release Candidate (RC) Presented to Industry Leaders", [
                 "• Presented the hardened Release Candidate (RC) to three flagship Mexican organizations:",
@@ -492,29 +492,29 @@ def slide_evolution_4stages(prs: Presentation, idx: int, total: int, lang: str =
         ]
     else:
         add_header_footer(slide, "Evolución del Producto", idx, total,
-                          "AegisAI Enterprise • Evolución del Producto en 4 Etapas",
-                          "AI Studio (3.8–3.6 Flash) ➔ Antigravity (3.8 Flash) ➔ Auto-Auditoría ➔ Release Candidate")
+                          "AegisAI Enterprise • Evolución Multi-Modelo en 4 Etapas",
+                          "3.6 Flash (PoC) ➔ 3.1 Pro (Arq.) + 3.8 Flash (Build) ➔ 4.0 Argon + Opus 5.5 Max (Hardening y QA) ➔ RC")
         add_title_block(
             slide,
-            "Ciclo de Vida de Ingeniería de Extremo a Extremo",
+            "Ciclo de Vida de Ingeniería Multi-Modelo de Extremo a Extremo",
             "Cómo Construimos, Auto-Auditamos y Validamos AegisAI",
-            "Un recorrido de ingeniería agéntica en cuatro etapas desde la prueba de concepto hasta el Release Candidate empresarial.",
+            "Un recorrido de ingeniería multi-modelo en cuatro etapas (80% Flash • 10% Argon • 5% 3.1 Pro • 5% Opus 5.5 Max).",
         )
         cards = [
-            ("Fase 1 • Prueba de Concepto (PoC)", "1. Prototipado en Google AI Studio (Gemini 3.8 a 3.6 Flash)", [
-                "• Construcción de la Prueba de Concepto inicial en Google AI Studio utilizando Gemini 3.8 Flash con conmutación a Gemini 3.6 Flash.",
-                "• Validación de generación bajo JSON Schema estricto, razonamiento normativo multi-capítulo e interfaz inicial en React.",
+            ("Fase 1 • Prueba de Concepto (~6% Tokens)", "1. Prototipado en Google AI Studio (Gemini 3.6 Flash — $6.53)", [
+                "• Construcción de la Prueba de Concepto inicial en Google AI Studio utilizando Gemini 3.6 Flash (~45 iteraciones, 4.20M In / 0.90M Out tokens @ $0.75/$3.75).",
+                "• Validación de generación bajo JSON Schema estricto, ingesta multimodal de PDFs/diagramas e interfaz inicial en React.",
                 "• Demostró que los modelos Flash con temperatura 0.0 evalúan controles complejos de seguridad con precisión determinística.",
             ], CARD_BLUE_BG, BORDER_BLUE, TEXT_SKY, TEXT_SKY),
-            ("Fase 2 • Ingeniería Full-Stack", "2. Migración a Google Antigravity (Desarrollado con 3.8 Flash)", [
-                "• Migración del código base a Google Antigravity (AGY) operando con Gemini 3.8 Flash.",
-                "• Ejecución de más de 171 prompts de ingeniería en 7 fases para construir el backend Express/TypeScript, el motor Map-Reduce, el GCP Live Scanner, Firestore y los 16 manuales PDF bilingües.",
-                "• Desplegado en Google Cloud Run detrás de Identity-Aware Proxy (IAP).",
+            ("Fase 2 • Arquitectura (5%) y Construcción (74%)", "2. Arquitectura en 3.1 Pro ($14.06) y Build en 3.8 Flash ($70.65)", [
+                "• Arquitectura (Gemini 3.1 Pro, 5%): Diseño de topología Zero-Trust de 4 capas, motor Map-Reduce de 12 lotes, taxonomía de 265 controles y aislamiento Firestore.",
+                "• Construcción Masiva (Gemini 3.8 Flash, 74%): 171+ prompts en Google Antigravity construyendo Express/React 19, GCP Scanner, 17 PDFs ($65.85) y auto-auditorías ($4.80).",
+                "• La familia Flash combinada (3.6 + 3.8) procesó el 80% de todos los tokens por $77.18 USD ($38.59 Batch/Flex).",
             ], CARD_BLUE_BG, BORDER_BLUE, TEXT_BLUE, TEXT_BLUE),
-            ("Fase 3 • Dogfooding y Endurecimiento", "3. Auto-Auditoría de Código y Manuales contra AegisAI", [
-                "• Con el prototipo en Cloud Run, cargamos el propio código y paquete de 10 PDFs de AegisAI (Originaldocs.zip) dentro de la plataforma para auditarla contra OWASP AI-SVS v1.0 e ISO/IEC 42001:2023.",
-                "• La auto-auditoría base (MULTI-2026-0437) obtuvo 68.9% y detectó 35 brechas (6 Fallidos, 29 Falta Evidencia).",
-                "• Remediamos manuales y aplicación, alcanzando 97.8% en re-auditoría (MULTI-2026-8983, 100% ISO 42001, 0 fallos).",
+            ("Fase 3 • Auto-Auditoría, Hardening (10%) y QA (5%)", "3. Auto-Auditado (68.9%➔97.8%) + Endurecido en Argon y Opus 5.5", [
+                "• La auto-auditoría base (MULTI-2026-0437) sobre Originaldocs.zip obtuvo 68.9% y detectó 35 brechas (6 Fallidos, 29 Falta Evidencia).",
+                "• Gemini 4.0 Argon (10%, $25.70): Vertex AI ADC sin llaves, perímetro Cloud IAP, 308 pruebas Firestore y diagramas ejecutivos 4K/8K.",
+                "• Claude Opus 5.5 Max (5%, $96.45): Revisión red-team adversarial, auth en tiempo constante, filtros SSRF/DNS y QA ➔ 97.8% (MULTI-2026-8983, 0 fallos).",
             ], CARD_GREEN_BG, BORDER_GREEN, TEXT_GREEN, TEXT_GREEN),
             ("Fase 4 • Validación Empresarial", "4. Release Candidate (RC) Presentado a Líderes en México", [
                 "• Presentación del Release Candidate (RC) endurecido ante tres organizaciones líderes:",
@@ -651,7 +651,7 @@ def slide_rc_roadshow(prs: Presentation, idx: int, total: int, lang: str = "en")
             "• Use Case Focus: Standardizing AI adoption, customer chatbots, and automated marketing compliance across hundreds of member franchises.",
             "• Key Capabilities Demonstrated:",
             "  – LFPC (Profeco 2026) compliance: preventing deceptive AI commercial patterns and enforcing Art. 56 5-day cooling-off retraction.",
-            "  – BYOF Engine: Custom franchise governance templates with low-cost Flash evaluations ($0.08/audit).",
+            "  – BYOF Engine: Custom franchise governance templates with low-cost Flash evaluations ($0.43/audit standard or $0.21 Batch).",
         ], badge="National Franchise Ecosystem", bg_color=CARD_GREEN_BG, border_color=BORDER_GREEN, title_color=TEXT_GREEN, badge_color=TEXT_GREEN, font_size=9.5)
 
         add_card(slide, 8.85, 2.12, 3.88, 3.55, "Grupo Coppel", [
@@ -687,7 +687,7 @@ def slide_rc_roadshow(prs: Presentation, idx: int, total: int, lang: str = "en")
             "• Enfoque del Caso de Uso: Estandarización de gobernanza de IA, chatbots comerciales y publicidad automatizada en redes de franquicias.",
             "• Capacidades Clave Demostradas:",
             "  – Cumplimiento LFPC (Profeco 2026): prevención de patrones oscuros y retracto comercial de 5 días (Art. 56).",
-            "  – Motor BYOF: Marcos normativos propios para franquicias con auditorías Flash de ultra bajo costo ($0.08 USD).",
+            "  – Motor BYOF: Marcos normativos propios para franquicias con auditorías Flash de bajo costo ($0.43 USD estándar o $0.21 Batch).",
         ], badge="Ecosistema Nacional de Franquicias", bg_color=CARD_GREEN_BG, border_color=BORDER_GREEN, title_color=TEXT_GREEN, badge_color=TEXT_GREEN, font_size=9.5)
 
         add_card(slide, 8.85, 2.12, 3.88, 3.55, "Grupo Coppel", [
@@ -706,90 +706,284 @@ def slide_rc_roadshow(prs: Presentation, idx: int, total: int, lang: str = "en")
 def slide_finops_per_audit(prs: Presentation, idx: int, total: int, lang: str = "en"):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide)
-    if lang == "en":
-        add_header_footer(slide, "Unit Economics & Model Benchmark", idx, total,
-                          "AegisAI Enterprise • Unit Economics & Model Cost Benchmark",
-                          "Telemetry Source: Cloud Firestore (aegis-ai-db) Audits MULTI-2026-0437, 8983, 0507 & 1250")
-        add_title_block(
-            slide,
-            "FinOps Analysis: Cost per Complete OWASP AI-SVS + ISO/IEC 42001 Audit",
-            "Gemini (3.8 Flash, 3.1 Pro, 4.0 Argon) vs. Claude (Fable 5.1, Opus 5.5)",
-            "Calculated from real production Firestore token telemetry across 12 Map-Reduce LLM calls per full dual-standard audit.",
-        )
-        headers = [
-            "Model Tier",
-            "API Rate Card (In / Out per 1M)",
-            "Standard Audit (370K In + 40K Out)",
-            "Full 10-PDF Bundle (1.64M In + 86.5K Out)",
-            "Multiplier vs. Gemini 3.8 Flash",
-        ]
-        rows = [
-            ["Gemini 3.8 Flash (Production)", "$0.15 / $0.60", "$0.08 USD ($0.0795)", "$0.30 USD ($0.2979)", "1.0x (Baseline)"],
-            ["Gemini 3.1 Pro", "$1.25 / $10.00", "$0.86 USD ($0.8625)", "$2.92 USD ($2.9150)", "9.8x – 10.8x"],
-            ["Gemini 4.0 Argon (Frontier)", "$2.00 / $12.00", "$1.22 USD ($1.2200)", "$4.32 USD ($4.3180)", "14.5x – 15.3x"],
-            ["Claude Fable 5.1 Medium", "$3.00 / $15.00", "$1.71 USD ($1.7100)", "$6.22 USD ($6.2175)", "20.9x – 21.5x Costlier"],
-            ["Claude Opus 5.5 Max", "$15.00 / $75.00", "$8.55 USD ($8.5500)", "$31.09 USD ($31.0875)", "104.4x – 107.5x Costlier"],
-        ]
-        add_styled_table(slide, 0.6, 2.08, 12.133, 2.55, headers, rows, [2.733, 2.2, 2.4, 2.6, 2.2], highlight_row_Zero=True, font_size=9.5)
+    is_en = lang == "en"
+    add_header_footer(
+        slide,
+        "Unit Economics & Model Benchmark" if is_en else "Economía Unitaria y Benchmark",
+        idx,
+        total,
+        "AegisAI Enterprise • Unit Economics & Model Cost Benchmark (Official 2026 Rate Cards)"
+        if is_en
+        else "AegisAI Enterprise • Economía Unitaria por Auditoría (Tarifas Oficiales 2026)",
+        "Telemetry Source: Cloud Firestore (aegis-ai-db) Audits MULTI-2026-0437, 8983, 0507 & 1250"
+        if is_en
+        else "Fuente: Telemetría Real en Cloud Firestore (aegis-ai-db) Auditorías MULTI-2026-0437, 8983, 0507 y 1250",
+    )
+    add_title_block(
+        slide,
+        "FinOps Analysis: Cost per Complete OWASP AI-SVS + ISO/IEC 42001 Audit"
+        if is_en
+        else "Análisis FinOps: Costo por Auditoría Completa OWASP AI-SVS + ISO/IEC 42001",
+        "Gemini (3.8 Flash, 4.0 Argon, 3.1 Pro) vs. Claude (Fable 5.1, Opus 5.5)",
+        "Calculated from real production Firestore token telemetry using Official 2026 Rate Cards per full dual-standard audit."
+        if is_en
+        else "Calculado con telemetría real de tokens en Firestore bajo Tarifas Oficiales 2026 por auditoría multi-estándar.",
+    )
 
-        add_card(slide, 0.6, 4.82, 3.88, 1.9, "Real Telemetry Basis (Firestore)", [
-            "• Standard Audit (MULTI-2026-0507 / 1250): Avg 368,827 input + 39,812 output tokens.",
-            "• Full 10-PDF ZIP Audit (MULTI-2026-0437 / 8983): Avg 1,638,410 input + 86,495 output tokens across 12 batch calls (~136K context/call).",
-        ], border_color=BORDER_GREEN, title_color=TEXT_GREEN, font_size=9.0)
+    # 1. Top 4 Hero KPI Cards (y = 2.04, h = 0.86)
+    kpis = [
+        (
+            "STANDARD AUDIT (3.8 FLASH)" if is_en else "AUDITORÍA ESTÁNDAR (3.8 FLASH)",
+            "$0.43 USD",
+            "Batch/Flex Tier: $0.21 USD" if is_en else "Nivel Batch/Flex: $0.21 USD",
+            BORDER_GREEN,
+            TEXT_GREEN,
+            CARD_GREEN_BG,
+        ),
+        (
+            "10-PDF SUITE AUDIT (3.8 FLASH)" if is_en else "SUITE 10 PDFS (3.8 FLASH)",
+            "$1.55 USD",
+            "1.64M In + 86.5K Out ($0.78 Batch)",
+            BORDER_SKY,
+            TEXT_SKY,
+            CARD_BLUE_BG,
+        ),
+        (
+            "COST ADVANTAGE VS. OPUS 5.5" if is_en else "VENTAJA VS. OPUS 5.5 MAX",
+            "20.0x Cheaper" if is_en else "20.0x Menor",
+            "40.0x vs Batch • 6.7x vs Std Opus" if is_en else "40.0x vs Batch • 6.7x vs Opus Est.",
+            BORDER_AMBER,
+            TEXT_AMBER,
+            CARD_BG,
+        ),
+        (
+            "MONTHLY OPEX SAVINGS (1K AUDITS)" if is_en else "AHORRO OPEX MENSUAL (1K AUD.)",
+            "95.0% Saved" if is_en else "95.0% Ahorro",
+            "$428/mo vs. $8,550/mo (Opus Max)" if is_en else "$428/mes vs. $8,550/mes (Opus Max)",
+            BORDER_PURPLE,
+            TEXT_PURPLE,
+            CARD_PURPLE_BG,
+        ),
+    ]
+    kpi_w = 2.91
+    kpi_gap = 0.164
+    for i, (k_lbl, k_val, k_sub, b_col, t_col, bg_col) in enumerate(kpis):
+        kx = 0.6 + i * (kpi_w + kpi_gap)
+        box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(kx), Inches(2.04), Inches(kpi_w), Inches(0.84))
+        box.fill.solid()
+        box.fill.fore_color.rgb = bg_col
+        box.line.color.rgb = b_col
+        box.line.width = Pt(1.5)
+        tf = box.text_frame
+        tf.word_wrap = True
+        tf.margin_left = Inches(0.12)
+        tf.margin_top = Inches(0.06)
+        p0 = tf.paragraphs[0]
+        r0 = p0.add_run()
+        r0.text = k_lbl
+        r0.font.name = "Arial"
+        r0.font.size = Pt(7.5)
+        r0.font.bold = True
+        r0.font.color.rgb = t_col
+        p1 = tf.add_paragraph()
+        r1 = p1.add_run()
+        r1.text = k_val
+        r1.font.name = "Arial"
+        r1.font.size = Pt(15.5)
+        r1.font.bold = True
+        r1.font.color.rgb = TEXT_WHITE
+        p2 = tf.add_paragraph()
+        r2 = p2.add_run()
+        r2.text = k_sub
+        r2.font.name = "Arial"
+        r2.font.size = Pt(7.5)
+        r2.font.color.rgb = TEXT_MUTED
 
-        add_card(slide, 4.72, 4.82, 3.88, 1.9, "Annual FinOps @ 1,000 Audits/Yr", [
-            "• Gemini 3.8 Flash: $298 / yr (Full ZIP) or $80 / yr (Std)",
-            "• Gemini 3.1 Pro: $2,915 / yr (Full ZIP) or $863 / yr (Std)",
-            "• Gemini 4.0 Argon: $4,318 / yr (Full ZIP) or $1,220 / yr",
-        ], border_color=BORDER_BLUE, title_color=TEXT_BLUE, font_size=9.0)
+    # 2. Left Panel: Horizontal Dual-Bar Chart (x=0.6, y=3.00, w=7.05, h=3.82)
+    left_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(3.00), Inches(7.05), Inches(3.82))
+    left_card.fill.solid()
+    left_card.fill.fore_color.rgb = CARD_BG
+    left_card.line.color.rgb = BORDER_SUBTLE
+    left_card.line.width = Pt(1)
 
-        add_card(slide, 8.85, 4.82, 3.88, 1.9, "Competitor Spend @ 1,000 Audits/Yr", [
-            "• Claude Fable 5.1 Medium: $6,218 / yr (21x higher)",
-            "• Claude Opus 5.5 Max: $31,088 / yr (104x higher)",
-            "• Savings with Gemini 3.8 Flash: >99% cost reduction.",
-        ], border_color=BORDER_AMBER, title_color=TEXT_AMBER, font_size=9.0)
-    else:
-        add_header_footer(slide, "Economía Unitaria y Benchmark", idx, total,
-                          "AegisAI Enterprise • Economía Unitaria por Auditoría",
-                          "Fuente: Telemetría Real en Cloud Firestore (aegis-ai-db) Auditorías MULTI-2026-0437, 8983, 0507 y 1250")
-        add_title_block(
-            slide,
-            "Análisis FinOps: Costo por Auditoría Completa OWASP AI-SVS + ISO/IEC 42001",
-            "Gemini (3.8 Flash, 3.1 Pro, 4.0 Argon) vs. Claude (Fable 5.1, Opus 5.5)",
-            "Calculado con telemetría real de tokens en Firestore a través de las 12 llamadas Map-Reduce por auditoría multi-estándar.",
-        )
-        headers = [
-            "Modelo de IA",
-            "Tarifa API (In / Out por 1M)",
-            "Auditoría Estándar (370K In + 40K Out)",
-            "Suite 10 PDFs (1.64M In + 86.5K Out)",
-            "Multiplicador vs. 3.8 Flash",
-        ]
-        rows = [
-            ["Gemini 3.8 Flash (Producción)", "$0.15 / $0.60", "$0.08 USD ($0.0795)", "$0.30 USD ($0.2979)", "1.0x (Base)"],
-            ["Gemini 3.1 Pro", "$1.25 / $10.00", "$0.86 USD ($0.8625)", "$2.92 USD ($2.9150)", "9.8x – 10.8x"],
-            ["Gemini 4.0 Argon (Frontier)", "$2.00 / $12.00", "$1.22 USD ($1.2200)", "$4.32 USD ($4.3180)", "14.5x – 15.3x"],
-            ["Claude Fable 5.1 Medium", "$3.00 / $15.00", "$1.71 USD ($1.7100)", "$6.22 USD ($6.2175)", "20.9x – 21.5x más caro"],
-            ["Claude Opus 5.5 Max", "$15.00 / $75.00", "$8.55 USD ($8.5500)", "$31.09 USD ($31.0875)", "104.4x – 107.5x más caro"],
-        ]
-        add_styled_table(slide, 0.6, 2.08, 12.133, 2.55, headers, rows, [2.733, 2.2, 2.4, 2.6, 2.2], highlight_row_Zero=True, font_size=9.5)
+    lt_tb = slide.shapes.add_textbox(Inches(0.76), Inches(3.07), Inches(6.75), Inches(0.42))
+    lt_tf = lt_tb.text_frame
+    lt_tf.word_wrap = True
+    lt_tf.margin_left = lt_tf.margin_top = 0
+    lp0 = lt_tf.paragraphs[0]
+    lr0 = lp0.add_run()
+    lr0.text = (
+        "Per-Audit Cost & Multiplier Benchmark (Standard Audit vs. 10-PDF Suite)"
+        if is_en
+        else "Benchmark de Costo por Auditoría y Multiplicador (Estándar vs. Suite 10 PDFs)"
+    )
+    lr0.font.name = "Arial"
+    lr0.font.size = Pt(10.5)
+    lr0.font.bold = True
+    lr0.font.color.rgb = TEXT_WHITE
 
-        add_card(slide, 0.6, 4.82, 3.88, 1.9, "Base de Telemetría Real (Firestore)", [
-            "• Auditoría Estándar (MULTI-2026-0507 / 1250): Promedio 368,827 tokens entrada + 39,812 salida.",
-            "• Auditoría ZIP 10 PDFs (MULTI-2026-0437 / 8983): Promedio 1,638,410 entrada + 86,495 salida en 12 lotes (~136K contexto/llamada).",
-        ], border_color=BORDER_GREEN, title_color=TEXT_GREEN, font_size=9.0)
+    bars_data = [
+        ("Gemini 3.8 Flash", "$0.75 / $3.75", "Std: $0.43 (Batch $0.21)", "10-PDF: $1.55 ($0.78)", "1.0x Base", 0.25, 0.45, BORDER_GREEN, TEXT_GREEN),
+        ("Gemini 4.0 Argon", "$2.00 / $10.00", "Std: $1.14 USD", "10-PDF: $4.15 USD", "2.67x", 0.52, 0.85, BORDER_SKY, TEXT_SKY),
+        ("Gemini 3.1 Pro", "$2.00 / $12.00", "Std: $1.22 USD", "10-PDF: $4.32 USD", "2.78x–2.85x", 0.58, 0.92, BORDER_BLUE, TEXT_BLUE),
+        ("Claude Fable 5.1", "$3.00 / $15.00", "Std: $1.71 USD", "10-PDF: $6.22 USD", "4.0x (8x Batch)", 0.82, 1.30, BORDER_AMBER, TEXT_AMBER),
+        ("Claude Opus 5.5 Max", "$15.00 / $75.00", "Std: $8.55 (Std $2.85)", "10-PDF: $31.09 ($10.36)", "20.0x (40x Batch)", 2.15, 3.15, BORDER_RED, TEXT_RED),
+    ]
 
-        add_card(slide, 4.72, 4.82, 3.88, 1.9, "FinOps Anual @ 1,000 Auditorías/Año", [
-            "• Gemini 3.8 Flash: $298 / año (ZIP) o $80 / año (Estándar)",
-            "• Gemini 3.1 Pro: $2,915 / año (ZIP) o $863 / año (Estándar)",
-            "• Gemini 4.0 Argon: $4,318 / año (ZIP) o $1,220 / año",
-        ], border_color=BORDER_BLUE, title_color=TEXT_BLUE, font_size=9.0)
+    for idx_b, (m_name, m_rate, c_std, c_zip, mult_str, w_std, w_zip, bar_col, txt_col) in enumerate(bars_data):
+        ry = 3.48 + idx_b * 0.65
+        row_bg = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.75), Inches(ry), Inches(6.75), Inches(0.58))
+        row_bg.fill.solid()
+        row_bg.fill.fore_color.rgb = CARD_GREEN_BG if idx_b == 0 else TABLE_ROW_ALT
+        row_bg.line.color.rgb = bar_col if idx_b in (0, 4) else BORDER_SUBTLE
+        row_bg.line.width = Pt(1)
 
-        add_card(slide, 8.85, 4.82, 3.88, 1.9, "Gasto Competidor @ 1,000 Auditorías/Año", [
-            "• Claude Fable 5.1 Medium: $6,218 / año (21x mayor)",
-            "• Claude Opus 5.5 Max: $31,088 / año (104x mayor)",
-            "• Ahorro con Gemini 3.8 Flash: >99% de reducción en costos.",
-        ], border_color=BORDER_AMBER, title_color=TEXT_AMBER, font_size=9.0)
+        # Model Name & Rate
+        mtb = slide.shapes.add_textbox(Inches(0.84), Inches(ry + 0.04), Inches(2.15), Inches(0.50))
+        mtf = mtb.text_frame
+        mtf.word_wrap = True
+        mtf.margin_left = mtf.margin_top = 0
+        mp0 = mtf.paragraphs[0]
+        mr0 = mp0.add_run()
+        mr0.text = m_name
+        mr0.font.name = "Arial"
+        mr0.font.size = Pt(9.0)
+        mr0.font.bold = True
+        mr0.font.color.rgb = txt_col
+        mp1 = mtf.add_paragraph()
+        mr1 = mp1.add_run()
+        mr1.text = f"{m_rate} • {mult_str}"
+        mr1.font.name = "Courier New"
+        mr1.font.size = Pt(7.2)
+        mr1.font.color.rgb = TEXT_LIGHT
+
+        # Top Horizontal Bar (Standard Audit)
+        b1 = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.98), Inches(ry + 0.11), Inches(w_std), Inches(0.14))
+        b1.fill.solid()
+        b1.fill.fore_color.rgb = bar_col
+        b1.line.fill.background()
+
+        # Bottom Horizontal Bar (10-PDF Bundle)
+        b2 = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.98), Inches(ry + 0.31), Inches(w_zip), Inches(0.12))
+        b2.fill.solid()
+        b2.fill.fore_color.rgb = txt_col
+        b2.line.color.rgb = bar_col
+        b2.line.width = Pt(0.75)
+
+        # Right cost labels
+        ctb = slide.shapes.add_textbox(Inches(5.45), Inches(ry + 0.04), Inches(1.98), Inches(0.50))
+        ctf = ctb.text_frame
+        ctf.word_wrap = True
+        ctf.margin_left = ctf.margin_top = 0
+        cp0 = ctf.paragraphs[0]
+        cp0.alignment = PP_ALIGN.RIGHT
+        cr0 = cp0.add_run()
+        cr0.text = c_std
+        cr0.font.name = "Courier New"
+        cr0.font.size = Pt(8.0)
+        cr0.font.bold = True
+        cr0.font.color.rgb = txt_col
+        cp1 = ctf.add_paragraph()
+        cp1.alignment = PP_ALIGN.RIGHT
+        cr1 = cp1.add_run()
+        cr1.text = c_zip
+        cr1.font.name = "Courier New"
+        cr1.font.size = Pt(7.5)
+        cr1.font.color.rgb = TEXT_MUTED
+
+    # 3. Right Top Panel: Vertical Column Chart for Monthly Run-Rate @ 1,000 Audits (x=7.82, y=3.00, w=4.91, h=2.38)
+    rt_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(7.82), Inches(3.00), Inches(4.91), Inches(2.38))
+    rt_card.fill.solid()
+    rt_card.fill.fore_color.rgb = CARD_BG
+    rt_card.line.color.rgb = BORDER_BLUE
+    rt_card.line.width = Pt(1)
+
+    rt_tb = slide.shapes.add_textbox(Inches(7.96), Inches(3.07), Inches(4.65), Inches(0.42))
+    rt_tf = rt_tb.text_frame
+    rt_tf.word_wrap = True
+    rt_tf.margin_left = rt_tf.margin_top = 0
+    rtp0 = rt_tf.paragraphs[0]
+    rtr0 = rtp0.add_run()
+    rtr0.text = (
+        "Monthly Run-Rate @ 1,000 Std Audits / Mo"
+        if is_en
+        else "Gasto Mensual @ 1,000 Auditorías Est. / Mes"
+    )
+    rtr0.font.name = "Arial"
+    rtr0.font.size = Pt(10.2)
+    rtr0.font.bold = True
+    rtr0.font.color.rgb = TEXT_WHITE
+
+    vcols = [
+        ("Flash\nBatch", "$214", 0.16, BORDER_GREEN, TEXT_GREEN),
+        ("3.8\nFlash", "$428", 0.26, BORDER_GREEN, TEXT_GREEN),
+        ("4.0\nArgon", "$1.14K", 0.44, BORDER_SKY, TEXT_SKY),
+        ("3.1\nPro", "$1.22K", 0.48, BORDER_BLUE, TEXT_BLUE),
+        ("Fable\n5.1", "$1.71K", 0.64, BORDER_AMBER, TEXT_AMBER),
+        ("Opus\nStd", "$2.85K", 0.88, BORDER_AMBER, TEXT_AMBER),
+        ("Opus\nMax", "$8.55K", 1.34, BORDER_RED, TEXT_RED),
+    ]
+    base_y = 4.92
+    col_w = 0.44
+    col_gap = 0.21
+    for ci, (c_lbl, c_val, c_h, c_col, c_tcol) in enumerate(vcols):
+        cx = 8.00 + ci * (col_w + col_gap)
+        cy = base_y - c_h
+        cbar = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(cx), Inches(cy), Inches(col_w), Inches(c_h))
+        cbar.fill.solid()
+        cbar.fill.fore_color.rgb = c_col
+        cbar.line.fill.background()
+
+        # Value above bar
+        vtb = slide.shapes.add_textbox(Inches(cx - 0.10), Inches(cy - 0.22), Inches(col_w + 0.20), Inches(0.20))
+        vtf = vtb.text_frame
+        vtf.word_wrap = False
+        vtf.margin_left = vtf.margin_top = 0
+        vp = vtf.paragraphs[0]
+        vp.alignment = PP_ALIGN.CENTER
+        vr = vp.add_run()
+        vr.text = c_val
+        vr.font.name = "Courier New"
+        vr.font.size = Pt(7.2)
+        vr.font.bold = True
+        vr.font.color.rgb = c_tcol
+
+        # Label below bar
+        ltb = slide.shapes.add_textbox(Inches(cx - 0.08), Inches(base_y + 0.03), Inches(col_w + 0.16), Inches(0.38))
+        ltf = ltb.text_frame
+        ltf.word_wrap = True
+        ltf.margin_left = ltf.margin_top = 0
+        lp = ltf.paragraphs[0]
+        lp.alignment = PP_ALIGN.CENTER
+        lr = lp.add_run()
+        lr.text = c_lbl
+        lr.font.name = "Arial"
+        lr.font.size = Pt(6.8)
+        lr.font.bold = True
+        lr.font.color.rgb = TEXT_LIGHT
+
+    # 4. Right Bottom Panel: Firestore Token Telemetry Composition (x=7.82, y=5.50, w=4.91, h=1.32)
+    add_card(
+        slide,
+        7.82,
+        5.50,
+        4.91,
+        1.32,
+        "Production Token Telemetry (Cloud Firestore)" if is_en else "Telemetría Real de Tokens (Cloud Firestore)",
+        [
+            "• Profile A (MULTI-2026-0507/1250): 368,827 In (90.3%) + 39,812 Out (9.7%)"
+            if is_en
+            else "• Perfil A (MULTI-2026-0507/1250): 368,827 In (90.3%) + 39,812 Out (9.7%)",
+            "• Profile B 10-PDFs (MULTI-2026-0437/8983): 1,638,410 In (95%) + 86,495 Out (5%)"
+            if is_en
+            else "• Perfil B 10-PDFs (MULTI-2026-0437/8983): 1,638,410 In (95%) + 86,495 Out (5%)",
+        ],
+        bg_color=CARD_GREEN_BG,
+        border_color=BORDER_GREEN,
+        title_color=TEXT_GREEN,
+        font_size=8.2,
+    )
+
 
 
 def slide_total_build_cost(prs: Presentation, idx: int, total: int, lang: str = "en"):
@@ -797,54 +991,56 @@ def slide_total_build_cost(prs: Presentation, idx: int, total: int, lang: str = 
     set_slide_bg(slide)
     if lang == "en":
         add_header_footer(slide, "Total Build Cost (TCO)", idx, total,
-                          "AegisAI Enterprise • Total Cost of Development (TCO)",
-                          "99.0% Savings vs. Claude Opus 5.5 Max • 99.98% Savings vs. Traditional Software Staffing")
+                          "AegisAI Enterprise • Multi-Model Development TCO ($215.24 Direct / $319.80 Full Agentic Loops)",
+                          "88.9% Savings vs. 100% Claude Opus 5.5 Max ($1,930.85) • 99.77% Savings vs. Traditional Staffing")
         add_title_block(
             slide,
-            "Engineering ROI & Development Cost Breakdown",
-            "How Much Money We Spent Creating AegisAI: $19.41 USD Total",
-            "Complete accounting of all AI token consumption and Google Cloud infrastructure from initial AI Studio PoC to Enterprise RC.",
+            "Engineering ROI & Multi-Model Lifecycle Breakdown (80% Flash • 10% Argon • 5% Pro • 5% Opus)",
+            "How Much Money We Spent Creating AegisAI: $215.24 USD Total",
+            "Right-sized multi-model engineering across AI Studio PoC, System Architecture, Bulk Full-Stack Build, Frontier Hardening & Adversarial QA.",
         )
-        add_stat_card(slide, 0.6, 2.05, 2.85, 1.25, "$19.41", "Total Money Spent creating AegisAI (Tokens + GCP Infra)", TEXT_GREEN, BORDER_GREEN)
-        add_stat_card(slide, 3.69, 2.05, 2.85, 1.25, "~71.0M", "Total Input Tokens across AI Studio, Antigravity & Audits", TEXT_SKY, BORDER_BLUE)
-        add_stat_card(slide, 6.78, 2.05, 2.85, 1.25, "$1,931", "What the exact same token volume costs on Claude Opus 5.5 Max", TEXT_AMBER, BORDER_AMBER)
+        add_stat_card(slide, 0.6, 2.05, 2.85, 1.25, "$215.24", "Total Money Spent creating AegisAI ($319.80 w/ agentic loops)", TEXT_GREEN, BORDER_GREEN)
+        add_stat_card(slide, 3.69, 2.05, 2.85, 1.25, "~71.0M", "Total Input Tokens (80% Flash for $77.18 • 10% Argon • 5% Pro • 5% Opus)", TEXT_SKY, BORDER_BLUE)
+        add_stat_card(slide, 6.78, 2.05, 2.85, 1.25, "$1,931", "What the exact same token volume costs if 100% Claude Opus 5.5 Max", TEXT_AMBER, BORDER_AMBER)
         add_stat_card(slide, 9.88, 2.05, 2.85, 1.25, "~$95,000", "Equivalent traditional engineering cost (4 engineers × 3 mos)", TEXT_PURPLE, BORDER_PURPLE)
 
-        headers = ["Development Phase", "Platform & Model Used", "Volume / Engineering Activity", "Actual Spend", "If Run on Opus 5.5"]
+        headers = ["Development Phase & Role", "Model & Token Share", "Engineering Scope & Token Volume", "Actual Spend (2026)", "If 100% Opus 5.5"]
         rows = [
-            ["1. Proof of Concept (PoC)", "Google AI Studio (Gemini 3.8–3.6 Flash)", "~45 iterations • ~4.2M In / ~0.9M Out tokens", "$1.17 USD", "$130.50 USD"],
-            ["2. Core Full-Stack & Manuals (Phases 1–7)", "Google Antigravity (Gemini 3.8 Flash)", "171 logged prompts + 16 PDFs • ~38.0M In / ~6.5M Out", "$9.60 USD", "$1,057.50 USD"],
-            ["3. Cloud Hardening & OWASP/ISO Fixes", "Google Antigravity (Gemini 3.8 Flash)", "Cloud IAP, 308 rules tests, 35 controls • ~24.0M In / ~3.8M Out", "$5.88 USD", "$645.00 USD"],
-            ["4. Live Self-Audits & QA Suites", "Vertex AI (Gemini 3.8 Flash)", "MULTI-2026-0437, 8983, 0507, 1250 • ~4.8M In / ~0.32M Out", "$0.91 USD", "$96.00 USD"],
-            ["5. Google Cloud Infrastructure", "Cloud Build, Cloud Run, Firestore, IAM", "9 container builds, scale-to-zero runtime, aegis-ai-db", "$1.85 USD", "$1.85 USD"],
-            ["TOTAL APP CREATION SPEND", "AI Studio + Antigravity + Google Cloud", "~71.0M Input + ~11.52M Output Tokens + Cloud Infra", "$19.41 USD", "$1,930.85 USD"],
+            ["1. Rapid PoC & Schema Validation", "AI Studio • Gemini 3.6 Flash (~6%)", "~45 PoC iterations, JSON schema & PDFs • 4.20M In / 0.90M Out", "$6.53 USD", "$130.50 USD"],
+            ["2. System Architecture & Blueprint", "Antigravity • Gemini 3.1 Pro (5%)", "Zero-Trust topology, 12-batch Map-Reduce, 265 controls • 3.55M In / 0.58M Out", "$14.06 USD", "$96.45 USD"],
+            ["3. Bulk Build, Manuals & Audits", "Antigravity + Vertex • Gemini 3.8 Flash (74%)", "171 prompts, 17 PDFs ($65.85) + Self-Audits ($4.80) • 52.60M In / 8.32M Out", "$70.65 USD", "$1,412.70 USD"],
+            ["4. Frontier Hardening & Visuals", "Antigravity • Gemini 4.0 Argon (10%)", "Keyless Vertex ADC, Cloud IAP, 308 rules tests, 4K • 7.10M In / 1.15M Out", "$25.70 USD", "$192.90 USD"],
+            ["5. Adversarial Bugfixing & QA", "Antigravity • Claude Opus 5.5 Max (5%)", "Red-team review, constant-time auth, SSRF/DNS fixes • 3.55M In / 0.58M Out", "$96.45 USD", "$96.45 USD"],
+            ["6. Google Cloud Serverless Infra", "Cloud Build (9x), Cloud Run, Firestore, IAP", "9 container builds, scale-to-zero runtime, aegis-ai-db", "$1.85 USD", "$1.85 USD"],
+            ["TOTAL APP CREATION SPEND", "80% Flash • 10% Argon • 5% Pro • 5% Opus", "~71.0M Input + ~11.52M Output Tokens + Cloud Infra", "$215.24 USD", "$1,930.85 USD"],
         ]
-        add_styled_table(slide, 0.6, 3.45, 12.133, 3.25, headers, rows, [2.8, 2.8, 3.533, 1.5, 1.5], highlight_row_Zero=False, font_size=9.0)
+        add_styled_table(slide, 0.6, 3.42, 12.133, 3.30, headers, rows, [2.75, 2.85, 3.533, 1.5, 1.5], highlight_row_Zero=False, font_size=8.3)
     else:
         add_header_footer(slide, "Costo Total de Creación (TCO)", idx, total,
-                          "AegisAI Enterprise • Costo Total de Desarrollo (TCO)",
-                          "99.0% de Ahorro vs. Claude Opus 5.5 Max • 99.98% de Ahorro vs. Desarrollo Tradicional")
+                          "AegisAI Enterprise • Costo Total Multi-Modelo ($215.24 Directo / $319.80 c/ Bucles Agénticos)",
+                          "88.9% de Ahorro vs. 100% Claude Opus 5.5 Max ($1,930.85) • 99.77% de Ahorro vs. Desarrollo Tradicional")
         add_title_block(
             slide,
-            "ROI de Ingeniería y Desglose de Costos de Desarrollo",
-            "Cuánto Dinero Gastamos Creando AegisAI: $19.41 USD en Total",
-            "Contabilidad completa de consumo de tokens de IA e infraestructura Google Cloud desde el PoC en AI Studio hasta el Release Candidate.",
+            "ROI de Ingeniería y Desglose Multi-Modelo (80% Flash • 10% Argon • 5% Pro • 5% Opus)",
+            "Cuánto Dinero Gastamos Creando AegisAI: $215.24 USD en Total",
+            "Ingeniería multi-modelo optimizada entre PoC en AI Studio, Arquitectura de Sistema, Construcción Full-Stack, Hardening y QA Adversarial.",
         )
-        add_stat_card(slide, 0.6, 2.05, 2.85, 1.25, "$19.41", "Inversión Total para crear AegisAI (Tokens IA + GCP)", TEXT_GREEN, BORDER_GREEN)
-        add_stat_card(slide, 3.69, 2.05, 2.85, 1.25, "~71.0M", "Tokens Totales de Entrada en AI Studio, Antigravity y QA", TEXT_SKY, BORDER_BLUE)
-        add_stat_card(slide, 6.78, 2.05, 2.85, 1.25, "$1,931", "Costo del mismo volumen de tokens en Claude Opus 5.5 Max", TEXT_AMBER, BORDER_AMBER)
+        add_stat_card(slide, 0.6, 2.05, 2.85, 1.25, "$215.24", "Inversión Total creando AegisAI ($319.80 c/ bucles agénticos)", TEXT_GREEN, BORDER_GREEN)
+        add_stat_card(slide, 3.69, 2.05, 2.85, 1.25, "~71.0M", "Tokens de Entrada Totales (80% Flash por $77.18 • 10% Argon • 5% Pro • 5% Opus)", TEXT_SKY, BORDER_BLUE)
+        add_stat_card(slide, 6.78, 2.05, 2.85, 1.25, "$1,931", "Costo del mismo volumen si se ejecuta 100% en Claude Opus 5.5 Max", TEXT_AMBER, BORDER_AMBER)
         add_stat_card(slide, 9.88, 2.05, 2.85, 1.25, "~$95,000", "Costo equivalente de ingeniería tradicional (4 ing. × 3 meses)", TEXT_PURPLE, BORDER_PURPLE)
 
-        headers = ["Fase de Desarrollo", "Plataforma y Modelo Utilizado", "Volumen / Actividad de Ingeniería", "Gasto Real", "En Opus 5.5 Max"]
+        headers = ["Fase y Rol en el Ciclo", "Modelo y Participación", "Alcance de Ingeniería y Tokens", "Gasto Real (2026)", "Si 100% Opus 5.5"]
         rows = [
-            ["1. Prueba de Concepto (PoC)", "Google AI Studio (Gemini 3.8–3.6 Flash)", "~45 iteraciones • ~4.2M In / ~0.9M Out tokens", "$1.17 USD", "$130.50 USD"],
-            ["2. Full-Stack y Manuales (Fases 1–7)", "Google Antigravity (Gemini 3.8 Flash)", "171 prompts + 16 PDFs • ~38.0M In / ~6.5M Out tokens", "$9.60 USD", "$1,057.50 USD"],
-            ["3. Endurecimiento Cloud y Remediación", "Google Antigravity (Gemini 3.8 Flash)", "Cloud IAP, 308 tests, 35 controles • ~24.0M In / ~3.8M Out", "$5.88 USD", "$645.00 USD"],
-            ["4. Auto-Auditorías en Vivo y QA", "Vertex AI (Gemini 3.8 Flash)", "MULTI-2026-0437, 8983, 0507, 1250 • ~4.8M In / ~0.32M Out", "$0.91 USD", "$96.00 USD"],
-            ["5. Infraestructura Google Cloud", "Cloud Build, Cloud Run, Firestore, IAM", "9 builds de contenedor, Cloud Run scale-to-zero, aegis-ai-db", "$1.85 USD", "$1.85 USD"],
-            ["INVERSIÓN TOTAL DE CREACIÓN", "AI Studio + Antigravity + Google Cloud", "~71.0M Entrada + ~11.52M Salida + Infraestructura Cloud", "$19.41 USD", "$1,930.85 USD"],
+            ["1. PoC Rápido y Esquemas JSON", "AI Studio • Gemini 3.6 Flash (~6%)", "~45 iteraciones PoC, JSON schema y PDFs • 4.20M In / 0.90M Out", "$6.53 USD", "$130.50 USD"],
+            ["2. Arquitectura y Diseño Base", "Antigravity • Gemini 3.1 Pro (5%)", "Topología Zero-Trust, Map-Reduce 12 lotes, 265 controles • 3.55M In / 0.58M Out", "$14.06 USD", "$96.45 USD"],
+            ["3. Construcción, Manuales y Auditorías", "Antigravity + Vertex • Gemini 3.8 Flash (74%)", "171 prompts, 17 PDFs ($65.85) + Auto-Auditorías ($4.80) • 52.60M In / 8.32M Out", "$70.65 USD", "$1,412.70 USD"],
+            ["4. Hardening Profundo y Diagramas", "Antigravity • Gemini 4.0 Argon (10%)", "Vertex ADC sin llaves, Cloud IAP, 308 tests Firestore, 4K • 7.10M In / 1.15M Out", "$25.70 USD", "$192.90 USD"],
+            ["5. Bugfixing Adversarial y QA", "Antigravity • Claude Opus 5.5 Max (5%)", "Red-team cruzado, auth tiempo constante, filtros SSRF/DNS • 3.55M In / 0.58M Out", "$96.45 USD", "$96.45 USD"],
+            ["6. Infraestructura Serverless GCP", "Cloud Build (9x), Cloud Run, Firestore, IAP", "9 builds de contenedor, Cloud Run scale-to-zero, aegis-ai-db", "$1.85 USD", "$1.85 USD"],
+            ["INVERSIÓN TOTAL DE CREACIÓN", "80% Flash • 10% Argon • 5% Pro • 5% Opus", "~71.0M Entrada + ~11.52M Salida + Infraestructura Cloud", "$215.24 USD", "$1,930.85 USD"],
         ]
-        add_styled_table(slide, 0.6, 3.45, 12.133, 3.25, headers, rows, [2.8, 2.8, 3.533, 1.5, 1.5], highlight_row_Zero=False, font_size=9.0)
+        add_styled_table(slide, 0.6, 3.42, 12.133, 3.30, headers, rows, [2.75, 2.85, 3.533, 1.5, 1.5], highlight_row_Zero=False, font_size=8.3)
 
 
 def slide_problem(prs: Presentation, idx: int, total: int, lang: str = "en"):
@@ -1447,9 +1643,9 @@ def slide_roadmap(prs: Presentation, idx: int, total: int, lang: str = "en"):
             "One-click automated synthesis of Terraform Modules and Helm Charts that directly apply Cloud IAP, VPC Service Controls, and Model Armor remediation recipes to cloud clusters.",
         ], badge="Q2 2027 • Long Term", border_color=BORDER_AMBER, title_color=TEXT_AMBER, badge_color=TEXT_AMBER, font_size=10.0)
 
-        add_card(slide, 0.6, 5.52, 12.133, 1.2, "🎯 Conclusion: Enterprise AI Assurance Built for $19.41, Auditing for $0.08–$0.30", [
-            "By combining Google AI Studio, Google Antigravity, Vertex AI Gemini 3.8 Flash, Model Garden/Registry, Model Armor, AutoSxS, Model Monitoring, and SCC AI Protection, AegisAI delivers world-class OWASP AI-SVS & ISO/IEC 42001 assurance at >99% lower cost."
-        ], bg_color=CARD_GREEN_BG, border_color=BORDER_GREEN, title_color=TEXT_WHITE, font_size=9.6)
+        add_card(slide, 0.6, 5.52, 12.133, 1.2, "🎯 Conclusion: Enterprise AI Assurance Built for $215.24 Multi-Model, Auditing for $0.43–$1.55", [
+            "By combining Gemini 3.6 & 3.8 Flash (80%) for rapid PoC and bulk construction with Gemini 3.1 Pro (5%) for architecture and Gemini 4.0 Argon (10%) + Claude Opus 5.5 Max (5%) for deep hardening & QA, AegisAI was built at 88.9% lower cost than all-Opus ($1,931) and 99.77% lower cost than traditional staffing (~$95k)."
+        ], bg_color=CARD_GREEN_BG, border_color=BORDER_GREEN, title_color=TEXT_WHITE, font_size=9.5)
     else:
         add_header_footer(slide, "Visión Estratégica", idx, total,
                           "AegisAI Enterprise • Visión Estratégica 2026–2027",
@@ -1472,19 +1668,21 @@ def slide_roadmap(prs: Presentation, idx: int, total: int, lang: str = "en"):
             "Síntesis automatizada en un clic de módulos de Terraform y Helm Charts que aplican directamente políticas de Cloud IAP, VPC Service Controls y Model Armor en clústeres productivos.",
         ], badge="Q2 2027 • Largo Plazo", border_color=BORDER_AMBER, title_color=TEXT_AMBER, badge_color=TEXT_AMBER, font_size=10.0)
 
-        add_card(slide, 0.6, 5.52, 12.133, 1.2, "🎯 Conclusión: Aseguramiento Empresarial Construido por $19.41, Auditando por $0.08–$0.30", [
-            "Combinando Google AI Studio, Google Antigravity, Vertex AI Gemini 3.8 Flash, Model Garden/Registry, Model Armor, AutoSxS, Model Monitoring y SCC AI Protection, AegisAI opera con >99% menor costo que las alternativas tradicionales."
-        ], bg_color=CARD_GREEN_BG, border_color=BORDER_GREEN, title_color=TEXT_WHITE, font_size=9.6)
+        add_card(slide, 0.6, 5.52, 12.133, 1.2, "🎯 Conclusión: Aseguramiento Empresarial Construido por $215.24 Multi-Modelo, Auditando por $0.43–$1.55", [
+            "Combinando Gemini 3.6 y 3.8 Flash (80%) para el PoC y la construcción masiva con Gemini 3.1 Pro (5%) en arquitectura y Gemini 4.0 Argon (10%) + Claude Opus 5.5 Max (5%) para hardening profundo y QA, AegisAI logra 88.9% de ahorro vs. 100% Opus ($1,931) y 99.77% de ahorro vs. ingeniería tradicional (~$95k)."
+        ], bg_color=CARD_GREEN_BG, border_color=BORDER_GREEN, title_color=TEXT_WHITE, font_size=9.5)
 
+
+from generate_deployment_ecosystem_slide import add_deployment_ecosystem_pptx_slide
 
 # ==============================================================================
 # ASSEMBLE THE 3 DECKS (IN BOTH ENGLISH AND SPANISH)
 # ==============================================================================
 
 def build_executive_deck(lang: str = "en") -> Presentation:
-    """Deck 1: 11-Slide Hardened Executive & Technical Presentation."""
+    """Deck 1: 12-Slide Hardened Executive & Technical Presentation."""
     prs = new_widescreen_prs()
-    total = 11
+    total = 12
     if lang == "en":
         add_cover_slide(
             prs, 1, total,
@@ -1533,14 +1731,15 @@ def build_executive_deck(lang: str = "en") -> Presentation:
     slide_workflow(prs, 8, total, lang)
     slide_specs_benchmarks(prs, 9, total, lang)
     slide_controls_enforced(prs, 10, total, lang)
-    slide_roadmap(prs, 11, total, lang)
+    add_deployment_ecosystem_pptx_slide(prs, 11, total, lang)
+    slide_roadmap(prs, 12, total, lang)
     return prs
 
 
 def build_evolution_finops_deck(lang: str = "en") -> Presentation:
-    """Deck 2: 13-Slide Evolution, Self-Audit, RC Roadshow, GCP Protection & FinOps Presentation."""
+    """Deck 2: 14-Slide Evolution, Self-Audit, RC Roadshow, GCP Protection & FinOps Presentation."""
     prs = new_widescreen_prs()
-    total = 13
+    total = 14
     if lang == "en":
         add_cover_slide(
             prs, 1, total,
@@ -1548,14 +1747,14 @@ def build_evolution_finops_deck(lang: str = "en") -> Presentation:
             "From Google AI Studio PoC to Antigravity Enterprise RC",
             "Assurance, Self-Auditing &",
             "GenAI FinOps Economics",
-            "How AegisAI Enterprise was prototyped in Google AI Studio (Gemini 3.8 to 3.6 Flash), engineered in Google Antigravity (Gemini 3.8 Flash), self-audited against OWASP AI-SVS v1.0 & ISO/IEC 42001:2023 (68.9% ➔ 97.8%), and presented as an RC to Farmacias del Ahorro, Asociación Mexicana de Franquicias, and Grupo Coppel—for a total build cost of $19.41 USD.",
+            "How AegisAI Enterprise was prototyped in Google AI Studio (Gemini 3.6 Flash), architected with Gemini 3.1 Pro (5%), built at scale in Google Antigravity (Gemini 3.8 Flash — 80% combined Flash), self-audited (68.9% ➔ 97.8%), hardened & QA-verified with Gemini 4.0 Argon (10%) and Claude Opus 5.5 Max (5%), and presented as an RC to Farmacias del Ahorro, AMF, and Grupo Coppel—for a total build cost of $215.24 USD.",
             [
-                ("1. AI Studio PoC (Gemini 3.8–3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
-                ("2. Antigravity Full-Stack Build (3.8 Flash)", CARD_BLUE_BG, TEXT_BLUE),
-                ("3. Self-Audit Loop: 68.9% ➔ 97.8%", CARD_GREEN_BG, TEXT_GREEN),
+                ("1. AI Studio PoC (Gemini 3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
+                ("2. Arch (3.1 Pro 5%) + Build (3.8 Flash 74%)", CARD_BLUE_BG, TEXT_BLUE),
+                ("3. Hardening & QA (4.0 Argon 10% + Opus 5.5 5%)", CARD_GREEN_BG, TEXT_GREEN),
                 ("4. RC: Farmacias del Ahorro • AMF • Coppel", CARD_PURPLE_BG, TEXT_PURPLE),
                 ("5. 3-Phase GCP ISO 42001 Protection Stack", CARD_BLUE_BG, TEXT_SKY),
-                ("6. Total App Build Cost: $19.41 USD", CARD_GREEN_BG, TEXT_GREEN),
+                ("6. Total App Build Cost: $215.24 USD", CARD_GREEN_BG, TEXT_GREEN),
             ],
             "AegisAI Enterprise v2.5 • Evolution & FinOps Presentation",
             "Google Cloud Run • Vertex AI • Model Armor • AutoSxS • SCC AI Protection",
@@ -1567,14 +1766,14 @@ def build_evolution_finops_deck(lang: str = "en") -> Presentation:
             "De PoC en Google AI Studio a Release Candidate en Antigravity",
             "Aseguramiento, Auto-Auditoría y",
             "Economía FinOps en GenAI",
-            "Cómo AegisAI Enterprise fue prototipado en Google AI Studio (Gemini 3.8 a 3.6 Flash), desarrollado en Google Antigravity (Gemini 3.8 Flash), auto-auditado bajo OWASP AI-SVS v1.0 e ISO/IEC 42001:2023 (68.9% ➔ 97.8%), y presentado como Release Candidate ante Farmacias del Ahorro, Asociación Mexicana de Franquicias y Grupo Coppel—por $19.41 USD en total.",
+            "Cómo AegisAI Enterprise fue prototipado en Google AI Studio (Gemini 3.6 Flash), diseñado con Gemini 3.1 Pro (5%), construido a escala en Google Antigravity (Gemini 3.8 Flash — 80% combinado en Flash), auto-auditado (68.9% ➔ 97.8%), endurecido y verificado en QA con Gemini 4.0 Argon (10%) y Claude Opus 5.5 Max (5%), y presentado como RC ante Farmacias del Ahorro, AMF y Grupo Coppel—por $215.24 USD en total.",
             [
-                ("1. PoC en AI Studio (Gemini 3.8–3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
-                ("2. Ingeniería en Antigravity (3.8 Flash)", CARD_BLUE_BG, TEXT_BLUE),
-                ("3. Auto-Auditoría: 68.9% ➔ 97.8%", CARD_GREEN_BG, TEXT_GREEN),
+                ("1. PoC en AI Studio (Gemini 3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
+                ("2. Arq. (3.1 Pro 5%) + Build (3.8 Flash 74%)", CARD_BLUE_BG, TEXT_BLUE),
+                ("3. Hardening y QA (4.0 Argon 10% + Opus 5.5 5%)", CARD_GREEN_BG, TEXT_GREEN),
                 ("4. RC: Farmacias del Ahorro • AMF • Coppel", CARD_PURPLE_BG, TEXT_PURPLE),
                 ("5. Stack GCP ISO 42001 en 3 Fases", CARD_BLUE_BG, TEXT_SKY),
-                ("6. Costo Total de Creación: $19.41 USD", CARD_GREEN_BG, TEXT_GREEN),
+                ("6. Costo Total de Creación: $215.24 USD", CARD_GREEN_BG, TEXT_GREEN),
             ],
             "AegisAI Enterprise v2.5 • Presentación de Evolución y FinOps",
             "Google Cloud Run • Vertex AI • Model Armor • AutoSxS • SCC AI Protection",
@@ -1591,14 +1790,15 @@ def build_evolution_finops_deck(lang: str = "en") -> Presentation:
     slide_gcp_iso42001_lifecycle(prs, 10, total, lang)
     slide_workflow(prs, 11, total, lang)
     slide_controls_enforced(prs, 12, total, lang)
-    slide_roadmap(prs, 13, total, lang)
+    add_deployment_ecosystem_pptx_slide(prs, 13, total, lang)
+    slide_roadmap(prs, 14, total, lang)
     return prs
 
 
 def build_unified_master_deck_16(lang: str = "en") -> Presentation:
-    """Deck 3: 16-Slide Unified Master Presentation combining EVERY unique slide from both presentations."""
+    """Deck 3: 17-Slide Unified Master Presentation combining EVERY unique slide from both presentations."""
     prs = new_widescreen_prs()
-    total = 16
+    total = 17
     if lang == "en":
         add_cover_slide(
             prs, 1, total,
@@ -1606,14 +1806,14 @@ def build_unified_master_deck_16(lang: str = "en") -> Presentation:
             "Google Cloud AI Security, ISO/IEC 42001 AIMS & GenAI FinOps Platform",
             "AegisAI Enterprise: Architecture,",
             "Evolution, Self-Audit & FinOps",
-            "Complete 16-Slide Master Deck combining the Executive & Technical Architecture Presentation with the 3-Phase ISO 42001 Google Cloud Protection Stack, 4-Stage Product Evolution (AI Studio ➔ Antigravity), Recursive Self-Audit (68.9% ➔ 97.8%), Enterprise RC Roadshow, and FinOps Model Cost Benchmark ($19.41 USD Total Build Cost).",
+            "Complete 17-Slide Master Deck combining the Executive & Technical Architecture Presentation with the 3-Phase ISO 42001 Google Cloud Protection Stack, 4-Stage Multi-Model Evolution (3.6 Flash PoC ➔ 3.1 Pro Arch + 3.8 Flash Build ➔ 4.0 Argon + Opus 5.5 Max Hardening/QA), Recursive Self-Audit (68.9% ➔ 97.8%), Enterprise RC Roadshow, Deployment & Ecosystem Value, and FinOps Benchmark ($215.24 USD Total Build Cost).",
             [
-                ("1. AI Studio PoC (Gemini 3.8–3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
-                ("2. Antigravity Full-Stack Build (3.8 Flash)", CARD_BLUE_BG, TEXT_BLUE),
-                ("3. Self-Audit Loop: 68.9% ➔ 97.8%", CARD_GREEN_BG, TEXT_GREEN),
+                ("1. AI Studio PoC (Gemini 3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
+                ("2. Arch (3.1 Pro 5%) + Build (3.8 Flash 74%)", CARD_BLUE_BG, TEXT_BLUE),
+                ("3. Hardening & QA (4.0 Argon 10% + Opus 5.5 5%)", CARD_GREEN_BG, TEXT_GREEN),
                 ("4. RC: Farmacias del Ahorro • AMF • Coppel", CARD_PURPLE_BG, TEXT_PURPLE),
                 ("5. 3-Phase GCP ISO 42001 Protection Stack", CARD_BLUE_BG, TEXT_SKY),
-                ("6. Total App Build Cost: $19.41 USD", CARD_GREEN_BG, TEXT_GREEN),
+                ("6. Total App Build Cost: $215.24 USD", CARD_GREEN_BG, TEXT_GREEN),
             ],
             "AegisAI Enterprise v2.5 • Unified Master Presentation",
             "Google Cloud Run • Vertex AI • Model Armor • AutoSxS • SCC AI Protection",
@@ -1625,14 +1825,14 @@ def build_unified_master_deck_16(lang: str = "en") -> Presentation:
             "Google Cloud AI Security, ISO/IEC 42001 AIMS & GenAI FinOps Platform",
             "AegisAI Enterprise: Arquitectura,",
             "Evolución, Auto-Auditoría y FinOps",
-            "Presentación Maestra Unificada de 16 diapositivas que combina la Presentación Ejecutiva y de Arquitectura Técnica con el Stack GCP ISO 42001 en 3 Fases, la Evolución en 4 Etapas (AI Studio ➔ Antigravity), Auto-Auditoría (68.9% ➔ 97.8%), Roadshow del Release Candidate y Benchmark FinOps ($19.41 USD de Costo Total de Creación).",
+            "Presentación Maestra Unificada de 17 diapositivas que combina la Presentación Ejecutiva y de Arquitectura Técnica con el Stack GCP ISO 42001 en 3 Fases, la Evolución Multi-Modelo en 4 Etapas (3.6 Flash PoC ➔ 3.1 Pro Arq. + 3.8 Flash Build ➔ 4.0 Argon + Opus 5.5 Max Hardening/QA), Auto-Auditoría (68.9% ➔ 97.8%), Roadshow RC, Despliegue y Ecosistema, y Benchmark FinOps ($215.24 USD de Costo Total de Creación).",
             [
-                ("1. PoC en AI Studio (Gemini 3.8–3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
-                ("2. Ingeniería en Antigravity (3.8 Flash)", CARD_BLUE_BG, TEXT_BLUE),
-                ("3. Auto-Auditoría: 68.9% ➔ 97.8%", CARD_GREEN_BG, TEXT_GREEN),
+                ("1. PoC en AI Studio (Gemini 3.6 Flash)", CARD_BLUE_BG, TEXT_SKY),
+                ("2. Arq. (3.1 Pro 5%) + Build (3.8 Flash 74%)", CARD_BLUE_BG, TEXT_BLUE),
+                ("3. Hardening y QA (4.0 Argon 10% + Opus 5.5 5%)", CARD_GREEN_BG, TEXT_GREEN),
                 ("4. RC: Farmacias del Ahorro • AMF • Coppel", CARD_PURPLE_BG, TEXT_PURPLE),
                 ("5. Stack GCP ISO 42001 en 3 Fases", CARD_BLUE_BG, TEXT_SKY),
-                ("6. Costo Total de Creación: $19.41 USD", CARD_GREEN_BG, TEXT_GREEN),
+                ("6. Costo Total de Creación: $215.24 USD", CARD_GREEN_BG, TEXT_GREEN),
             ],
             "AegisAI Enterprise v2.5 • Presentación Maestra Unificada",
             "Google Cloud Run • Vertex AI • Model Armor • AutoSxS • SCC AI Protection",
@@ -1652,7 +1852,8 @@ def build_unified_master_deck_16(lang: str = "en") -> Presentation:
     slide_workflow(prs, 13, total, lang)
     slide_specs_benchmarks(prs, 14, total, lang)
     slide_controls_enforced(prs, 15, total, lang)
-    slide_roadmap(prs, 16, total, lang)
+    add_deployment_ecosystem_pptx_slide(prs, 16, total, lang)
+    slide_roadmap(prs, 17, total, lang)
     return prs
 
 

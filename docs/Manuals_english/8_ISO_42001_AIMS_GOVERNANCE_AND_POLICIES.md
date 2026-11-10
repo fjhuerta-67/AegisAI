@@ -15,7 +15,7 @@
 
 1. **Organizational Role in the AI Value Chain:**
    - **AI System Developer & Integrator:** AegisAI designs, develops, and maintains the multi-normative Map-Reduce evaluation orchestrator (`server.ts`), deterministic scoring engine, and automated remediation synthesis pipeline (`remediatedArchitectureGenerator.ts`).
-   - **AI Service Consumer (Cloud PaaS):** AegisAI consumes foundational models (`gemini-3.8-flash`, `gemini-3.1-flash-lite`, `gemini-3.7-flash`) hosted on **Google Cloud Vertex AI** under an enterprise data-zero-retention agreement.
+   - **AI Service Consumer (Cloud PaaS):** AegisAI consumes foundational models (`gemini-3.8-flash`, `gemini-3.5-flash-lite`, `gemini-3.7-flash`) hosted on **Google Cloud Vertex AI** under an enterprise data-zero-retention agreement.
 2. **External Context & Regulatory Matrix:**
    - **Cybersecurity & Technical Assurance:** OWASP Artificial Intelligence Security Verification Standard (AI-SVS v1.0, Levels L1, L2, and L3).
    - **AI Governance & Management:** ISO/IEC 42001:2023 and NIST AI Risk Management Framework (AI RMF 1.0).
@@ -102,7 +102,7 @@ In compliance with `Annex A.4.1` (*Documentation of resources*), the organizatio
 | Asset ID | Category | Component Name / Identifier | Provider & Hosting Region | Purpose & Criticality | Security & Integrity Control |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `MOD-001` | Foundation LLM (Primary) | `gemini-3.8-flash` | Google Cloud Vertex AI (`us-central1`) | Primary Map-Reduce control evaluation & level classification (`High`). | ADC via `aegis-runner-sa`, `temperature: 0.0`, `responseLogprobs: false`, zero data retention. |
-| `MOD-002` | Foundation LLM (Fallback 1) | `gemini-3.1-flash-lite` | Google Cloud Vertex AI (`us-central1`) | High-throughput fallback during quota spikes (`Medium`). | Automatic failover in `executeAIWithFallback` with 180s `AbortController` timeout. |
+| `MOD-002` | Foundation LLM (Fallback 1) | `gemini-3.5-flash-lite` | Google Cloud Vertex AI (`us-central1`) | High-throughput fallback during quota spikes (`Medium`). | Automatic failover in `executeAIWithFallback` with 180s `AbortController` timeout. |
 | `MOD-003` | Foundation LLM (Fallback 2) | `gemini-3.7-flash` | Google Cloud Vertex AI (`us-central1`) | Secondary resilient fallback (`Medium`). | Schema-constrained JSON generation (`buildBatchChaptersSchema`). |
 | `DAT-001` | Normative Knowledge Base | `owasp-aisvs-context.md` | Immutable Container Image (`/app`) | Authoritative OWASP AI-SVS v1.0 control catalog (`Critical`). | Read-only filesystem (`chmod -R a-w /app`) + SHA-256 verification (`integrity-manifest.json`). |
 | `DAT-002` | Normative Knowledge Base | `iso-42001-context.md` | Immutable Container Image (`/app`) | Authoritative ISO/IEC 42001:2023 clauses & Annex A catalog (`Critical`). | Read-only filesystem (`chmod -R a-w /app`) + SHA-256 verification (`integrity-manifest.json`). |
@@ -144,7 +144,7 @@ In compliance with `Clause 9.1` and OWASP AI-SVS `C08.4`, AegisAI continuously m
 | :--- | :--- | :--- | :--- | :--- |
 | `KPI-AIMS-01` | **Citation Grounding Rate (Faithfulness)** | $\ge 95.0\%$ of approved controls | Ratio of `Aprobado` controls containing a non-empty verbatim quote (`textoEvidencia.length >= 12`) to total `Aprobado` controls (`recordAimsEvaluationMetrics`). | Structured `WARNING` alert in Cloud Logging if `< 95%`; triggers prompt calibration review. |
 | `KPI-AIMS-02` | **Inference Determinism Index** | $100.0\%$ at `temperature: 0.0` | Verified on every evaluation call and via `GET /api/security/posture`. | Immediate deployment block if default temperature $\neq 0.0$. |
-| `KPI-AIMS-03` | **End-to-End Evaluation Latency (P95)** | $\le 180,000\text{ ms}$ per batch | Tracked per Map-Reduce batch with `AbortController` timeout and model fallback telemetry. | Automatic failover to `gemini-3.1-flash-lite` on timeout or HTTP 429/503. |
+| `KPI-AIMS-03` | **End-to-End Evaluation Latency (P95)** | $\le 180,000\text{ ms}$ per batch | Tracked per Map-Reduce batch with `AbortController` timeout and model fallback telemetry. | Automatic failover to `gemini-3.5-flash-lite` on timeout or HTTP 429/503. |
 | `KPI-AIMS-04` | **Active Defense Detection Rate** | $100\%$ of known injection/DoW signatures | Real-time counters for `promptInjectionBlocks` (`C02.10`), `rateLimitRejections` (`C11.1`), and `ssrfBlocks` (`C04.3`). | High-severity `[AEGIS_SECURITY_ALERT]` event dispatched to Cloud Logging (`C12.2`). |
 
 ### 5.2 Internal AIMS Audit Program (`Clause 9.2`)
